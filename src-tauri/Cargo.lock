@@ -338,19 +338,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "botonsito-joselui"
-version = "0.1.0"
-dependencies = [
- "ffmpeg-next",
- "serde",
- "serde_json",
- "tauri",
- "tauri-build",
- "tauri-plugin-opener",
- "which",
-]
-
-[[package]]
 name = "brotli"
 version = "7.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -879,6 +866,19 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.98",
+]
+
+[[package]]
+name = "donkidunk"
+version = "0.1.0"
+dependencies = [
+ "ffmpeg-next",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-opener",
+ "which",
 ]
 
 [[package]]
