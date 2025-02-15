@@ -11,7 +11,8 @@ jobs:
       - name: Install system dependencies
         run: |
           apt update
-          apt install -y --no-install-recommends curl
+          apt upgrade -y
+          apt install -y --no-install-recommends ca-certificates curl
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
         with:
