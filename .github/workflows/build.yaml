@@ -8,6 +8,10 @@ jobs:
     container: jrottenberg/ffmpeg:7.1-ubuntu2404
     steps:
       - uses: actions/checkout@v2
+      - name: Install system dependencies
+        run: |
+          apt update
+          apt install -y --no-install-recommends curl
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
         with:
