@@ -8,6 +8,8 @@ jobs:
     container: jrottenberg/ffmpeg:7.1-ubuntu2404
     env:
       PKG_CONFIG_PATH: /usr/lib/x86_64-linux-gnu
+      LIBRARY_PATH: /usr/lib/x86_64-linux-gnu
+      INCLUDE_PATH: /usr/lib/x86_64-linux-gnu
     steps:
       - uses: actions/checkout@v2
       - name: Install system dependencies
