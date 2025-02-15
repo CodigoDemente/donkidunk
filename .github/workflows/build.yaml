@@ -6,13 +6,15 @@ jobs:
     name: Linux - Build, test and lint
     runs-on: ubuntu-latest
     container: jrottenberg/ffmpeg:7.1-ubuntu2404
+    env:
+      PKG_CONFIG_PATH: /usr/lib/x86_64-linux-gnu
     steps:
       - uses: actions/checkout@v2
       - name: Install system dependencies
         run: |
           apt update
           apt upgrade -y
-          apt install -y --no-install-recommends ca-certificates curl clang pkg-config
+          apt install -y --no-install-recommends ca-certificates curl clang pkg-config libglib2.0-dev
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
         with:
