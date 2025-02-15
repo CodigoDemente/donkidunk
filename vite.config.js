@@ -28,7 +28,9 @@ export default defineConfig(async () => ({
 			ignored: ['**/src-tauri/**']
 		}
 	},
-	resolve: process.env.VITEST ? {
-		conditions: [ 'browser' ]
-	} : undefined
+	resolve: process.env.VITEST
+		? {
+				conditions: ['browser']
+			}
+		: undefined
 }));
