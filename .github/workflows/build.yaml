@@ -1,0 +1,46 @@
+name: build
+on:
+  pull_request:
+jobs:
+  linux:
+    name: Linux - Build, test and lint
+    runs-on: ubuntu-latest
+    container: jrottenberg/ffmpeg-7.1-ubuntu2404
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          components: rustfmt, clippy
+      - name: Setup NodeJS
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.18.3'
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: '10'
+          run_install: true
+      - name: Test frontend
+        run: |
+          pnpm test
+      - name: Lint frontend
+        run: |
+          pnpm lint
+      - name: Test backend
+        working-directory: ./src-tauri
+        run: |
+          cargo test
+      - name: Lint backend
+        working-directory: ./src-tauri
+        run: |
+          cargo clippy -- -D warnings
+      - name: Format backend
+        working-directory: ./src-tauri
+        run: |
+          cargo fmt -- --check
+      - name: Build project
+        run: |
+          pnpm tauri build
