@@ -24,6 +24,7 @@ RUN apt-get install -y \
 # Install rust
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
+RUN rustup default stable
 
 # Install nodejs
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
