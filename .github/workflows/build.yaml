@@ -19,7 +19,6 @@ jobs:
           pnpm lint
       - name: Debug cargo
         run: |
-          . $HOME/.cargo/env
           rustup show
           cargo --version
       - name: Test backend
