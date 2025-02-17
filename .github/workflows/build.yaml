@@ -17,6 +17,11 @@ jobs:
       - name: Lint frontend
         run: |
           pnpm lint
+      - name: Debug cargo
+        run: |
+          source $HOME/.cargo/env
+          rustup show
+          cargo --version
       - name: Test backend
         working-directory: ./src-tauri
         run: |
