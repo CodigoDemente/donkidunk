@@ -45,10 +45,7 @@ jobs:
           node-version: '20'
       - uses: pnpm/action-setup@v4
         with:
-          install: true
-      - name: Install dependencies
-        run: |
-          pnpm install
+          run_install: true
       - name: Test frontend
         run: |
           pnpm test
@@ -57,7 +54,7 @@ jobs:
           pnpm lint
       - name: Build project
         run: |
-          pnpm tauri build --bundles deb
+          pnpm tauri build
       - name: Test backend
         working-directory: ./src-tauri
         run: |
