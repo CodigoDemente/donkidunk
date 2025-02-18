@@ -102,3 +102,49 @@ jobs:
         working-directory: ./src-tauri
         run: |
           cargo fmt -- --check
+  windows:
+    name: Windows - Build, test and lint
+    runs-on: windows-latest
+    env:
+      PKG_CONFIG_PATH: C:\tools\pkgconfiglite\bin
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Chocolatey
+        run: |
+          Set-ExecutionPolicy Bypass -Scope Process -Force; `
+          [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; `
+          iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+      - name: Install system dependencies
+        run: |
+          choco install -y `
+            ffmpeg `
+            llvm `
+            openssl `
+            pkgconfiglite
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: true
+      - name: Test frontend
+        run: |
+          pnpm test
+      - name: Lint frontend
+        run: |
+          pnpm lint
+      - name: Build project
+        run: |
+          pnpm tauri build
+      - name: Test backend
+        working-directory: ./src-tauri
+        run: |
+          cargo test
+      - name: Lint backend
+        working-directory: ./src-tauri
+        run: |
+          cargo clippy -- -D warnings
+      - name: Format backend
+        working-directory: ./src-tauri
+        run: |
+          cargo fmt -- --check
