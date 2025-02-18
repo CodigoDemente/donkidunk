@@ -9,11 +9,13 @@ jobs:
       PKG_CONFIG_PATH: /usr/local/lib:/usr/lib/x86_64-linux-gnu:/usr/share
     steps:
       - uses: actions/checkout@v2
-      - name: Install system dependencies
+      - name: Upgrade system dependencies
         run: |
           sudo apt-get update
           sudo apt upgrade -y
-          RUN sudo apt-get install -y \
+      - name: Install system dependencies
+        run: |
+          sudo apt-get install -y \
               curl wget unzip \
               build-essential cmake pkg-config \
               libgtk-3-dev libgdk-pixbuf2.0-dev \
