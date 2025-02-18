@@ -32,3 +32,41 @@ jobs:
         working-directory: ./src-tauri
         run: |
           cargo fmt -- --check
+  macos:
+    name: MacOS - Build, test and lint
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install system dependencies
+      run: |
+        brew install pkg-config ffmpeg
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+    - uses: pnpm/action-setup@v4
+      with:
+        install: true
+    - name: Install dependencies
+      run: |
+        pnpm install
+    - name: Test frontend
+      run: |
+        pnpm test
+    - name: Lint frontend
+      run: |
+        pnpm lint
+    - name: Build project
+      run: |
+        pnpm tauri build --bundles deb
+    - name: Test backend
+      working-directory: ./src-tauri
+      run: |
+        cargo test
+    - name: Lint backend
+      working-directory: ./src-tauri
+      run: |
+        cargo clippy -- -D warnings
+    - name: Format backend
+      working-directory: ./src-tauri
+      run: |
+        cargo fmt -- --check

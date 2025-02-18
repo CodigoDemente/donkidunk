@@ -1,6 +1,6 @@
 # 🚀 Building a Tauri + Svelte Application with FFmpeg Statically Linked on Ubuntu
 
-This guide provides **step-by-step instructions** to set up and build a **Tauri + Svelte** application with **FFmpeg statically linked** on **Ubuntu (WSL2 or native Linux)**.
+This guide provides **step-by-step instructions** to set up and build a **Tauri + Svelte** application with **FFmpeg dynamically linked** on **Ubuntu (WSL2 or native Linux)**.
 
 ---
 
@@ -21,20 +21,22 @@ Run the following command to install all required dependencies:
 
 ```bash
 sudo apt update && sudo apt install -y \
-    curl wget unzip \
+    curl wget unzip patchelf \
     build-essential cmake pkg-config \
     libgtk-3-dev libgdk-pixbuf2.0-dev \
     libwebkit2gtk-4.1-dev libjavascriptcoregtk-4.1-dev \
     libsoup-3.0-dev \
     libclang-dev clang \
-    libssl-dev \
+    libssl-dev libxdo-dev file\
+    libavutil-dev libavformat-dev libavfilter-dev \
+    libavdevice-dev \
     libayatana-appindicator3-dev librsvg2-dev \
     libx11-dev libxcb1-dev libx11-xcb-dev libxcomposite-dev \
     libxcursor-dev libxdamage-dev libxext-dev libxfixes-dev \
     libxi-dev libxrandr-dev libxrender-dev libxtst-dev \
     libasound2-dev libudev-dev libfreetype6-dev zlib1g-dev \
     libnss3-dev libxss-dev libdbus-1-dev libxkbcommon-dev \
-    fuse libfuse2 desktop-file-utils
+    fuse libfuse2 desktop-file-utils xdg-utils
 ```
 
 This installs:
@@ -68,7 +70,7 @@ source $HOME/.cargo/env
 Node.js is required for the frontend (Svelte + Tauri). Install Node.js and pnpm:
 
 ```bash
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt install -y nodejs
 npm install -g pnpm
 ```
