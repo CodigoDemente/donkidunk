@@ -9,10 +9,9 @@ jobs:
       PKG_CONFIG_PATH: /usr/local/lib:/usr/lib/x86_64-linux-gnu:/usr/share
     steps:
       - uses: actions/checkout@v2
-      - name: Upgrade system dependencies
+      - name: Update system repositories
         run: |
           sudo apt-get update
-          sudo apt upgrade -y
       - name: Install system dependencies
         run: |
           sudo apt-get install -y \
