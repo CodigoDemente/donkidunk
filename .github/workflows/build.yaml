@@ -53,9 +53,6 @@ jobs:
       - name: Lint frontend
         run: |
           pnpm lint
-      - name: Build project
-        run: |
-          pnpm tauri build --bundles deb
       - name: Test backend
         working-directory: ./src-tauri
         run: |
@@ -68,6 +65,9 @@ jobs:
         working-directory: ./src-tauri
         run: |
           cargo fmt -- --check
+      - name: Build project
+        run: |
+          pnpm tauri build
   macos:
     name: MacOS - Build, test and lint
     runs-on: macos-latest
