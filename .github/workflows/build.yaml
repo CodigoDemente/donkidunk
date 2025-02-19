@@ -113,7 +113,14 @@ jobs:
           targets: x86_64-pc-windows-msvc
       - name: Install system dependencies
         run: |
-          choco install -y nsis nodejs-lts ffmpeg
+          choco install -y nsis nodejs-lts ffmpeg pkgconfiglite
+      - name: Install vcpkg
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git C:\vcpkg
+          cd C:\vcpkg
+          .\bootstrap-vcpkg.bat
+          echo "VCPKG_ROOT=C:\\vcpkg" >> $GITHUB_ENV
+          echo "C:\\vcpkg" >> $GITHUB_PATH
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
