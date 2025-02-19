@@ -105,37 +105,32 @@ jobs:
   windows:
     name: Windows - Build, test and lint
     runs-on: windows-latest
-    env:
-      PKG_CONFIG_PATH: C:\tools\pkgconfiglite\bin
     steps:
       - uses: actions/checkout@v2
-      - name: Install Chocolatey
-        run: |
-          Set-ExecutionPolicy Bypass -Scope Process -Force; `
-          [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; `
-          iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+      - name: Set up Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
       - name: Install system dependencies
         run: |
-          choco install -y `
-            ffmpeg `
-            llvm `
-            openssl `
-            pkgconfiglite
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      - uses: pnpm/action-setup@v4
+          choco install -y nsis nodejs-lts python3 ffmpeg
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
         with:
           run_install: true
+      - name: Install dependencies
+        run: |
+          pnpm install
       - name: Test frontend
         run: |
           pnpm test
       - name: Lint frontend
         run: |
           pnpm lint
-      - name: Build project
+      - name: Install WebView2
         run: |
-          pnpm tauri build
+          curl -LO https://go.microsoft.com/fwlink/p/?LinkId=2124703
+          Start-Process -FilePath msedgewebview2setup.exe -ArgumentList "/silent /install" -NoNewWindow -Wait
       - name: Test backend
         working-directory: ./src-tauri
         run: |
@@ -148,3 +143,6 @@ jobs:
         working-directory: ./src-tauri
         run: |
           cargo fmt -- --check
+      - name: Build project
+        run: |
+          pnpm tauri build
