@@ -133,7 +133,8 @@ jobs:
           pnpm lint
       - name: Install WebView2
         run: |
-          curl -o WebView2Installer.exe https://go.microsoft.com/fwlink/p/?LinkId=2124703
+          Remove-Item -Path WebView2Installer.exe -ErrorAction Ignore
+          Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/p/?LinkId=2124703" -OutFile "WebView2Installer.exe"
           if (Test-Path "WebView2Installer.exe") {
             Start-Process -FilePath WebView2Installer.exe -ArgumentList "/silent /install" -NoNewWindow -Wait
           } else {
