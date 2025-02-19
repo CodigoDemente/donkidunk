@@ -129,8 +129,7 @@ jobs:
           pnpm lint
       - name: Install WebView2
         run: |
-          curl -LO https://go.microsoft.com/fwlink/p/?LinkId=2124703
-          Start-Process -FilePath msedgewebview2setup.exe -ArgumentList "/silent /install" -NoNewWindow -Wait
+          winget install --id Microsoft.EdgeWebView2Runtime -e --silent
       - name: Test backend
         working-directory: ./src-tauri
         run: |
