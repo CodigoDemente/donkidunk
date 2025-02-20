@@ -126,6 +126,7 @@ jobs:
             .\bootstrap-vcpkg.bat
             .\vcpkg integrate install
           }
+          cd C:\vcpkg
           .\vcpkg install ffmpeg:x64-windows "--binarysource=clear;nuget,GitHub,readwrite"
           echo "VCPKG_ROOT=C:\\vcpkg" >> $GITHUB_ENV
           echo "C:\\vcpkg" >> $GITHUB_PATH
