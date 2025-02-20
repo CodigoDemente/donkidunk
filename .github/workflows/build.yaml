@@ -112,7 +112,7 @@ jobs:
         with:
           targets: x86_64-pc-windows-msvc
       - name: Cache vcpkg
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: C:\vcpkg
           key: vcpkg-${{ runner.os }}-${{ hashFiles('**/vcpkg.json') }}
@@ -126,7 +126,7 @@ jobs:
             .\bootstrap-vcpkg.bat
             .\vcpkg integrate install
           }
-          .\vcpkg install ffmpeg:x64-windows --binarysource=clear;nuget,GitHub,readwrite
+          .\vcpkg install ffmpeg:x64-windows "--binarysource=clear;nuget,GitHub,readwrite"
           echo "VCPKG_ROOT=C:\\vcpkg" >> $GITHUB_ENV
           echo "C:\\vcpkg" >> $GITHUB_PATH
       - name: Set PKG_CONFIG_PATH
