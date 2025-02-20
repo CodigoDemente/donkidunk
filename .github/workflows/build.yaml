@@ -111,21 +111,30 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-pc-windows-msvc
-      - name: Install system dependencies
+      - name: Cache vcpkg
+        uses: actions/cache@v3
+        with:
+          path: C:\vcpkg
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('**/vcpkg.json') }}
+          restore-keys: |
+            vcpkg-${{ runner.os }}
+      - name: Install vcpkg and ffmpeg
         run: |
-          choco install -y nsis nodejs-lts ffmpeg pkgconfiglite
-      - name: Install vcpkg
-        run: |
-          git clone https://github.com/microsoft/vcpkg.git C:\vcpkg
-          cd C:\vcpkg
-          .\bootstrap-vcpkg.bat
-          .\vcpkg integrate install
-          .\vcpkg install ffmpeg:x64-windows
+          if (-Not (Test-Path "C:\vcpkg")) {
+            git clone https://github.com/microsoft/vcpkg.git C:\vcpkg
+            cd C:\vcpkg
+            .\bootstrap-vcpkg.bat
+            .\vcpkg integrate install
+          }
+          .\vcpkg install ffmpeg:x64-windows --binarysource=clear;nuget,GitHub,readwrite
           echo "VCPKG_ROOT=C:\\vcpkg" >> $GITHUB_ENV
           echo "C:\\vcpkg" >> $GITHUB_PATH
       - name: Set PKG_CONFIG_PATH
         run: |
           echo "PKG_CONFIG_PATH=C:\\vcpkg\\installed\\x64-windows\\lib\\pkgconfig" >> $GITHUB_ENV
+      - name: Install system dependencies
+        run: |
+          choco install -y nsis nodejs-lts pkgconfiglite
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
