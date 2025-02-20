@@ -119,6 +119,9 @@ jobs:
           key: vcpkg-${{ runner.os }}-${{ hashFiles('.github/workflows/build.yaml') }}
           restore-keys: |
             vcpkg-${{ runner.os }}
+      - name: Install system dependencies
+        run: |
+          choco install -y nsis nodejs-lts ffmpeg pkgconfiglite
       - name: Install vcpkg and ffmpeg
         if: steps.cache-vcpkg.outputs.cache-hit != 'true'
         run: |
@@ -126,15 +129,12 @@ jobs:
           cd C:\vcpkg
           .\bootstrap-vcpkg.bat
           .\vcpkg integrate install
-          .\vcpkg install ffmpeg:x64-windows-release "--binarysource=clear;nuget,GitHub,readwrite"
+          .\vcpkg install ffmpeg:x64-windows
       - name: Set env variables
         run: |
           echo "VCPKG_ROOT=C:\\vcpkg" >> $GITHUB_ENV
           echo "C:\\vcpkg" >> $GITHUB_PATH
           echo "PKG_CONFIG_PATH=C:\\vcpkg\\installed\\x64-windows\\lib\\pkgconfig" >> $GITHUB_ENV
-      - name: Install system dependencies
-        run: |
-          choco install -y nsis nodejs-lts pkgconfiglite
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -164,9 +164,7 @@ jobs:
           }
       - name: Debug env
         run: |
-          echo $PKG_CONFIG_PATH
-          echo $VCPKG_ROOT
-          echo $GITHUB_PATH
+          echo $GITHUB_ENV
       - name: Test backend
         working-directory: ./src-tauri
         run: |
