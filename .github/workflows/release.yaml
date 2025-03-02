@@ -18,8 +18,9 @@ jobs:
         with:
           node-version: 20.x
 
-      - name: install frontend dependencies
-        run: pnpm install
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: true
 
       - name: capture release notes
         run: |
@@ -173,14 +174,15 @@ jobs:
         with:
           node-version: 20.x
 
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: true
+
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
           # Those targets are only used on macos runners so it's in an `if` to slightly speed up windows and linux builds.
           targets: ${{ (matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin') || (matrix.platform == 'windows-latest' && 'x86_64-pc-windows-msvc') || '' }}
-
-      - name: install frontend dependencies
-        run: pnpm install
 
       - uses: tauri-apps/tauri-action@v0
         env:
