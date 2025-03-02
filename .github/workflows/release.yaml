@@ -37,10 +37,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          RELEASE_NOTES=$(pnpm semantic-release --dry-run | sed -n '/^##/,$p')
-          echo "RELEASE_NOTES<<EOF" >> $GITHUB_ENV
-          echo "${RELEASE_NOTES}" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
+          {
+            echo "RELEASE_NOTES<<EOF"
+            pnpm semantic-release --dry-run 2>&1 | sed -n '/^##/,$p' $GITHUB_ENV
+            echo "EOF"
+          } >> $GITHUB_ENV
 
       - name: set step output
         id: set-output
