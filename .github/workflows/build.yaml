@@ -67,9 +67,6 @@ jobs:
       - name: Build project
         run: |
           pnpm tauri build
-      - name: Bump version
-        run: |
-          pnpm tauri bump
   macos:
     name: MacOS - Build, test and lint
     runs-on: macos-latest
