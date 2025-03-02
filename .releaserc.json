@@ -1,5 +1,5 @@
 {
-	"branches": ["2-preparar-app-para-desarrollo-y-despliegue"],
+	"branches": ["main"],
 	"plugins": [
 		"@semantic-release/commit-analyzer",
 		"@semantic-release/release-notes-generator",
