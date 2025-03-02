@@ -1,9 +1,8 @@
 name: publish
 on:
-  workflow_run:
-    workflows: ['release']
-    types:
-      - completed
+  push:
+    tags:
+      - 'v*.*.*'
 jobs:
   capture-release-notes:
     runs-on: ubuntu-22.04
