@@ -35,7 +35,7 @@ jobs:
 
       - name: capture release notes
         run: |
-          RELEASE_NOTES=$(pnpm semantic-release --dry-run --branches | sed -n '/^##/,$p')
+          RELEASE_NOTES=$(pnpm semantic-release --dry-run | sed -n '/^##/,$p')
           echo "RELEASE_NOTES=${RELEASE_NOTES}" >> $GITHUB_ENV
 
       - name: set step output
@@ -148,6 +148,7 @@ jobs:
         id: cache-vcpkg
         uses: actions/cache@v4
         with:
+          enableCrossOsArchive: true
           path: C:\vcpkg
           key: vcpkg-${{ runner.os }}-${{ hashFiles('.github/workflows/build.yaml') }}
           restore-keys: |
