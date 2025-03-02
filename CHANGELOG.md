@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/CodigoDemente/donkidunk/compare/v1.0.0...v1.0.1) (2025-03-02)
+
+
+### Bug Fixes
+
+* :bricks: Try to publish a release after main merge ([f7dddd5](https://github.com/CodigoDemente/donkidunk/commit/f7dddd5a867de77d4f0caee8a006825419eddc7c))
+
 # 1.0.0 (2025-03-02)
 
 
