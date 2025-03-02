@@ -34,6 +34,8 @@ jobs:
           run_install: true
 
       - name: capture release notes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           RELEASE_NOTES=$(pnpm semantic-release --dry-run | sed -n '/^##/,$p')
           echo "RELEASE_NOTES=${RELEASE_NOTES}" >> $GITHUB_ENV
