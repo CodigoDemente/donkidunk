@@ -39,7 +39,7 @@ jobs:
         run: |
           {
             echo "RELEASE_NOTES<<EOF"
-            pnpm semantic-release --dry-run 2>&1 | sed -n '/^##/,$p' | sed -e 's/^    */  */g'
+            pnpm semantic-release --dry-run 2>&1 | sed -n '/^##/,$p' | sed -e 's/^    \*/  \*/g'
             echo "EOF"
           } >> $GITHUB_ENV
 
@@ -209,7 +209,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: donkidunk-v${{needs.release.outputs.APP_VERSION}}
+          tagName: v${{needs.release.outputs.APP_VERSION}}
           releaseName: 'Donkidunk v${{needs.release.outputs.APP_VERSION}}'
           releaseBody: ${{ needs.capture-release-notes.outputs.RELEASE_NOTES }}
           releaseDraft: false
