@@ -46,7 +46,11 @@ jobs:
       - name: set step output
         id: set-output
         run: |
-          echo "RELEASE_NOTES=${RELEASE_NOTES}" >> $GITHUB_OUTPUT
+          {
+            echo "RELEASE_NOTES<<EOF"
+            echo "${RELEASE_NOTES}"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
 
   release:
     name: Release
