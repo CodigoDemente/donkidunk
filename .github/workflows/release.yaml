@@ -113,6 +113,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
 
       - name: Update system repositories
         if: matrix.platform == 'ubuntu-latest' # This must match the platform value defined above.
@@ -177,19 +179,6 @@ jobs:
           .\vcpkg integrate install
           .\vcpkg install ffmpeg:x64-windows
 
-      - name: Set up Python
-        if: matrix.platform == 'windows-latest' # This must match the platform value defined above.
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
-
-      - name: Set env variables
-        if: matrix.platform == 'windows-latest' # This must match the platform value defined above.
-        run: |
-          echo "VCPKG_ROOT=C:\\vcpkg" >> $GITHUB_ENV
-          echo "C:\\vcpkg" >> $GITHUB_PATH
-          echo "PKG_CONFIG_PATH=C:\\vcpkg\\installed\\x64-windows\\lib\\pkgconfig" >> $GITHUB_ENV
-
       - name: setup node
         uses: actions/setup-node@v4
         with:
@@ -204,6 +193,28 @@ jobs:
         with:
           # Those targets are only used on macos runners so it's in an `if` to slightly speed up windows and linux builds.
           targets: ${{ (matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin') || (matrix.platform == 'windows-latest' && 'x86_64-pc-windows-msvc') || '' }}
+
+      - name: Install WebView2
+        run: |
+          Remove-Item -Path WebView2Installer.exe -ErrorAction Ignore
+          Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/p/?LinkId=2124703" -OutFile "WebView2Installer.exe"
+          if (Test-Path "WebView2Installer.exe") {
+            Start-Process -FilePath WebView2Installer.exe -ArgumentList "/silent /install" -NoNewWindow -Wait
+          } else {
+            echo "Failed to download WebView2 installer"
+            exit 1
+          }
+
+      - name: Set env variables
+        if: matrix.platform == 'windows-latest' # This must match the platform value defined above.
+        run: |
+          echo "VCPKG_ROOT=C:\\vcpkg" >> $GITHUB_ENV
+          echo "C:\\vcpkg" >> $GITHUB_PATH
+          echo "PKG_CONFIG_PATH=C:\\vcpkg\\installed\\x64-windows\\lib\\pkgconfig" >> $GITHUB_ENV
+
+      - name: Debug env
+        run: |
+          echo $GITHUB_ENV
 
       - uses: tauri-apps/tauri-action@v0
         env:

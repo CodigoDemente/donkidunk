@@ -1,6 +1,6 @@
 [package]
 name = "donkidunk"
-version = "0.1.0"
+version = "0.0.0"
 description = "A basket analysis app"
 authors = ["CodigoDemente"]
 edition = "2021"
