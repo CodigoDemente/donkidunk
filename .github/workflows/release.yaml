@@ -39,7 +39,7 @@ jobs:
         run: |
           {
             echo "RELEASE_NOTES<<EOF"
-            pnpm semantic-release --dry-run 2>&1 | sed -n '/^##/,$p' $GITHUB_ENV
+            pnpm semantic-release --dry-run 2>&1 | sed -n '/^##/,$p'
             echo "EOF"
           } >> $GITHUB_ENV
 
@@ -91,9 +91,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: 'macos-latest' # for Arm based macs (M1 and above).
+          - platform: 'macos-14' # for Arm based macs (M1 and above).
             args: '--target aarch64-apple-darwin'
-          - platform: 'macos-latest' # for Intel based macs.
+          - platform: 'macos-12' # for Intel based macs.
             args: '--target x86_64-apple-darwin'
           - platform: 'ubuntu-latest' # for Tauri v1 you could replace this with ubuntu-20.04.
             args: ''
