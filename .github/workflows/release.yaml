@@ -195,6 +195,7 @@ jobs:
           targets: ${{ (matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin') || (matrix.platform == 'windows-latest' && 'x86_64-pc-windows-msvc') || '' }}
 
       - name: Install WebView2
+        if: matrix.platform == 'windows-latest' # This must match the platform value defined above.
         run: |
           Remove-Item -Path WebView2Installer.exe -ErrorAction Ignore
           Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/p/?LinkId=2124703" -OutFile "WebView2Installer.exe"
