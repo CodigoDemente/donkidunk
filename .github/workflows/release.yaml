@@ -39,7 +39,7 @@ jobs:
         run: |
           {
             echo "RELEASE_NOTES<<EOF"
-            pnpm semantic-release --dry-run 2>&1 | sed -n '/^##/,$p'
+            pnpm semantic-release --dry-run 2>&1 | sed -n '/^##/,$p' | sed -e 's/^    */  */g'
             echo "EOF"
           } >> $GITHUB_ENV
 
@@ -177,18 +177,18 @@ jobs:
           .\vcpkg integrate install
           .\vcpkg install ffmpeg:x64-windows
 
+      - name: Set up Python
+        if: matrix.platform == 'windows-latest' # This must match the platform value defined above.
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
       - name: Set env variables
         if: matrix.platform == 'windows-latest' # This must match the platform value defined above.
         run: |
           echo "VCPKG_ROOT=C:\\vcpkg" >> $GITHUB_ENV
           echo "C:\\vcpkg" >> $GITHUB_PATH
           echo "PKG_CONFIG_PATH=C:\\vcpkg\\installed\\x64-windows\\lib\\pkgconfig" >> $GITHUB_ENV
-
-      - name: Set up Python
-        if: matrix.platform == 'windows-latest' # This must match the platform value defined above.
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
 
       - name: setup node
         uses: actions/setup-node@v4
@@ -212,6 +212,6 @@ jobs:
           tagName: donkidunk-v${{needs.release.outputs.APP_VERSION}}
           releaseName: 'Donkidunk v${{needs.release.outputs.APP_VERSION}}'
           releaseBody: ${{ needs.capture-release-notes.outputs.RELEASE_NOTES }}
-          releaseDraft: true
+          releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
