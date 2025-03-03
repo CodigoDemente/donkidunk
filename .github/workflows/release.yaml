@@ -141,7 +141,7 @@ jobs:
               fuse libfuse2 desktop-file-utils xdg-utils
 
       - name: Install system dependencies
-        if: matrix.platform == 'macos-latest' # This must match the platform value defined above.
+        if: matrix.platform == 'macos-12' || matrix.platform == 'macos-14' # This must match the platform value defined above.
         run: |
           brew install pkg-config ffmpeg
 
