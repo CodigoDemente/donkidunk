@@ -1,8 +1,8 @@
 name: release
 on:
-  push:
-    branches:
-      - main
+  milestone:
+    types:
+      - closed
 
 permissions:
   contents: read # for checkout
@@ -23,6 +23,7 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+          ref: main
 
       - name: setup node
         uses: actions/setup-node@v4
@@ -69,6 +70,7 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+          ref: main
 
       - uses: actions/setup-node@v4
         with:
@@ -97,7 +99,7 @@ jobs:
         include:
           - platform: 'macos-14' # for Arm based macs (M1 and above).
             args: '--target aarch64-apple-darwin'
-          - platform: 'macos-12' # for Intel based macs.
+          - platform: 'macos-13' # for Intel based macs.
             args: '--target x86_64-apple-darwin'
           - platform: 'ubuntu-latest' # for Tauri v1 you could replace this with ubuntu-20.04.
             args: ''
