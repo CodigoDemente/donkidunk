@@ -107,7 +107,8 @@ jobs:
     runs-on: ${{ matrix.platform }}
 
     env:
-      PKG_CONFIG_PATH: "${{ matrix.platform == 'ubuntu-latest' && '/usr/local/lib:/usr/lib/x86_64-linux-gnu:/usr/share' || ''}}"
+      VCPKG_ROOT: "${{ matrix.platform == 'windows-latest' && 'C:\\vcpkg' || ''}}"
+      PKG_CONFIG_PATH: "${{ (matrix.platform == 'ubuntu-latest' && '/usr/local/lib:/usr/lib/x86_64-linux-gnu:/usr/share') || (matrix.platform == 'windows-latest' && 'C:\\vcpkg\\installed\\x64-windows\\lib\\pkgconfig') || ''}}"
 
     needs: [capture-release-notes, release]
 
@@ -209,9 +210,7 @@ jobs:
       - name: Set env variables
         if: matrix.platform == 'windows-latest' # This must match the platform value defined above.
         run: |
-          echo "VCPKG_ROOT=C:\\vcpkg" >> $GITHUB_ENV
           echo "C:\\vcpkg" >> $GITHUB_PATH
-          echo "PKG_CONFIG_PATH=C:\\vcpkg\\installed\\x64-windows\\lib\\pkgconfig" >> $GITHUB_ENV
 
       - name: Debug env
         run: |
