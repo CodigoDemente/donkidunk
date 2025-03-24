@@ -23,7 +23,8 @@
 		"@tauri-apps/api": "^2.3.0",
 		"@tauri-apps/plugin-dialog": "~2",
 		"@tauri-apps/plugin-log": "~2.3.1",
-		"@tauri-apps/plugin-opener": "^2.2.6"
+		"@tauri-apps/plugin-opener": "^2.2.6",
+		"@tauri-apps/plugin-os": "~2"
 	},
 	"devDependencies": {
 		"@commitlint/cli": "^19.8.0",
@@ -66,6 +67,7 @@
 	},
 	"pnpm": {
 		"onlyBuiltDependencies": [
+			"@parcel/watcher",
 			"esbuild"
 		]
 	}
