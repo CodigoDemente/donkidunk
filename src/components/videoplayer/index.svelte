@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { convertFileSrc } from '@tauri-apps/api/core';
+	import { convertFileSrc, invoke } from '@tauri-apps/api/core';
+	import { platform } from '@tauri-apps/plugin-os';
 
 	type Props = {
 		video: string | undefined;
@@ -10,7 +11,11 @@
 	$effect(() => {
 		if (video) {
 			const videoPlayer = document.getElementById('video-player') as HTMLVideoElement;
-			const videoUrl = convertFileSrc(video);
+			let videoUrl = convertFileSrc(video);
+
+			if (platform() === 'linux') {
+				videoUrl = 'http://localhost:16780/?file=' + encodeURIComponent(video);
+			}
 
 			const source = document.createElement('source');
 			source.type = 'video/mp4';
