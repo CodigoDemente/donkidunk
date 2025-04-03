@@ -3879,13 +3879,13 @@ snapshots:
     dependencies:
       '@tauri-apps/api': 2.4.1
 
-  '@tauri-apps/plugin-dialog@2.2.0':
+  '@tauri-apps/plugin-dialog@2.2.1':
     dependencies:
-      '@tauri-apps/api': 2.3.0
+      '@tauri-apps/api': 2.4.1
 
   '@tauri-apps/plugin-log@2.3.1':
     dependencies:
-      '@tauri-apps/api': 2.3.0
+      '@tauri-apps/api': 2.4.1
 
   '@tauri-apps/plugin-opener@2.2.6':
     dependencies:
@@ -3897,7 +3897,7 @@ snapshots:
 
   '@tauri-apps/plugin-os@2.2.1':
     dependencies:
-      '@tauri-apps/api': 2.3.0
+      '@tauri-apps/api': 2.4.1
 
   '@types/conventional-commits-parser@5.0.1':
     dependencies:
