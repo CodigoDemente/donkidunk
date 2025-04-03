@@ -1,6 +1,8 @@
 <script lang="ts">
-	import { convertFileSrc, invoke } from '@tauri-apps/api/core';
+	import { convertFileSrc } from '@tauri-apps/api/core';
 	import { platform } from '@tauri-apps/plugin-os';
+	import Controls from './controls.svelte';
+	import Progressbar from './progressbar.svelte';
 
 	type Props = {
 		video: string | undefined;
@@ -8,9 +10,14 @@
 
 	const { video }: Props = $props();
 
+	let videoPlayer: HTMLVideoElement | null = $state(null);
+
+	let duration: number = $state(0);
+	let currentTime: number = $state(0);
+
 	$effect(() => {
 		if (video) {
-			const videoPlayer = document.getElementById('video-player') as HTMLVideoElement;
+			videoPlayer = document.getElementById('video-player') as HTMLVideoElement;
 			let videoUrl = convertFileSrc(video);
 
 			if (platform() === 'linux') {
@@ -31,6 +38,10 @@
 	});
 </script>
 
-<section id="video-player-container">
-	<video id="video-player" controls muted style="width: 100%; height: 100%;"> </video>
-</section>
+<div class="flex flex-col p-5">
+	<video id="video-player" class="w-100% h-100%" bind:currentTime bind:duration></video>
+	{#if videoPlayer}
+		<Controls {videoPlayer} bind:currentTime />
+		<Progressbar bind:currentTime {duration} />
+	{/if}
+</div>
