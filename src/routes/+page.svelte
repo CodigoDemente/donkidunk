@@ -4,4 +4,9 @@
 	import ProjectStore from '../stores/project.svelte';
 </script>
 
-<VideoPlayer video={ProjectStore.getProject().video?.path} />
+<div class="flex flex-row">
+	<div class="basis-2/3">
+		<VideoPlayer video={ProjectStore.getProject().video?.path} />
+	</div>
+	<div class="basis-1/3">Test</div>
+</div>
