@@ -1,3 +1,7 @@
 {
-	"svelte.enable-ts-plugin": true
+	"svelte.enable-ts-plugin": true,
+	"terminal.integrated.env.linux": {
+    	"GTK_PATH": null,
+    	"GIO_MODULE_DIR": null,
+	}
 }

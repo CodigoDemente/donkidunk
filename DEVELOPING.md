@@ -36,7 +36,8 @@ sudo apt update && sudo apt install -y \
     libxi-dev libxrandr-dev libxrender-dev libxtst-dev \
     libasound2-dev libudev-dev libfreetype6-dev zlib1g-dev \
     libnss3-dev libxss-dev libdbus-1-dev libxkbcommon-dev \
-    fuse libfuse2 desktop-file-utils xdg-utils
+    fuse libfuse2 desktop-file-utils xdg-utils \
+    ffmpeg
 ```
 
 This installs:
