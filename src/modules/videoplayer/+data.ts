@@ -1,4 +1,4 @@
-interface TagData {
+export interface TagsData {
 	categoryId: string;
 	name: string;
 	color: string;
@@ -9,7 +9,7 @@ interface TagData {
 	}[];
 }
 
-export const fakeDataTags: TagData[] = [
+export const fakeDataTags: TagsData[] = [
 	{
 		name: 'Systems',
 		categoryId: '12',

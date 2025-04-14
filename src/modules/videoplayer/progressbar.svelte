@@ -1,60 +1,30 @@
 <script lang="ts">
-	import { fakeDataTags } from './+data';
+	import Tagtime from '../../components/tagtime/tagtime.svelte';
+
+	import type { TagsData } from './+data';
+	import Markers from './markers.svelte';
 
 	type Props = {
 		currentTime: number;
 		duration: number;
+		toTimeString: (time: number) => string;
+		handleDragStart: (event: DragEvent) => void;
+		handleDragEnd: (event: DragEvent) => void;
+		handleProgressClick: (event: MouseEvent) => void;
+		progress: number;
+		dataTags: TagsData[];
 	};
 
-	let { currentTime = $bindable(), duration }: Props = $props();
-
-	let progress: number = $derived((currentTime / duration) * 100);
-
-	function handleProgressClick(event: MouseEvent) {
-		event.preventDefault();
-		event.stopPropagation();
-
-		const target = event.target as HTMLElement;
-
-		// If not a button, the user clicked the time marker
-		if (target.nodeName !== 'BUTTON') {
-			return;
-		}
-
-		const fullWidth = target.offsetWidth;
-
-		if (event.offsetX < 0 || event.offsetX > fullWidth) {
-			return;
-		}
-
-		const horizontalPosition = event.offsetX;
-
-		const percentage = horizontalPosition / fullWidth;
-
-		currentTime = percentage * duration;
-	}
-
-	function handleDragStart(event: DragEvent) {
-		var img = new Image();
-		img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=';
-		event.dataTransfer?.setDragImage(img, 0, 0);
-	}
-
-	function handleDragEnd(event: DragEvent) {
-		event.preventDefault();
-	}
-
-	function toZeroPad(num: number) {
-		return ('00' + num).slice(-2);
-	}
-
-	function toTimeString(num: number) {
-		const hours = Math.floor(num / 3600);
-		const minutes = Math.floor((num % 3600) / 60);
-		const seconds = Math.floor(num % 60);
-
-		return `${toZeroPad(hours)}:${toZeroPad(minutes)}:${toZeroPad(seconds)}`;
-	}
+	let {
+		currentTime = $bindable(),
+		duration,
+		toTimeString,
+		handleDragStart,
+		handleDragEnd,
+		handleProgressClick,
+		progress = $bindable(),
+		dataTags
+	}: Props = $props();
 </script>
 
 <div class="flex flex-col">
@@ -77,45 +47,34 @@
 			class="relative flex cursor-default flex-col items-start justify-start gap-1 rounded-xs bg-gray-950"
 		>
 			{#if duration}
-				<div class="h-3 w-full rounded-xs bg-gray-900">
-					{#each Array(Math.ceil(duration / 10)).fill(0) as _, index}
-						<!-- Mark every 10 seconds -->
-						<span
-							class="absolute h-3 w-[1px] bg-gray-600"
-							style="left: calc(({index * 10} / {duration}) * 100%)"
-							aria-label="10-second Marker"
-						></span>
-					{/each}
+				<div class="h-5 w-full rounded-xs bg-gray-900">
+					<!-- Render 10-second markers -->
+					<Markers
+						interval={10}
+						{duration}
+						height="h-3"
+						width="w-[1px]"
+						color="bg-gray-600"
+						label="10-second Marker"
+					/>
 
-					{#each Array(Math.ceil(duration / 60)).fill(0) as _, index}
-						<!-- Mark every minute -->
-						<span
-							class="absolute h-4 w-[2px] bg-gray-400"
-							style="left: calc(({index * 60} / {duration}) * 100%)"
-							aria-label="1-minute Marker"
-						></span>
-					{/each}
+					<!-- Render 1-minute markers -->
+					<Markers
+						interval={60}
+						{duration}
+						height="h-4"
+						width="w-[2px]"
+						color="bg-gray-400"
+						label="1-minute Marker"
+					/>
 				</div>
 			{/if}
-			{#if fakeDataTags.length > 0}
-				{#each fakeDataTags as category}
+			{#if dataTags.length > 0}
+				{#each dataTags as category}
 					<div class="relative h-5 w-full rounded-xs bg-gray-800">
 						{#each category.tags as tag}
 							{#each tag.timestamp as [start, end]}
-								<div
-									class="absolute h-full rounded-xs"
-									style="
-                    				left: calc(({start} / {duration}) * 100%);
-                    				width: calc(({end} - {start}) / {duration} * 100%);
-                    				background-color: {category.color};"
-									aria-label={tag.name}
-									title={tag.name}
-								>
-									<!-- Add padding on hover -->
-									<div
-										class="absolute inset-0 -m-[5px] hidden border border-transparent group-hover:block"
-									></div>
-								</div>
+								<Tagtime {start} {end} total={duration} color={category.color} name={tag.name} />
 							{/each}
 						{/each}
 					</div>
