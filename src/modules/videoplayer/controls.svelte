@@ -5,65 +5,15 @@
 		IconPlayerSkipForward,
 		IconPlayerSkipBack
 	} from '@tabler/icons-svelte';
-
-	const SkipDirection = {
-		BACKWARD: 'backward',
-		FORWARD: 'forward'
-	} as const;
-	type SkipDirection = (typeof SkipDirection)[keyof typeof SkipDirection];
-
-	const SkipType = {
-		SHORT: 'short',
-		LONG: 'long'
-	} as const;
-	type SkipType = (typeof SkipType)[keyof typeof SkipType];
+	import { SkipDirection, SkipType } from './+types';
 
 	type Props = {
-		videoPlayer: HTMLVideoElement;
-		currentTime: number;
+		skip: (type: SkipType, direction: SkipDirection) => void;
+		play: () => void;
+		isPlaying: boolean;
 	};
 
-	type VideoState = {
-		playing: boolean;
-	};
-
-	let { videoPlayer, currentTime = $bindable() }: Props = $props();
-
-	const videoState: VideoState = $state({
-		playing: false
-	});
-
-	function play() {
-		if (!videoState.playing) {
-			videoPlayer.play();
-		} else {
-			videoPlayer.pause();
-		}
-	}
-
-	function skip(type: SkipType, direction: SkipDirection) {
-		let skipAmount: number = 1; // 0.1 seconds
-
-		if (type === SkipType.LONG) {
-			skipAmount = 2; // 2 seconds
-		}
-
-		if (direction === SkipDirection.BACKWARD) {
-			skipAmount *= -1;
-		}
-
-		currentTime += skipAmount;
-	}
-
-	videoPlayer.onplay = (event) => {
-		console.log(event);
-		videoState.playing = true;
-	};
-
-	videoPlayer.onpause = (event) => {
-		console.log(event);
-		videoState.playing = false;
-	};
+	let { skip, play, isPlaying }: Props = $props();
 </script>
 
 <div class="flex flex-row justify-center">
@@ -81,7 +31,7 @@
 		aria-label="Play/Pause"
 		title="Play/Pause"
 	>
-		{#if videoState.playing}
+		{#if isPlaying}
 			<IconPlayerPause />
 		{:else}
 			<IconPlayerPlay />
