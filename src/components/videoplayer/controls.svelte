@@ -6,15 +6,17 @@
 		IconPlayerSkipBack
 	} from '@tabler/icons-svelte';
 
-	enum SkipDirection {
-		BACKWARD = 'backward',
-		FORWARD = 'forward'
-	}
+	const SkipDirection = {
+		BACKWARD: 'backward',
+		FORWARD: 'forward'
+	} as const;
+	type SkipDirection = (typeof SkipDirection)[keyof typeof SkipDirection];
 
-	enum SkipType {
-		SHORT = 'short',
-		LONG = 'long'
-	}
+	const SkipType = {
+		SHORT: 'short',
+		LONG: 'long'
+	} as const;
+	type SkipType = (typeof SkipType)[keyof typeof SkipType];
 
 	type Props = {
 		videoPlayer: HTMLVideoElement;
@@ -40,7 +42,7 @@
 	}
 
 	function skip(type: SkipType, direction: SkipDirection) {
-		let skipAmount: number = 1 / 10; // 0.1 seconds
+		let skipAmount: number = 1; // 0.1 seconds
 
 		if (type === SkipType.LONG) {
 			skipAmount = 2; // 2 seconds
@@ -66,7 +68,7 @@
 
 <div class="flex flex-row justify-center">
 	<button
-		class="p-2 hover:bg-gray-200 active:bg-gray-300"
+		class="p-2 hover:text-white active:text-white"
 		aria-label="Rewind Slow"
 		title="Rewind Slow"
 		onclick={() => skip(SkipType.SHORT, SkipDirection.BACKWARD)}
@@ -74,7 +76,7 @@
 		<IconPlayerSkipBack />
 	</button>
 	<button
-		class="p-2 hover:bg-gray-200 active:bg-gray-300"
+		class="p-2 hover:text-white active:text-white"
 		onclick={play}
 		aria-label="Play/Pause"
 		title="Play/Pause"
@@ -86,7 +88,7 @@
 		{/if}
 	</button>
 	<button
-		class="p-2 hover:bg-gray-200 active:bg-gray-300"
+		class="p-2 hover:text-white active:text-white"
 		aria-label="Rewind"
 		title="Rewind"
 		onclick={() => skip(SkipType.SHORT, SkipDirection.FORWARD)}
