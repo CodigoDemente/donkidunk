@@ -42,6 +42,6 @@
 	<video id="video-player" class="w-100% h-100%" bind:currentTime bind:duration></video>
 	{#if videoPlayer}
 		<Controls {videoPlayer} bind:currentTime />
-		<Progressbar bind:currentTime {duration} />
 	{/if}
+	<Progressbar bind:currentTime {duration} />
 </div>
