@@ -1,6 +1,6 @@
 <script lang="ts">
 	import '../styles/page.css';
-	import VideoPlayer from '../components/videoplayer/index.svelte';
+	import VideoPlayer from '../modules/videoplayer/index.svelte';
 	import ProjectStore from '../stores/project.svelte';
 </script>
 
