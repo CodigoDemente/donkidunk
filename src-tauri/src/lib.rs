@@ -1,6 +1,17 @@
-use std::env;
+use serde::{Deserialize, Serialize};
+use std::fs::File;
 use std::process::Command;
+use std::time::{SystemTime, UNIX_EPOCH};
+use std::{collections::HashMap, env};
 use which::which;
+
+#[derive(Serialize, Deserialize, Debug)]
+struct Clip {
+    time_start: u32,
+    time_end: u32,
+    r#type: u8,
+    attributes: HashMap<String, u8>,
+}
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -19,36 +30,62 @@ fn greet(name: &str) -> String {
     )
 }
 
-
 #[tauri::command]
 fn cut_video() -> Result<String, String> {
-    const input_path: &str = "/home/ecantegrit/Escritorio/videoToCut.webm";
-    const start_time: &str = "00:00:04";
-    const duration: &str = "00:00:08";
+    let data = File::open("D:\\Downloads\\cortes_sin_solapamiento.jsonc").unwrap();
+
+    const INPUT_PATH: &str = "D:\\Downloads\\house_on_haunted_hill_512kb.mp4";
+
+    let start = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
+
+    // Parse the string of data into serde_json::Value.
+    let all_clips: Vec<Clip> = serde_json::from_reader(data).unwrap();
+
+    println!("all_clips: {:?}", all_clips.len());
+
+    let mut all_parts: Vec<String> = Vec::new();
+
+    for clip in all_clips {
+        all_parts.push(
+            format!(
+                "between(t,{},{})",
+                clip.time_start/1000, clip.time_end/1000
+            )
+        );
+    }
+    
+    let select_command = all_parts.join("+");
+
+    println!("select_command: {}", select_command);
+    println!("INPUT_PATH: {}", INPUT_PATH);
+    println!("FFMPEG_PATH: {}", env::var("FFMPEG_PATH").unwrap());
+
     let output_path = format!(
-        "{}_CUTTED{}", 
-        input_path
-        .trim_end_matches(".mp4")
-        .trim_end_matches(".webm")
-        .trim_end_matches(".wav"), 
-        &input_path[input_path.rfind('.').unwrap()..]
+        "{}_cut{}",
+        INPUT_PATH
+            .trim_end_matches(".mp4")
+            .trim_end_matches(".webm")
+            .trim_end_matches(".wav"),
+        &INPUT_PATH[INPUT_PATH.rfind('.').unwrap()..]
     );
 
     let ffmpeg_path = env::var("FFMPEG_PATH").map_err(|e| e.to_string())?;
 
     //TODO: copy doesnt seem to work well, with reenconding does work
     let status = Command::new(ffmpeg_path)
-        .arg("-ss")
-        .arg(start_time)
         .arg("-i")
-        .arg(input_path)
-        .arg("-t")
-        .arg(duration)
-        .arg("-c")
-        .arg("copy") 
+        .arg(INPUT_PATH)
+        .arg("-vf")
+        .arg(format!("select='{}', setpts=N/FRAME_RATE/TB", select_command))
+        .arg("-af")
+        .arg(format!("aselect='{}', asetpts=N/SR/TB", select_command))
         .arg(&output_path)
         .status()
         .map_err(|e| e.to_string())?;
+
+    let end = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
+
+    println!("Time elapsed in seconds: {:?}", end.as_secs() - start.as_secs());
 
     if status.success() {
         Ok(output_path)

@@ -26,4 +26,3 @@ ffmpeg-next = { version = "7" }
 which = "7.0.2"
 tauri-plugin-log = "2"
 tauri-plugin-dialog = "2"
-
