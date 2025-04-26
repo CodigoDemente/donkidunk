@@ -11,6 +11,7 @@
 
 	const { video }: Props = $props();
 	const dataTags = $state(fakeDataTags);
+	const dataEvents = $state(fakeDataEvents);
 
 	let videoPlayer: HTMLVideoElement | null = $state(null);
 	let videoIsPlaying: boolean = $state(false);
