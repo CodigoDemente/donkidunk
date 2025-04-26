@@ -3,7 +3,6 @@
 	import { platform } from '@tauri-apps/plugin-os';
 	import Controls from './controls.svelte';
 	import Progressbar from './progressbar.svelte';
-	import { fakeDataTags, fakeDataEvents } from './+data';
 	import { SkipDirection, SkipType } from './+types';
 
 	type Props = {
@@ -11,8 +10,6 @@
 	};
 
 	const { video }: Props = $props();
-	const dataTags = $state(fakeDataTags);
-	const dataEvents = $state(fakeDataEvents);
 
 	let videoPlayer: HTMLVideoElement | null = $state(null);
 	let videoIsPlaying: boolean = $state(false);
@@ -148,7 +145,5 @@
 		{handleDragEnd}
 		{handleProgressClick}
 		bind:progress
-		{dataTags}
-		{dataEvents}
 	/>
 </div>

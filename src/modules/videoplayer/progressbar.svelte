@@ -1,8 +1,9 @@
 <script lang="ts">
 	import Tagtime from '../../components/tagtime/tagtime.svelte';
 
-	import type { TagsData, EventsData } from './+data';
+	import { categoriesInfo, tagCategories, eventCategories } from './+data';
 	import Markers from './markers.svelte';
+	import { timelineStore } from '../../stores/timeline/store';
 
 	type Props = {
 		currentTime: number;
@@ -12,8 +13,6 @@
 		handleDragEnd: (event: DragEvent) => void;
 		handleProgressClick: (event: MouseEvent) => void;
 		progress: number;
-		dataTags: TagsData[];
-		dataEvents: EventsData[];
 	};
 
 	let {
@@ -23,9 +22,7 @@
 		handleDragStart,
 		handleDragEnd,
 		handleProgressClick,
-		progress = $bindable(),
-		dataTags,
-		dataEvents
+		progress = $bindable()
 	}: Props = $props();
 </script>
 
@@ -70,33 +67,41 @@
 				</div>
 			{/if}
 
-			{#if dataEvents.length > 0}
+			{#if $timelineStore.events.length > 0}
 				<div class="my-2 flex flex-col items-start gap-2">
 					<p class="text-xs">Event lines</p>
-					{#each dataEvents as eventCategory}
+					{#each $timelineStore.events as eventCategory}
 						<div class="relative h-5 w-full rounded-xs bg-gray-800">
 							{#each eventCategory.events as event}
 								<Tagtime
 									start={event.timestamp[0]}
 									end={event.timestamp[1]}
 									total={duration}
-									color={eventCategory.color}
-									name={event.name}
+									color={eventCategories[
+										eventCategory.eventCategoryId as keyof typeof eventCategories
+									]?.color}
+									name={eventCategories[
+										eventCategory.eventCategoryId as keyof typeof eventCategories
+									]?.name}
 								/>
 							{/each}
 						</div>
 					{/each}
 				</div>
 			{/if}
-			{#if dataTags.length > 0}
+			{#if $timelineStore.actions.length > 0}
 				<div class="flex flex-col items-start gap-1">
 					<p class="text-xs">Actions</p>
-					{#each dataTags as category}
+					{#each $timelineStore.actions as category}
 						<div class="relative h-5 w-full rounded-xs bg-gray-800">
 							{#each category.tags as tag}
-								{#each tag.timestamp as [start, end]}
-									<Tagtime {start} {end} total={duration} color={category.color} name={tag.name} />
-								{/each}
+								<Tagtime
+									start={tag.timestamp[0]}
+									end={tag.timestamp[1]}
+									total={duration}
+									color={categoriesInfo[category.categoryId as keyof typeof categoriesInfo]?.color}
+									name={tagCategories[tag.tagId as keyof typeof tagCategories]}
+								/>
 							{/each}
 						</div>
 					{/each}
