@@ -9,6 +9,59 @@ export interface TagsData {
 	}[];
 }
 
+export interface EventsData {
+	eventCategoryId: string;
+	name: string;
+	color: string;
+	events: {
+		eventId: string;
+		name: string;
+		timestamp: number[];
+	}[];
+}
+
+export const fakeDataEvents: EventsData[] = [
+	{
+		name: 'Attack',
+		eventCategoryId: '1',
+		color: '#FFDD00',
+		events: [
+			{
+				eventId: '1',
+				name: 'Attack 1',
+				timestamp: [10.0, 120.0]
+			},
+			{
+				eventId: '2',
+				name: 'Attack 2',
+				timestamp: [140.0, 600.0]
+			},
+			{
+				eventId: '3',
+				name: 'Attack 3',
+				timestamp: [1220.0, 1660.0]
+			}
+		]
+	},
+	{
+		name: 'Defense',
+		eventCategoryId: '2',
+		color: '#FF0000',
+		events: [
+			{
+				eventId: '3',
+				name: 'Defense 3',
+				timestamp: [900.0, 1200.0]
+			},
+			{
+				eventId: '4',
+				name: 'Defense 4',
+				timestamp: [1690.0, 1790.0]
+			}
+		]
+	}
+];
+
 export const fakeDataTags: TagsData[] = [
 	{
 		name: 'Systems',
