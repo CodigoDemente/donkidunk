@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 
-	let isNavbarOpen = true;
+	let isNavbarOpen = false;
 	function toggleNavbar() {
 		isNavbarOpen = !isNavbarOpen; // Toggle the navbar state
 	}

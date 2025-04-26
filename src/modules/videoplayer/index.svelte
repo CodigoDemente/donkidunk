@@ -3,7 +3,7 @@
 	import { platform } from '@tauri-apps/plugin-os';
 	import Controls from './controls.svelte';
 	import Progressbar from './progressbar.svelte';
-	import { fakeDataTags } from './+data';
+	import { fakeDataTags, fakeDataEvents } from './+data';
 	import { SkipDirection, SkipType } from './+types';
 
 	type Props = {
@@ -12,6 +12,7 @@
 
 	const { video }: Props = $props();
 	const dataTags = $state(fakeDataTags);
+	const dataEvents = $state(fakeDataEvents);
 
 	let videoPlayer: HTMLVideoElement | null = $state(null);
 	let videoIsPlaying: boolean = $state(false);
@@ -133,7 +134,8 @@
 	}
 </script>
 
-<div class="flex flex-col p-5">
+<div class="flex h-screen flex-col bg-gray-900 p-2">
+	<p class="mb-2 inline-block py-1 text-xs">Video / Timeline</p>
 	<video id="video-player" class="w-100% h-100%" bind:currentTime bind:duration></video>
 	{#if videoPlayer}
 		<Controls isPlaying={videoIsPlaying} {skip} {play} />
@@ -147,5 +149,6 @@
 		{handleProgressClick}
 		bind:progress
 		{dataTags}
+		{dataEvents}
 	/>
 </div>
