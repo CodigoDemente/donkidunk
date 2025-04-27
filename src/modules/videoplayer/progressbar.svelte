@@ -1,9 +1,8 @@
 <script lang="ts">
 	import Tagtime from '../../components/tagtime/tagtime.svelte';
-
-	import { categoriesInfo, tagCategories, eventCategories } from './+data';
 	import Markers from './markers.svelte';
 	import { timelineStore } from '../../stores/timeline/store';
+	import { actionCategories, actionsList, eventCategories } from '../../utils/+constants';
 
 	type Props = {
 		currentTime: number;
@@ -99,8 +98,9 @@
 									start={tag.timestamp[0]}
 									end={tag.timestamp[1]}
 									total={duration}
-									color={categoriesInfo[category.categoryId as keyof typeof categoriesInfo]?.color}
-									name={tagCategories[tag.tagId as keyof typeof tagCategories]}
+									color={actionCategories[category.categoryId as keyof typeof actionCategories]
+										?.color}
+									name={actionsList[tag.tagId as keyof typeof actionsList]?.name}
 								/>
 							{/each}
 						</div>
