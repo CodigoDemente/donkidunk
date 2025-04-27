@@ -18,10 +18,7 @@ const initialState: TimelineStore = {
 		},
 		{
 			eventCategoryId: '2',
-			events: [
-				{ eventId: '2-3', timestamp: [900.0, 1200.0] },
-				{ eventId: '2-4', timestamp: [1690.0, 1790.0] }
-			]
+			events: [{ eventId: '2-3', timestamp: [900.0, 1200.0] }]
 		}
 	],
 	actions: [

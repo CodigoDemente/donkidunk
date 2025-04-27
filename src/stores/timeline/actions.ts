@@ -70,7 +70,7 @@ export const timelineActions = {
 	},
 
 	// Add a tag to a specific action category
-	addTag(categoryId: string, newTag: TagsData['tags'][0]) {
+	addAction(categoryId: string, newTag: TagsData['tags'][0]) {
 		timelineStore.update((state) => ({
 			...state,
 			actions: state.actions.map((category) =>
@@ -82,7 +82,7 @@ export const timelineActions = {
 	},
 
 	// Update a tag in a specific action category
-	updateTag(categoryId: string, tagId: string, updatedTag: Partial<TagsData['tags'][0]>) {
+	updateAction(categoryId: string, tagId: string, updatedTag: Partial<TagsData['tags'][0]>) {
 		timelineStore.update((state) => ({
 			...state,
 			actions: state.actions.map((category) =>
@@ -99,7 +99,7 @@ export const timelineActions = {
 	},
 
 	// Remove a tag from a specific action category
-	removeTag(categoryId: string, tagId: string) {
+	removeAction(categoryId: string, tagId: string) {
 		timelineStore.update((state) => ({
 			...state,
 			actions: state.actions.map((category) =>
