@@ -12,12 +12,21 @@
     "windows": [
       {
         "title": "Donkidunk",
-        "width": 800,
-        "height": 600
+        "width": 1440,
+        "height": 900,
+        "dragDropEnabled": false
       }
     ],
     "security": {
-      "csp": null
+      "assetProtocol": {
+        "enable": true,
+        "scope": [
+          "/**/*.mp4"
+        ]
+      },
+      "csp": {
+        "media-src": "'self' asset: http://asset.localhost blob: data:"
+      }
     }
   },
   "bundle": {
