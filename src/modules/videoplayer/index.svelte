@@ -109,10 +109,12 @@
 	// Controls
 
 	function play() {
-		if (!videoIsPlaying) {
-			videoPlayer && videoPlayer.play();
-		} else {
-			videoPlayer && videoPlayer.pause();
+		if (videoPlayer) {
+			if (!videoIsPlaying) {
+				videoPlayer.play();
+			} else {
+				videoPlayer.pause();
+			}
 		}
 	}
 

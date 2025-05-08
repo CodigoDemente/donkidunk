@@ -7,7 +7,7 @@
 	let leftWidth = 50;
 	let isResizing = false;
 
-	function startResize(event: MouseEvent) {
+	function startResize() {
 		isResizing = true;
 		document.addEventListener('mousemove', resize);
 		document.addEventListener('mouseup', stopResize);
