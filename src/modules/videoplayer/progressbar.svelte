@@ -69,9 +69,9 @@
 			{#if $timelineStore.events.length > 0}
 				<div class="my-2 flex flex-col items-start gap-2">
 					<p class="text-xs">Event lines</p>
-					{#each $timelineStore.events as eventCategory}
+					{#each $timelineStore.events as eventCategory (eventCategory.eventCategoryId)}
 						<div class="relative h-5 w-full rounded-xs bg-gray-800">
-							{#each eventCategory.events as event}
+							{#each eventCategory.events as event (event.eventId)}
 								<Tagtime
 									start={event.timestamp[0]}
 									end={event.timestamp[1]}
@@ -91,9 +91,9 @@
 			{#if $timelineStore.actions.length > 0}
 				<div class="flex flex-col items-start gap-1">
 					<p class="text-xs">Actions</p>
-					{#each $timelineStore.actions as category}
+					{#each $timelineStore.actions as category (category.categoryId)}
 						<div class="relative h-5 w-full rounded-xs bg-gray-800">
-							{#each category.tags as tag}
+							{#each category.tags as tag, index (index)}
 								<Tagtime
 									start={tag.timestamp[0]}
 									end={tag.timestamp[1]}

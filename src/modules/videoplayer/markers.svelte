@@ -7,7 +7,10 @@
 	export let label: string;
 </script>
 
-{#each Array(Math.ceil(duration / interval)).fill(0) as _, index}
+<!-- eslint-disable-line @typescript-eslint/no-unused-vars -->
+{#each Array(Math.ceil(duration / interval)).fill(0) as _, index (index)}
+	{(_ = _)}
+	<!-- No-op to avoid unused variable error -->
 	<span
 		class={`absolute ${height} ${width} ${color}`}
 		style="left: calc(({index * interval} / {duration}) * 100%)"
