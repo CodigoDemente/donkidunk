@@ -7,7 +7,7 @@
 </script>
 
 <div
-	class={`absolute h-full rounded-xs opacity-80 hover:opacity-100`}
+	class="absolute h-full rounded-xs opacity-80 hover:opacity-100"
 	style="
     left: calc(({start} / {total}) * 100%);
     width: calc(({end} - {start}) / {total} * 100%);

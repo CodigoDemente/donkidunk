@@ -1,6 +1,10 @@
 {
 	"svelte.enable-ts-plugin": true,
 	"conventionalCommits.scopes": [
-		"timeline"
-	]
+		"timeline",
+		"project"
+	],
+	"terminal.integrated.env.osx": {
+		"PATH": ""
+	},
 }

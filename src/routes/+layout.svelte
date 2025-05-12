@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { buildMenu } from '../modules/menu';
+	import { bindMenuEvents } from '../modules/menu';
 	import '../styles/page.css';
 	import Navbar from '../modules/navbar/navbar.svelte';
 
 	onMount(() => {
-		return buildMenu();
+		// Initialize the menu
+		bindMenuEvents();
 	});
 
 	document.addEventListener('dragover', (event) => {

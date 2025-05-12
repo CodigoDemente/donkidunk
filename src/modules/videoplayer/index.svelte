@@ -110,9 +110,9 @@
 
 	function play() {
 		if (!videoIsPlaying) {
-			videoPlayer && videoPlayer.play();
+			videoPlayer?.play();
 		} else {
-			videoPlayer && videoPlayer.pause();
+			videoPlayer?.pause();
 		}
 	}
 

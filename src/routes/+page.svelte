@@ -2,12 +2,12 @@
 	import '../styles/page.css';
 	import VideoPlayer from '../modules/videoplayer/index.svelte';
 	import Board from '../modules/board/index.svelte';
-	import ProjectStore from '../stores/project.svelte';
+	import ProjectStore from '../persistence/stores/project.svelte';
 
 	let leftWidth = 50;
 	let isResizing = false;
 
-	function startResize(event: MouseEvent) {
+	function startResize() {
 		isResizing = true;
 		document.addEventListener('mousemove', resize);
 		document.addEventListener('mouseup', stopResize);
@@ -29,7 +29,7 @@
 
 <div class="flex w-full flex-row gap-1">
 	<div class="flex-shrink-0" style="width: {leftWidth}%">
-		<VideoPlayer video={ProjectStore.getProject().video?.path} />
+		<VideoPlayer video={ProjectStore.video?.path} />
 	</div>
 	<div class="w-1 cursor-col-resize bg-gray-900" on:mousedown={startResize}></div>
 	<div class="flex-grow">

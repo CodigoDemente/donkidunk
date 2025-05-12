@@ -1,8 +1,8 @@
 <script lang="ts">
 	import Tagtime from '../../components/tagtime/tagtime.svelte';
 	import Markers from './markers.svelte';
-	import { timelineStore } from '../../stores/timeline/store';
 	import { actionCategories, actionsList, eventCategories } from '../../utils/+constants';
+	import { timelineStore } from '../../persistence/stores/timeline/store';
 
 	type Props = {
 		currentTime: number;
@@ -69,9 +69,22 @@
 			{#if $timelineStore.events.length > 0}
 				<div class="my-2 flex flex-col items-start gap-2">
 					<p class="text-xs">Event lines</p>
-					{#each $timelineStore.events as eventCategory}
+					{#each $timelineStore.events as eventCategory (eventCategory.eventCategoryId)}
+						{#if eventCategory.events.length === 0}
+							<p class="text-xs text-gray-500">
+								No events for {eventCategories[
+									eventCategory.eventCategoryId as keyof typeof eventCategories
+								]?.name}
+							</p>
+						{/if}
+						{#if eventCategory.events.length > 0}
+							<p class="text-xs">
+								{eventCategories[eventCategory.eventCategoryId as keyof typeof eventCategories]
+									?.name}
+							</p>
+						{/if}
 						<div class="relative h-5 w-full rounded-xs bg-gray-800">
-							{#each eventCategory.events as event}
+							{#each eventCategory.events as event (event.eventId)}
 								<Tagtime
 									start={event.timestamp[0]}
 									end={event.timestamp[1]}
@@ -91,9 +104,9 @@
 			{#if $timelineStore.actions.length > 0}
 				<div class="flex flex-col items-start gap-1">
 					<p class="text-xs">Actions</p>
-					{#each $timelineStore.actions as category}
+					{#each $timelineStore.actions as category (category.categoryId)}
 						<div class="relative h-5 w-full rounded-xs bg-gray-800">
-							{#each category.tags as tag}
+							{#each category.tags as tag, i (`${i}-${tag.tagId}`)}
 								<Tagtime
 									start={tag.timestamp[0]}
 									end={tag.timestamp[1]}

@@ -7,7 +7,7 @@
 	export let label: string;
 </script>
 
-{#each Array(Math.ceil(duration / interval)).fill(0) as _, index}
+{#each Array(Math.ceil(duration / interval)).fill(0) as index (index)}
 	<span
 		class={`absolute ${height} ${width} ${color}`}
 		style="left: calc(({index * interval} / {duration}) * 100%)"

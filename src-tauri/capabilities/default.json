@@ -9,8 +9,16 @@
     "core:default",
     "opener:default",
     "sql:default",
+    "sql:allow-execute",
     "log:default",
     "dialog:default",
-    "os:default"
+    "os:default",
+    "fs:default",
+    {
+      "identifier": "fs:allow-rename",
+      "allow": [{
+        "path": "$APPCONFIG/**"
+      }]
+    }
   ]
 }

@@ -1,45 +1,135 @@
-import { Menu, Submenu } from '@tauri-apps/api/menu';
-import { open } from '@tauri-apps/plugin-dialog';
+import { open, save } from '@tauri-apps/plugin-dialog';
+import { rename } from '@tauri-apps/plugin-fs';
 import { debug } from '@tauri-apps/plugin-log';
-import ProjectStore from '../../stores/project.svelte';
+import { listen } from '@tauri-apps/api/event';
+import { closeDatabase, openDatabase } from '../../persistence/database';
+import { homeDir } from '@tauri-apps/api/path';
+import { invoke } from '@tauri-apps/api/core';
+import ProjectStore from '../../persistence/stores/project.svelte';
 
-export async function buildMenu() {
-	const fileSubmenu = await Submenu.new({
-		id: 'file-submenu',
-		text: 'File',
-		items: [
+type MenuEvent = {
+	id: string;
+};
+
+export async function bindMenuEvents() {
+	listen<MenuEvent>('menu_event', async (event) => {
+		debug(`Menu event triggered: ${event.id}`);
+		switch (event.payload.id) {
+			case 'new_project':
+				await createNewProject();
+				break;
+			case 'open_project':
+				await openProject();
+				break;
+			case 'save_project_as':
+				await saveProjectAs();
+				break;
+			case 'save_project':
+				await saveProject();
+				break;
+			default:
+				debug(`Unknown menu event: ${event.id}`);
+		}
+	});
+}
+
+async function createNewProject() {
+	debug('New project action triggered');
+
+	const homePath = await homeDir();
+
+	const path = await save({
+		canCreateDirectories: true,
+		defaultPath: homePath,
+		title: 'Save Donkidunk project',
+		filters: [
 			{
-				id: 'import-video',
-				text: 'Import Video',
-				enabled: true,
-				action: (id) => {
-					debug(`Action triggered for ${id}`);
-					open({
-						directory: false,
-						multiple: false,
-						filters: [
-							{
-								name: 'Video Files',
-								extensions: ['mp4']
-							}
-						]
-					}).then((path) => {
-						if (path) {
-							debug(`Selected path: ${path}`);
-							ProjectStore.setVideoPath(path as string);
-						} else {
-							debug('No path selected');
-						}
-					});
-				}
+				extensions: ['dnk'],
+				name: 'Donkidunk project file'
 			}
 		]
 	});
 
-	const menu = await Menu.new({
-		id: 'main-menu',
-		items: [fileSubmenu]
+	if (!path) {
+		debug('No path selected');
+		return;
+	}
+
+	await openDatabase(path, false, true);
+
+	ProjectStore.file.newlyCreated = true;
+
+	await invoke('set_save_menu_enabling_status', {
+		enabled: true
+	});
+}
+
+async function openProject() {
+	debug('Open project action triggered');
+	const path = await open({
+		directory: false,
+		multiple: false,
+		filters: [
+			{
+				name: 'Donkidunk project file',
+				extensions: ['dnk']
+			}
+		]
 	});
 
-	await menu.setAsAppMenu();
+	if (path) {
+		debug(`Selected path: ${path}`);
+
+		await openDatabase(path, false);
+
+		ProjectStore.file.newlyCreated = false;
+	} else {
+		debug('No path selected');
+	}
+}
+
+async function saveProjectAs() {
+	const homePath = await homeDir();
+
+	const path = await save({
+		canCreateDirectories: true,
+		defaultPath: homePath,
+		title: 'Save Donkidunk project',
+		filters: [
+			{
+				extensions: ['dnk'],
+				name: 'Donkidunk project file'
+			}
+		]
+	});
+
+	if (!path) {
+		debug('No path selected');
+		return;
+	}
+
+	await saveProject();
+
+	const currDbPath = ProjectStore.file.path;
+
+	await closeDatabase();
+
+	await rename(currDbPath, path);
+
+	await openDatabase(path, false, false);
+}
+
+async function saveProject() {
+	const currDbPath = ProjectStore.file.path;
+
+	if (currDbPath) {
+		await closeDatabase();
+		await openDatabase(currDbPath, false, false);
+	} else {
+		debug('No current database path found');
+	}
+
+	await invoke('set_save_menu_enabling_status', {
+		enabled: false
+	});
 }

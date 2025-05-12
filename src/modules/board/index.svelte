@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { timelineActions } from '../../stores/timeline/actions';
-	import { timelineStore } from '../../stores/timeline/store';
+	import { timelineActions } from '../../persistence/stores/timeline/actions';
+	import { timelineStore } from '../../persistence/stores/timeline/store';
 
 	$: console.log('timelineStore', $timelineStore);
 </script>
