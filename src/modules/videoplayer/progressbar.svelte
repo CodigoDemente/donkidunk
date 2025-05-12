@@ -70,19 +70,6 @@
 				<div class="my-2 flex flex-col items-start gap-2">
 					<p class="text-xs">Event lines</p>
 					{#each $timelineStore.events as eventCategory (eventCategory.eventCategoryId)}
-						{#if eventCategory.events.length === 0}
-							<p class="text-xs text-gray-500">
-								No events for {eventCategories[
-									eventCategory.eventCategoryId as keyof typeof eventCategories
-								]?.name}
-							</p>
-						{/if}
-						{#if eventCategory.events.length > 0}
-							<p class="text-xs">
-								{eventCategories[eventCategory.eventCategoryId as keyof typeof eventCategories]
-									?.name}
-							</p>
-						{/if}
 						<div class="relative h-5 w-full rounded-xs bg-gray-800">
 							{#each eventCategory.events as event (event.eventId)}
 								<Tagtime
