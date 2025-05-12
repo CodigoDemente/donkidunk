@@ -16,10 +16,10 @@ pub async fn run() {
     env::set_var("FFMPEG_PATH", ffmpeg_path.unwrap().to_str().unwrap());
 
     // On linux it's mutable because we need to add the webserver handler
-    #[cfg(not(target_os = "windows"))]
+    #[cfg(target_os = "linux")]
     let mut tauri_app;
 
-    #[cfg(target_os = "windows")]
+    #[cfg(not(target_os = "linux"))]
     let tauri_app;
 
     tauri_app = tauri::Builder::default()
