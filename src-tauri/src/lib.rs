@@ -16,7 +16,7 @@ pub async fn run() {
     env::set_var("FFMPEG_PATH", ffmpeg_path.unwrap().to_str().unwrap());
 
     // On linux it's mutable because we need to add the webserver handler
-    #[cfg(target_os = "linux")]
+    #[cfg(not(target_os = "windows"))]
     let mut tauri_app;
 
     #[cfg(target_os = "windows")]
@@ -28,11 +28,13 @@ pub async fn run() {
         .plugin(tauri_plugin_log::Builder::new().build())
         .plugin(tauri_plugin_opener::init());
 
-    #[cfg(target_os = "linux")] {
+    #[cfg(target_os = "linux")]
+    {
         tauri_app = tauri_app.invoke_handler(tauri::generate_handler![server::get_linux_file_url]);
     }
-    
-    tauri_app.setup(|_| {
+
+    tauri_app
+        .setup(|_| {
             #[cfg(target_os = "linux")]
             tokio::spawn(server::setup_webserver());
 
