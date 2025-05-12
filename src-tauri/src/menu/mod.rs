@@ -68,7 +68,7 @@ fn build_menu(app: &App) -> Result<Menu<tauri::Wry>, tauri::Error> {
     #[cfg(not(target_os = "macos"))]
     menu.append(&about_menu)?;
 
-    return Ok(menu);
+    Ok(menu)
 }
 
 fn generic_event_handler(app: &AppHandle, event: MenuEvent) {
