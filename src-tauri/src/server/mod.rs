@@ -1,14 +1,15 @@
 #[cfg(target_os = "linux")]
 use {
-    std::{collections::HashMap, convert::Infallible, env},
     axum::{
         extract::{Query, Request},
-        response::IntoResponse, Router,
+        response::IntoResponse,
         routing::get,
+        Router,
     },
+    std::{collections::HashMap, convert::Infallible, env},
     tokio::net::TcpListener,
     tower::ServiceExt,
-    tower_http::services::ServeFile
+    tower_http::services::ServeFile,
 };
 
 #[cfg(target_os = "linux")]
@@ -31,7 +32,9 @@ pub async fn setup_webserver() {
 
     let app = Router::new().route("/", get(download_file));
 
-    let listner = TcpListener::bind(format!("127.0.0.1:{}", port)).await.unwrap();
+    let listner = TcpListener::bind(format!("127.0.0.1:{}", port))
+        .await
+        .unwrap();
 
     axum::serve(listner, app).await.unwrap();
 }
