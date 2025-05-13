@@ -120,15 +120,6 @@ async function saveProjectAs() {
 }
 
 async function saveProject() {
-	const currDbPath = ProjectStore.file.path;
-
-	if (currDbPath) {
-		await closeDatabase();
-		await openDatabase(currDbPath, false, false);
-	} else {
-		debug('No current database path found');
-	}
-
 	await invoke('set_save_menu_enabling_status', {
 		enabled: false
 	});

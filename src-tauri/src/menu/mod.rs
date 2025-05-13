@@ -23,7 +23,7 @@ fn build_menu(app: &App) -> Result<Menu<tauri::Wry>, tauri::Error> {
 
     let menu = Menu::new(handle)?;
 
-    let about_menu = SubmenuBuilder::with_id(handle, "first-submenu", "First Submenu")
+    let about_menu = SubmenuBuilder::with_id(handle, "about-submenu", "About")
         .item(&MenuItemBuilder::with_id("about", "About").build(handle)?)
         .build()?;
 
@@ -33,6 +33,11 @@ fn build_menu(app: &App) -> Result<Menu<tauri::Wry>, tauri::Error> {
 
     let new_project_item = MenuItemBuilder::with_id("new_project", "New Project")
         .accelerator("CmdOrCtrl+N")
+        .build(handle)?;
+
+    let import_video_item = MenuItemBuilder::with_id("import_video", "Import Video")
+        .accelerator("CmdOrCtrl+I")
+        .enabled(false)
         .build(handle)?;
 
     let save_project_item = MenuItemBuilder::with_id("save_project", "Save Project")
@@ -50,7 +55,7 @@ fn build_menu(app: &App) -> Result<Menu<tauri::Wry>, tauri::Error> {
         .build()?;
 
     let file_submenu = SubmenuBuilder::with_id(handle, "file-menu", "File")
-        .items(&[&open_project_item, &new_project_item, &save_submenu])
+        .items(&[&open_project_item, &new_project_item, &import_video_item, &save_submenu])
         .build()?;
 
     let help_submenu = SubmenuBuilder::with_id(handle, "help-menu", "Help")

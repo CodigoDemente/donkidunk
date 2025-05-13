@@ -1,5 +1,5 @@
-import { EventEmitter } from 'node:events';
 import type { ProjectData } from './types/Project';
+import { emit } from '@tauri-apps/api/event';
 
 const ProjectStore: ProjectData = $state({
 	file: {
@@ -12,17 +12,20 @@ const ProjectStore: ProjectData = $state({
 	database: null
 });
 
-export const StateChangedEmitter = new EventEmitter();
-
 const projectStoreHandler = {
 	set(target: ProjectData, property: string, value: unknown, receiver: unknown) {
-		StateChangedEmitter.emit('stateChanged', property, value);
+		emit('project-changed', {
+			property,
+			value
+		});
 
 		return Reflect.set(target, property, value, receiver);
 	},
 
 	deleteProperty(target: ProjectData, property: string) {
-		StateChangedEmitter.emit('stateChanged', property, undefined);
+		emit('project-changed', {
+			property
+		});
 
 		return Reflect.deleteProperty(target, property);
 	}
