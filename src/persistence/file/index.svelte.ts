@@ -24,7 +24,8 @@ class FilePersistence {
 			this.unListen = await listen<{ property: string; value?: string }>(
 				'project-changed',
 				async (event) => {
-					await invoke('set_save_menu_enabling_status', {
+					await invoke('set_menu_item_enabling_status', {
+						menuId: 'save_project',
 						enabled: true
 					});
 

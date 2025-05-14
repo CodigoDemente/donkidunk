@@ -1074,6 +1074,7 @@ dependencies = [
 name = "donkidunk"
 version = "0.0.0"
 dependencies = [
+ "anyhow",
  "axum",
  "ffmpeg-next",
  "log",

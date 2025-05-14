@@ -59,7 +59,8 @@ async function createNewProject() {
 
 	ProjectStore.file.newlyCreated = true;
 
-	await invoke('set_save_menu_enabling_status', {
+	await invoke('set_menu_item_enabling_status', {
+		menuId: 'save_project',
 		enabled: true
 	});
 }
@@ -120,7 +121,8 @@ async function saveProjectAs() {
 }
 
 async function saveProject() {
-	await invoke('set_save_menu_enabling_status', {
+	await invoke('set_menu_item_enabling_status', {
+		menuId: 'save_project',
 		enabled: false
 	});
 }

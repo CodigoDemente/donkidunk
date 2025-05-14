@@ -1,14 +1,70 @@
+use anyhow::Result;
 use tauri::{
-    menu::{Menu, MenuEvent, MenuItemBuilder, SubmenuBuilder},
-    App, AppHandle, Emitter,
+    menu::{Menu, MenuEvent, MenuId, MenuItemBuilder, MenuItemKind, Submenu, SubmenuBuilder},
+    App, AppHandle, Emitter, Error, Wry,
 };
+
+pub trait MenuExtensions {
+    fn set_enabled_by_item_id(&self, id: &MenuId, enabled: bool) -> Result<()>;
+}
+
+fn find_item_and_set_enabled_by_id(
+    items: &Vec<MenuItemKind<Wry>>,
+    id: &MenuId,
+    enabled: bool,
+) -> Result<()> {
+    log::debug!("Finding item by ID: {}", id.0);
+
+    macro_rules! check_and_set_enabled_by_item_id {
+        ($item:expr) => {
+            if $item.id() == id {
+                $item.set_enabled(enabled)?;
+            }
+        };
+    }
+
+    for item in items {
+        
+        log::debug!("Checking and setting enabled by item ID: {}", item.id().0);
+
+        match item {
+            MenuItemKind::Submenu(item) => item.set_enabled_by_item_id(id, enabled)?,
+            MenuItemKind::MenuItem(item) => check_and_set_enabled_by_item_id!(item),
+            MenuItemKind::Check(item) => check_and_set_enabled_by_item_id!(item),
+            MenuItemKind::Icon(item) => check_and_set_enabled_by_item_id!(item),
+            MenuItemKind::Predefined(_) => {}
+        }
+    }
+
+    Ok(())
+}
+
+impl MenuExtensions for Menu<Wry> {
+    fn set_enabled_by_item_id(&self, id: &MenuId, enabled: bool) -> Result<()> {
+        find_item_and_set_enabled_by_id(&self.items()?, id, enabled)?;
+
+        Ok(())
+    }
+}
+
+impl MenuExtensions for Submenu<Wry> {
+    fn set_enabled_by_item_id(&self, id: &MenuId, enabled: bool) -> Result<()> {
+        if self.id() == id {
+            self.set_enabled(enabled)?;
+        } else {
+            find_item_and_set_enabled_by_id(&self.items()?, id, enabled)?;
+        }
+
+        Ok(())
+    }
+}
 
 #[derive(Debug, serde::Serialize, Clone)]
 struct MenuEventData {
     id: String,
 }
 
-pub fn setup_menu(app: &App) -> Result<(), tauri::Error> {
+pub fn setup_menu(app: &App) -> Result<(), Error> {
     let menu = build_menu(app)?;
 
     app.set_menu(menu)?;
@@ -18,7 +74,7 @@ pub fn setup_menu(app: &App) -> Result<(), tauri::Error> {
     Ok(())
 }
 
-fn build_menu(app: &App) -> Result<Menu<tauri::Wry>, tauri::Error> {
+fn build_menu(app: &App) -> Result<Menu<Wry>, Error> {
     let handle = app.handle();
 
     let menu = Menu::new(handle)?;
@@ -55,7 +111,12 @@ fn build_menu(app: &App) -> Result<Menu<tauri::Wry>, tauri::Error> {
         .build()?;
 
     let file_submenu = SubmenuBuilder::with_id(handle, "file-menu", "File")
-        .items(&[&open_project_item, &new_project_item, &import_video_item, &save_submenu])
+        .items(&[
+            &open_project_item,
+            &new_project_item,
+            &import_video_item,
+            &save_submenu,
+        ])
         .build()?;
 
     let help_submenu = SubmenuBuilder::with_id(handle, "help-menu", "Help")

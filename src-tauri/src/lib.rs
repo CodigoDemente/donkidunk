@@ -1,49 +1,24 @@
 use std::env;
 
+use menu::MenuExtensions;
 use which::which;
 
 mod menu;
 mod server;
 
 #[tauri::command]
-async fn set_save_menu_enabling_status(app: tauri::AppHandle, enabled: bool) -> Result<(), String> {
-    let Some(menu) = app.menu() else {
-        log::debug!("Menu not found");
+async fn set_menu_item_enabling_status(
+    app: tauri::AppHandle,
+    menu_id: &str,
+    enabled: bool,
+) -> Result<(), String> {
+    let menu = app.menu();
 
-        return Ok(());
-    };
-
-    let Some(file_submenu) = menu.get("file-menu") else {
-        log::debug!("File menu not found");
-
-        return Ok(());
-    };
-
-    let Some(save_submenu) = file_submenu
-        .as_submenu()
-        .expect("Not a submenu")
-        .get("save-menu")
-    else {
-        log::debug!("Save project submenu not found");
-
-        return Ok(());
-    };
-
-    let Some(save_project) = save_submenu
-        .as_submenu()
-        .expect("Not a submenu")
-        .get("save_project")
-    else {
-        log::debug!("Save project menu item not found");
-
-        return Ok(());
-    };
-
-    let save_project_menuitem = save_project.as_menuitem().expect("Not a menu item");
-
-    save_project_menuitem
-        .set_enabled(enabled)
-        .expect("Failed to set menu item enabled");
+    if let Some(menu) = menu {
+        let menu_id = tauri::menu::MenuId::new(menu_id);
+        menu.set_enabled_by_item_id(&menu_id, enabled)
+            .map_err(|e| e.to_string())?;
+    }
 
     Ok(())
 }
@@ -63,7 +38,7 @@ pub async fn run() {
         .invoke_handler(tauri::generate_handler![
             #[cfg(target_os = "linux")]
             server::get_linux_file_url,
-            set_save_menu_enabling_status,
+            set_menu_item_enabling_status,
         ])
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_os::init())
