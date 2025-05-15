@@ -1,6 +1,6 @@
 import Database from '@tauri-apps/plugin-sql';
 import { debug } from '@tauri-apps/plugin-log';
-import ProjectStore from '../stores/project.svelte';
+import ProjectStore from '../stores/project/project.svelte';
 import { migrations } from './migrations';
 import { appConfigDir, join } from '@tauri-apps/api/path';
 

@@ -5,7 +5,7 @@ import { listen } from '@tauri-apps/api/event';
 import { closeDatabase, openDatabase } from '../../persistence/database';
 import { homeDir } from '@tauri-apps/api/path';
 import { invoke } from '@tauri-apps/api/core';
-import ProjectStore from '../../persistence/stores/project.svelte';
+import ProjectStore from '../../persistence/stores/project/project.svelte';
 
 type MenuEvent = {
 	id: string;
@@ -26,6 +26,9 @@ export async function bindMenuEvents() {
 				break;
 			case 'save_project':
 				await saveProject();
+				break;
+			case 'import_video':
+				await importVideo();
 				break;
 			default:
 				debug(`Unknown menu event: ${event.id}`);
@@ -59,10 +62,8 @@ async function createNewProject() {
 
 	ProjectStore.file.newlyCreated = true;
 
-	await invoke('set_menu_item_enabling_status', {
-		menuId: 'save_project',
-		enabled: true
-	});
+	await enableSaveProject();
+	await enableImportVideo();
 }
 
 async function openProject() {
@@ -87,6 +88,32 @@ async function openProject() {
 	} else {
 		debug('No path selected');
 	}
+
+	await enableImportVideo();
+}
+
+async function importVideo() {
+	debug('Import video action triggered');
+
+	const path = await open({
+		directory: false,
+		multiple: false,
+		filters: [
+			{
+				name: 'Video files',
+				extensions: ['mp4']
+			}
+		]
+	});
+
+	if (path) {
+		debug(`Selected video path: ${path}`);
+		ProjectStore.file.path = path;
+	} else {
+		debug('No video path selected');
+	}
+
+	await enableSaveProject();
 }
 
 async function saveProjectAs() {
@@ -124,5 +151,19 @@ async function saveProject() {
 	await invoke('set_menu_item_enabling_status', {
 		menuId: 'save_project',
 		enabled: false
+	});
+}
+
+async function enableImportVideo() {
+	return await invoke('set_menu_item_enabling_status', {
+		menuId: 'import_video',
+		enabled: true
+	});
+}
+
+async function enableSaveProject() {
+	return await invoke('set_menu_item_enabling_status', {
+		menuId: 'save_project',
+		enabled: true
 	});
 }

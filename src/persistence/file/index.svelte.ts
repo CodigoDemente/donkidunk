@@ -1,6 +1,6 @@
 import { BaseDirectory, readTextFile, writeTextFile } from '@tauri-apps/plugin-fs';
 import { info, error } from '@tauri-apps/plugin-log';
-import ProjectData from '../stores/project.svelte';
+import ProjectData from '../stores/project/project.svelte';
 import { listen } from '@tauri-apps/api/event';
 import { invoke } from '@tauri-apps/api/core';
 

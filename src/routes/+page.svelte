@@ -2,7 +2,7 @@
 	import '../styles/page.css';
 	import VideoPlayer from '../modules/videoplayer/index.svelte';
 	import Board from '../modules/board/index.svelte';
-	import ProjectStore from '../persistence/stores/project.svelte';
+	import ProjectStore from '../persistence/stores/project/project.svelte';
 
 	let leftWidth = 50;
 	let isResizing = false;
