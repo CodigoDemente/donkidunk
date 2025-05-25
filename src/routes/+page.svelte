@@ -9,7 +9,7 @@
 	let isResizing = false;
 
 	function handleCheckTime() {
-		const time = videoPlayerRef.getCurrentTime();
+		return videoPlayerRef.getCurrentTime();
 	}
 
 	function startResize() {
