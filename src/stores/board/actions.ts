@@ -6,9 +6,6 @@ function uuid() {
 }
 
 export const boardActions = {
-	// Subscribe to the store
-	subscribe: boardStore.subscribe,
-
 	setEditingMode(value: boolean) {
 		boardStore.update((state) => {
 			state.isEditing = value;

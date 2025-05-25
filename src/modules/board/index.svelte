@@ -2,6 +2,8 @@
 	import { boardStore } from '../../stores/board/store';
 	import { boardActions } from '../../stores/board/actions';
 
+	export let checkTime: () => void;
+
 	let showAddEventCategory = false;
 	let newEventCategoryName = '';
 	let newEventCategoryColor = '#ffffff';
