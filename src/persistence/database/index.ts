@@ -3,6 +3,7 @@ import { debug } from '@tauri-apps/plugin-log';
 import ProjectStore from '../stores/project/project.svelte';
 import { migrations } from './migrations';
 import { appConfigDir, join } from '@tauri-apps/api/path';
+import type { ProjectData } from '../stores/project/types/Project';
 
 export async function checkForMigrations(database: Database): Promise<void> {
 	const result = await database.select<string[]>(
@@ -102,4 +103,37 @@ export async function closeDatabase(): Promise<void> {
 	ProjectStore.file.newlyCreated = false;
 
 	debug('Database closed successfully');
+}
+
+export async function saveProjectToDatabase(projectData: ProjectData): Promise<void> {
+	debug('Saving project to database');
+
+	const db = projectData.database;
+
+	await db?.execute(
+		`INSERT INTO configuration (name, value)
+		VALUES ('video.path', ?)`,
+		[projectData.video.path]
+	);
+}
+
+export async function loadProjectFromDatabase(): Promise<ProjectData> {
+	debug('Loading project from database');
+
+	const db = ProjectStore.database;
+
+	const result = await db?.select<{ value: string }[]>(
+		'SELECT value FROM configuration WHERE name = ?',
+		['video.path']
+	);
+
+	if (result && result.length > 0) {
+		ProjectStore.video.path = result[0].value;
+
+		return ProjectStore;
+	}
+
+	debug('No project data found in database');
+
+	return ProjectStore;
 }

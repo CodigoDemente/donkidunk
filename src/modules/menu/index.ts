@@ -1,8 +1,13 @@
 import { open, save } from '@tauri-apps/plugin-dialog';
-import { rename } from '@tauri-apps/plugin-fs';
+import { copyFile } from '@tauri-apps/plugin-fs';
 import { debug } from '@tauri-apps/plugin-log';
 import { listen } from '@tauri-apps/api/event';
-import { closeDatabase, openDatabase } from '../../persistence/database';
+import {
+	closeDatabase,
+	loadProjectFromDatabase,
+	openDatabase,
+	saveProjectToDatabase
+} from '../../persistence/database';
 import { homeDir } from '@tauri-apps/api/path';
 import { invoke } from '@tauri-apps/api/core';
 import ProjectStore from '../../persistence/stores/project/project.svelte';
@@ -89,6 +94,8 @@ async function openProject() {
 		debug('No path selected');
 	}
 
+	await loadProjectFromDatabase();
+
 	await enableImportVideo();
 }
 
@@ -108,7 +115,7 @@ async function importVideo() {
 
 	if (path) {
 		debug(`Selected video path: ${path}`);
-		ProjectStore.file.path = path;
+		ProjectStore.video.path = path;
 	} else {
 		debug('No video path selected');
 	}
@@ -136,18 +143,20 @@ async function saveProjectAs() {
 		return;
 	}
 
-	await saveProject();
-
 	const currDbPath = ProjectStore.file.path;
 
 	await closeDatabase();
 
-	await rename(currDbPath, path);
+	await copyFile(currDbPath, path);
 
 	await openDatabase(path, false, false);
+
+	await saveProject();
 }
 
 async function saveProject() {
+	await saveProjectToDatabase(ProjectStore);
+
 	await invoke('set_menu_item_enabling_status', {
 		menuId: 'save_project',
 		enabled: false

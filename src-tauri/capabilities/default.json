@@ -16,7 +16,7 @@
     "fs:default",
     "fs:allow-app-write-recursive",
     {
-      "identifier": "fs:allow-rename",
+      "identifier": "fs:allow-copy-file",
       "allow": [{
         "path": "$APPCONFIG/**"
       }]
