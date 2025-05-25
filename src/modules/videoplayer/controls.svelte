@@ -18,7 +18,7 @@
 
 <div class="flex flex-row justify-center">
 	<button
-		class="p-2 hover:text-white active:text-white"
+		class="p-2 pb-0 hover:text-white active:text-white"
 		aria-label="Rewind Slow"
 		title="Rewind Slow"
 		onclick={() => skip(SkipType.SHORT, SkipDirection.BACKWARD)}
@@ -26,7 +26,7 @@
 		<IconPlayerSkipBack />
 	</button>
 	<button
-		class="p-2 hover:text-white active:text-white"
+		class="p-2 pb-0 hover:text-white active:text-white"
 		onclick={play}
 		aria-label="Play/Pause"
 		title="Play/Pause"
@@ -38,7 +38,7 @@
 		{/if}
 	</button>
 	<button
-		class="p-2 hover:text-white active:text-white"
+		class="p-2 pb-0 hover:text-white active:text-white"
 		aria-label="Rewind"
 		title="Rewind"
 		onclick={() => skip(SkipType.SHORT, SkipDirection.FORWARD)}
