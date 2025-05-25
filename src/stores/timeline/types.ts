@@ -1,15 +1,13 @@
-export interface TagsData {
+export interface RangeData {
+	id: string;
+	buttonId: string;
 	categoryId: string;
-	tags: {
-		tagId: string;
-		timestamp: number[];
-	}[];
+	timestamp: {
+		start: number;
+		end: number;
+	};
 }
 
-export interface EventsData {
-	eventCategoryId: string;
-	events: {
-		eventId: string;
-		timestamp: number[];
-	}[];
+export interface RangeDataWithTags extends RangeData {
+	tagsRelated: string[];
 }

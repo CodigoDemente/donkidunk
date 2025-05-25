@@ -1,9 +1,13 @@
 <script lang="ts">
-	import Tagtime from '../../components/tagtime/tagtime.svelte';
-	import Markers from './markers.svelte';
-	import { timelineStore } from '../../stores/timeline/store';
-	import { actionCategories, actionsList, eventCategories } from '../../utils/+constants';
 	import { IconChevronDown } from '@tabler/icons-svelte';
+	import { selectorsTimeline } from '../../stores/timeline/selectors';
+	import type { RangeData, RangeDataWithTags } from '../../stores/timeline/types';
+	import Markers from './markers.svelte';
+	import { selectorsBoard } from '../../stores/board/selectors';
+	import Tagtime from '../../components/tagtime/tagtime.svelte';
+
+	const { eventCategoriesListById, actionCategoriesListById } = selectorsBoard;
+	const { timelineEventsByCategory, timelineActionsByCategory } = selectorsTimeline;
 
 	type Props = {
 		currentTime: number;
@@ -71,39 +75,34 @@
 				draggable="true"
 				class="relative"
 			>
-				{#if $timelineStore.events.length > 0}
+				{#if Object.entries($timelineEventsByCategory).length > 0}
 					<div class="mt-2 mb-4 flex flex-col items-start gap-2">
-						{#each $timelineStore.events as eventCategory (eventCategory.eventCategoryId)}
+						{#each Object.entries($timelineEventsByCategory) as [key, value] (key)}
 							<div class="relative h-5 w-full rounded-xs bg-gray-800">
-								{#each eventCategory.events as event (event.eventId)}
+								{#each value as RangeDataWithTags[] as event}
 									<Tagtime
-										start={event.timestamp[0]}
-										end={event.timestamp[1]}
+										start={event.timestamp.start}
+										end={event.timestamp.end}
 										total={duration}
-										color={eventCategories[
-											eventCategory.eventCategoryId as keyof typeof eventCategories
-										]?.color}
-										name={eventCategories[
-											eventCategory.eventCategoryId as keyof typeof eventCategories
-										]?.name}
+										color={$eventCategoriesListById[key]?.color}
+										name={$eventCategoriesListById[key]?.name}
 									/>
 								{/each}
 							</div>
 						{/each}
 					</div>
 				{/if}
-				{#if $timelineStore.actions.length > 0}
+				{#if Object.entries($timelineActionsByCategory).length > 0}
 					<div class="flex w-full flex-col items-start gap-1">
-						{#each $timelineStore.actions as category (category.categoryId)}
+						{#each Object.entries($timelineActionsByCategory) as [key, value] (key)}
 							<div class="relative h-5 w-full rounded-xs bg-gray-800">
-								{#each category.tags as tag, index (index)}
+								{#each value as RangeData[] as action, index (index)}
 									<Tagtime
-										start={tag.timestamp[0]}
-										end={tag.timestamp[1]}
+										start={action.timestamp.start}
+										end={action.timestamp.end}
 										total={duration}
-										color={actionCategories[category.categoryId as keyof typeof actionCategories]
-											?.color}
-										name={actionsList[tag.tagId as keyof typeof actionsList]?.name}
+										color={$actionCategoriesListById[key]?.color}
+										name={$actionCategoriesListById[key]?.name}
 									/>
 								{/each}
 							</div>

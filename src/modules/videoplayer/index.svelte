@@ -9,6 +9,10 @@
 		video: string | undefined;
 	};
 
+	export function getCurrentTime() {
+		return currentTime;
+	}
+
 	const { video }: Props = $props();
 
 	let videoPlayer: HTMLVideoElement | null = $state(null);
