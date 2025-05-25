@@ -1,4 +1,4 @@
-import { boardStore } from './store';
+import { boardStore } from './store.svelte';
 
 // Helper to generate unique IDs
 function uuid() {
@@ -6,14 +6,8 @@ function uuid() {
 }
 
 export const boardActions = {
-	// Subscribe to the store
-	subscribe: boardStore.subscribe,
-
 	setEditingMode(value: boolean) {
-		boardStore.update((state) => {
-			state.isEditing = value;
-			return state;
-		});
+		boardStore.isEditing = value;
 	},
 
 	updateCategoryPosition(
@@ -22,13 +16,11 @@ export const boardActions = {
 		x: number,
 		y: number
 	) {
-		boardStore.update((state) => {
-			const cat = state[section].find((c) => c.id === categoryId);
-			if (cat) {
-				cat.onGrid = [x, y];
-			}
-			return state;
-		});
+		const cat = boardStore[section].find((c) => c.id === categoryId);
+
+		if (cat) {
+			cat.onGrid = [x, y];
+		}
 	},
 
 	addButtonToCategory(
@@ -36,28 +28,23 @@ export const boardActions = {
 		categoryId: string,
 		name: string
 	) {
-		boardStore.update((state) => {
-			const cat = state[section].find((c) => c.id === categoryId);
-			if (cat) {
-				cat.buttons.push({
-					id: `${categoryId}-${uuid()}`,
-					name: name
-				});
-			}
-			return state;
-		});
+		const cat = boardStore[section].find((c) => c.id === categoryId);
+
+		if (cat) {
+			cat.buttons.push({
+				id: `${categoryId}-${uuid()}`,
+				name: name
+			});
+		}
 	},
 
 	addCategory(section: 'eventCategories' | 'actionCategories', name: string, color: string) {
-		boardStore.update((state) => {
-			state[section].push({
-				id: uuid(),
-				name: name,
-				color: color,
-				onGrid: [0, 0],
-				buttons: []
-			});
-			return state;
+		boardStore[section].push({
+			id: uuid(),
+			name: name,
+			color: color,
+			onGrid: [0, 0],
+			buttons: []
 		});
 	}
 };

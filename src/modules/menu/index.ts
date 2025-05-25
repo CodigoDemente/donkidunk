@@ -10,7 +10,7 @@ import {
 } from '../../persistence/database';
 import { homeDir } from '@tauri-apps/api/path';
 import { invoke } from '@tauri-apps/api/core';
-import ProjectStore from '../../persistence/stores/project/project.svelte';
+import ProjectStore from '../../persistence/stores/project/store.svelte';
 
 type MenuEvent = {
 	id: string;

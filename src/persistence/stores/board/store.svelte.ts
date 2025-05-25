@@ -1,24 +1,6 @@
-import { writable } from 'svelte/store';
+import type { Category, Tag } from './types';
 
-export interface Category {
-	id: string;
-	name: string;
-	color: string;
-	onGrid: number[];
-	buttons: Action[];
-}
-
-export interface Action {
-	id: string;
-	name: string;
-}
-
-export interface Tag {
-	id: string;
-	name: string;
-	color: string;
-}
-export interface BoardStore {
+interface BoardStore {
 	isEditing: boolean;
 	eventCategories: Category[];
 	actionCategories: Category[];
@@ -170,4 +152,4 @@ const initialState: BoardStore = {
 	]
 };
 
-export const boardStore = writable<BoardStore>(initialState);
+export const boardStore = $state<BoardStore>(initialState);

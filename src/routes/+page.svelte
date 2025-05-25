@@ -1,11 +1,16 @@
 <script lang="ts">
-	import '../styles/page.css';
-	import VideoPlayer from '../modules/videoplayer/index.svelte';
 	import Board from '../modules/board/index.svelte';
-	import ProjectStore from '../persistence/stores/project/project.svelte';
+	import VideoPlayer from '../modules/videoplayer/index.svelte';
+	import ProjectStore from '../persistence/stores/project/store.svelte';
+	import '../styles/page.css';
 
+	let videoPlayerRef: any = null;
 	let leftWidth = 50;
 	let isResizing = false;
+
+	function handleCheckTime() {
+		return videoPlayerRef.getCurrentTime();
+	}
 
 	function startResize() {
 		isResizing = true;
@@ -29,10 +34,10 @@
 
 <div class="flex w-full flex-row gap-1">
 	<div class="flex-shrink-0" style="width: {leftWidth}%">
-		<VideoPlayer video={ProjectStore.video?.path} />
+		<VideoPlayer video={ProjectStore.video?.path} bind:this={videoPlayerRef} />
 	</div>
 	<div class="w-1 cursor-col-resize bg-gray-900" on:mousedown={startResize}></div>
 	<div class="flex-grow">
-		<Board />
+		<Board checkTime={handleCheckTime} />
 	</div>
 </div>
