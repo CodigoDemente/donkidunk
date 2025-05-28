@@ -1,4 +1,4 @@
-import { timelineStore } from './store';
+import { timelineStore } from './store.svelte';
 import type { RangeData, RangeDataWithTags } from './types';
 
 const timelineEventsByCategory = $derived.by(() => {

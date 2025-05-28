@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { IconChevronDown } from '@tabler/icons-svelte';
-	import { selectorsTimeline } from '../../persistence/stores/timeline/selectors';
+	import { selectorsTimeline } from '../../persistence/stores/timeline/selectors.svelte';
 	import type { RangeData, RangeDataWithTags } from '../../persistence/stores/timeline/types';
 	import Markers from './markers.svelte';
-	import { selectorsBoard } from '../../persistence/stores/board/selectors';
+	import { selectorsBoard } from '../../persistence/stores/board/selectors.svelte';
 	import Tagtime from '../../components/tagtime/tagtime.svelte';
 
 	const { eventCategoriesListById, actionCategoriesListById } = selectorsBoard;
@@ -75,9 +75,9 @@
 				draggable="true"
 				class="relative"
 			>
-				{#if Object.entries($timelineEventsByCategory).length > 0}
+				{#if Object.entries(timelineEventsByCategory).length > 0}
 					<div class="mt-2 mb-4 flex flex-col items-start gap-2">
-						{#each Object.entries($timelineEventsByCategory) as [key, value] (key)}
+						{#each Object.entries(timelineEventsByCategory) as [key, value] (key)}
 							<div class="relative h-5 w-full rounded-xs bg-gray-800">
 								{#each value as RangeDataWithTags[] as event}
 									<Tagtime
@@ -92,9 +92,9 @@
 						{/each}
 					</div>
 				{/if}
-				{#if Object.entries($timelineActionsByCategory).length > 0}
+				{#if Object.entries(timelineActionsByCategory).length > 0}
 					<div class="flex w-full flex-col items-start gap-1">
-						{#each Object.entries($timelineActionsByCategory) as [key, value] (key)}
+						{#each Object.entries(timelineActionsByCategory) as [key, value] (key)}
 							<div class="relative h-5 w-full rounded-xs bg-gray-800">
 								{#each value as RangeData[] as action, index (index)}
 									<Tagtime
