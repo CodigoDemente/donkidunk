@@ -112,12 +112,18 @@ export async function saveProjectToDatabase(projectData: ProjectData): Promise<v
 
 	await db?.execute(
 		`INSERT INTO configuration (name, value)
-		VALUES ('video.path', ?)`,
+		VALUES ('video.path', $1) ON CONFLICT(name) DO UPDATE SET value = $1`,
 		[projectData.video.path]
+	);
+
+	await db?.execute(
+		`INSERT INTO configuration (name, value)
+		VALUES ('last_save', $1) ON CONFLICT(name) DO UPDATE SET value = $1`,
+		[projectData.metadata.timestamp]
 	);
 }
 
-export async function loadProjectFromDatabase(): Promise<ProjectData> {
+export async function loadProjectFromDatabase(): Promise<void> {
 	debug('Loading project from database');
 
 	const db = ProjectStore.database;
@@ -129,11 +135,14 @@ export async function loadProjectFromDatabase(): Promise<ProjectData> {
 
 	if (result && result.length > 0) {
 		ProjectStore.video.path = result[0].value;
-
-		return ProjectStore;
 	}
 
-	debug('No project data found in database');
+	const savedTimestamp = await db?.select<{ value: string }[]>(
+		'SELECT value FROM configuration WHERE name = ?',
+		['last_save']
+	);
 
-	return ProjectStore;
+	if (savedTimestamp && savedTimestamp.length > 0) {
+		ProjectStore.metadata.timestamp = savedTimestamp[0].value;
+	}
 }

@@ -3,12 +3,15 @@ import { info, error } from '@tauri-apps/plugin-log';
 import ProjectData from '../stores/project/store.svelte';
 import { listen } from '@tauri-apps/api/event';
 import { invoke } from '@tauri-apps/api/core';
+import { StoreScope } from '../stores';
 
 class FilePersistence {
 	private fileName: string = '';
-	private modifiedTimes = 0;
+	private extension: string = '.json';
 	private isInitialized = false;
 	private unListen: (() => void) | null = null;
+	private autoSave: boolean = false;
+	private timer: NodeJS.Timeout | null = null;
 
 	constructor(fileName: string) {
 		this.fileName = fileName;
@@ -29,12 +32,34 @@ class FilePersistence {
 						enabled: true
 					});
 
-					await this.handleStateChange(event.payload.property, event.payload.value);
+					await this.handleStateChange(
+						StoreScope.PROJECT,
+						event.payload.property,
+						event.payload.value
+					);
 				}
 			);
 		} catch (err) {
 			error(`Error initializing FilePersistence: ${err}`);
 		}
+	}
+
+	enableAutoSave(): void {
+		if (!this.isInitialized) {
+			error('FilePersistence not initialized, cannot enable auto-save');
+			return;
+		}
+		this.autoSave = true;
+		info('Auto-save enabled for FilePersistence');
+	}
+
+	disableAutoSave(): void {
+		if (!this.isInitialized) {
+			error('FilePersistence not initialized, cannot disable auto-save');
+			return;
+		}
+		this.autoSave = false;
+		info('Auto-save disabled for FilePersistence');
 	}
 
 	async destroy(): Promise<void> {
@@ -54,13 +79,13 @@ class FilePersistence {
 		}
 	}
 
-	async load<T = Record<string, unknown>>(): Promise<T | null> {
+	async load<T = Record<string, unknown>>(scope: StoreScope): Promise<T | null> {
 		try {
 			if (!this.isInitialized) {
 				throw new Error('FilePersistence not initialized');
 			}
 
-			const data = await readTextFile(this.fileName, {
+			const data = await readTextFile(`${this.fileName}_${scope}.${this.extension}`, {
 				baseDir: BaseDirectory.AppLocalData
 			});
 
@@ -71,7 +96,7 @@ class FilePersistence {
 		}
 	}
 
-	async save<T = Record<string, unknown>>(data: T): Promise<void> {
+	async save<T = Record<string, unknown>>(scope: StoreScope, data: T): Promise<void> {
 		try {
 			if (!this.isInitialized) {
 				throw new Error('FilePersistence not initialized');
@@ -79,7 +104,7 @@ class FilePersistence {
 
 			const text = JSON.stringify(data);
 
-			await writeTextFile(this.fileName, text, {
+			await writeTextFile(`${this.fileName}_${scope}.${this.extension}`, text, {
 				baseDir: BaseDirectory.AppLocalData
 			});
 		} catch (err) {
@@ -87,19 +112,32 @@ class FilePersistence {
 		}
 	}
 
-	async handleStateChange(property: string, value: unknown): Promise<void> {
-		this.modifiedTimes++;
+	async handleStateChange(scope: StoreScope, property: string, value: unknown): Promise<void> {
+		info(`State changed: ${property} = ${value}`);
 
-		if (this.modifiedTimes < 5) {
-			info(`State changed: ${property} = ${value}`);
+		if (!this.autoSave) {
+			info('Auto-save is disabled, skipping save operation');
 			return;
 		}
 
-		await this.save(ProjectData);
-		this.modifiedTimes = 0;
+		let data: Record<string, unknown>;
+
+		if (scope === StoreScope.PROJECT) {
+			data = ProjectData;
+		} else {
+			error(`Unsupported store scope: ${scope}`);
+			return;
+		}
+
+		clearTimeout(this.timer!);
+
+		this.timer = setTimeout(async () => {
+			await this.save(scope, data);
+			info('Project data auto-saved');
+		}, 500);
 	}
 }
 
-const filePersistenceStore = $state(new FilePersistence('dnk-data.json'));
+const filePersistenceStore = $state(new FilePersistence('dnk-data'));
 
 export default filePersistenceStore;
