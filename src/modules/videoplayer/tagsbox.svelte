@@ -29,7 +29,7 @@
 				{#if $timelineOnPlay.tagsRelated.length === 0}
 					<p class="text-sm text-gray-400">No tags related to the current play.</p>
 				{:else}
-					{#each $timelineOnPlay.tagsRelated as tag}
+					{#each $timelineOnPlay.tagsRelated as tag (tag)}
 						<!-- TODO: replace and create Button component for all buttons -->
 						<button
 							class="rounded bg-sky-500 px-3 py-1 text-sm font-medium text-white hover:bg-sky-600"
@@ -39,7 +39,7 @@
 					{/each}
 				{/if}
 			{:else if $timelineSelectedEvent}
-				{#each $timelineStore.eventTimeline.find((event) => event.id === $timelineSelectedEvent)?.tagsRelated ?? [] as tag}
+				{#each $timelineStore.eventTimeline.find((event) => event.id === $timelineSelectedEvent)?.tagsRelated ?? [] as tag (tag)}
 					<button
 						class="rounded bg-sky-500 px-3 py-1 text-sm font-medium text-white hover:bg-sky-600"
 					>

@@ -79,7 +79,7 @@
 			>
 				{#if Object.entries($eventCategoriesListById).length > 0}
 					<div class="mt-2 mb-4 flex flex-col items-start gap-2">
-						{#each Object.keys($eventCategoriesListById) as categoryId}
+						{#each Object.keys($eventCategoriesListById) as categoryId (categoryId)}
 							<Stroke
 								{categoryId}
 								allTagsByCategory={$timelineEventsByCategory}
@@ -95,7 +95,7 @@
 				{/if}
 				{#if Object.entries($actionCategoriesListById).length > 0}
 					<div class="flex w-full flex-col items-start gap-1">
-						{#each Object.keys($actionCategoriesListById) as categoryId}
+						{#each Object.keys($actionCategoriesListById) as categoryId (categoryId)}
 							<Stroke
 								{categoryId}
 								allTagsByCategory={$timelineActionsByCategory}
