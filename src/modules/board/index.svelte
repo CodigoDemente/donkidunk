@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { boardStore } from '../../stores/board/store';
 	import { boardActions } from '../../stores/board/actions';
+	import { timelineActions } from '../../stores/timeline/actions';
 
-	export let checkTime: () => void;
+	export let checkTime: () => number;
 
 	let showAddEventCategory = false;
 	let newEventCategoryName = '';
@@ -121,7 +122,10 @@
 					{/if}
 					<div>
 						{#each category.buttons as button (button.id)}
-							<button class="mt-1 rounded bg-gray-700 p-1 text-xs text-white">
+							<button
+								class="mt-1 rounded bg-gray-700 p-1 text-xs text-white"
+								on:click={() => timelineActions.addEvent(button.id, category.id, checkTime())}
+							>
 								{button.name}
 							</button>
 						{/each}
@@ -135,9 +139,13 @@
 	<div class="board">
 		<p class="text-xs text-white">Tags Board</p>
 		{#each $boardStore.tagsRelatedToEvents as tag (tag.id)}
-			<div class="m-1 inline-block rounded px-2 py-1" style="background: {tag.color}; color: #222;">
+			<button
+				on:click={() => timelineActions.addRelatedTagToEvent(tag.id)}
+				class="m-1 inline-block rounded px-2 py-1"
+				style="background: {tag.color}; color: #222;"
+			>
 				{tag.name}
-			</div>
+			</button>
 		{/each}
 	</div>
 
@@ -218,7 +226,10 @@
 					{/if}
 					<div>
 						{#each category.buttons as button (button.id)}
-							<button class="mt-1 rounded bg-gray-700 p-1 text-xs text-white">
+							<button
+								on:click={() => timelineActions.addAction(button.id, category.id, checkTime())}
+								class="mt-1 rounded bg-gray-700 p-1 text-xs text-white"
+							>
 								{button.name}
 							</button>
 						{/each}
