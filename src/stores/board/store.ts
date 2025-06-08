@@ -38,17 +38,17 @@ const initialState: BoardStore = {
 	],
 	tagsRelatedToEvents: [
 		{
-			id: '#4',
+			id: '14-5',
 			name: 'Whatever',
 			color: '#FFDD00'
 		},
 		{
-			id: '#5',
+			id: '14-6',
 			name: 'Whatever3',
 			color: '#FF0000'
 		},
 		{
-			id: '#6',
+			id: '14-7',
 			name: 'Whatever4',
 			color: '#FF0000'
 		}

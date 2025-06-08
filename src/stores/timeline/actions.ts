@@ -1,115 +1,129 @@
 import { timelineStore } from './store';
-import type { EventsData, TagsData } from './types';
+import type { RangeDataWithTags } from './types';
+
+// Helper to generate unique IDs
+function uuid() {
+	return Math.random().toString(36).substring(2, 10) + Date.now();
+}
+
+const createNewEvent = (
+	buttonId: string,
+	categoryId: string,
+	timeCursor: number
+): RangeDataWithTags => {
+	return {
+		id: uuid(),
+		buttonId: buttonId,
+		categoryId: categoryId,
+		timestamp: {
+			start: timeCursor,
+			end: null // Assuming end is null for new events
+		},
+		tagsRelated: []
+	};
+};
 
 export const timelineActions = {
-	// Subscribe to the store
-	subscribe: timelineStore.subscribe,
+	addEvent(buttonId: string, categoryId: string, timeCursor: number) {
+		timelineStore.update((state) => {
+			const newEvent = createNewEvent(buttonId, categoryId, timeCursor);
 
-	// Add a new event category
-	addEventCategory(newCategory: EventsData) {
-		timelineStore.update((state) => ({
-			...state,
-			events: [...state.events, newCategory]
-		}));
+			if (state.onPlay === null) {
+				state.onPlay = newEvent;
+				state.eventSelected = null; // Clear any selected event
+				return state;
+			}
+			if (
+				state.onPlay &&
+				state.onPlay.buttonId === buttonId &&
+				state.onPlay.categoryId === categoryId
+			) {
+				state.onPlay.timestamp.end = timeCursor;
+				state.eventTimeline.push(state.onPlay);
+				state.eventSelected = state.onPlay.id;
+				state.onPlay = null;
+				return state;
+			}
+
+			return state;
+		});
 	},
 
-	// Add an event to a specific category
-	addEvent(eventCategoryId: string, newEvent: EventsData['events'][0]) {
-		timelineStore.update((state) => ({
-			...state,
-			events: state.events.map((category) =>
-				category.eventCategoryId === eventCategoryId
-					? { ...category, events: [...category.events, newEvent] }
-					: category
-			)
-		}));
+	addAction(buttonId: string, categoryId: string, timeCursor: number) {
+		timelineStore.update((state) => {
+			const actionInAction = state.actionTimeline.find(
+				(a) => a.buttonId === buttonId && a.categoryId === categoryId && a.timestamp.end === null
+			);
+
+			if (actionInAction) {
+				actionInAction.timestamp.end = timeCursor;
+			} else {
+				state.eventSelected = null; // Clear any selected event
+				state.actionTimeline.push({
+					id: uuid(),
+					buttonId: buttonId,
+					categoryId: categoryId,
+					timestamp: {
+						start: timeCursor,
+						end: null // Assuming end is null for new actions
+					}
+				});
+			}
+			return state;
+		});
 	},
 
-	// Update an event in a specific category
-	updateEvent(
-		eventCategoryId: string,
-		eventId: string,
-		updatedEvent: Partial<EventsData['events'][0]>
-	) {
-		timelineStore.update((state) => ({
-			...state,
-			events: state.events.map((category) =>
-				category.eventCategoryId === eventCategoryId
-					? {
-							...category,
-							events: category.events.map((event) =>
-								event.eventId === eventId ? { ...event, ...updatedEvent } : event
-							)
-						}
-					: category
-			)
-		}));
+	setEventSelected(eventId: string) {
+		timelineStore.update((state) => {
+			if (state.eventSelected === eventId) {
+				state.eventSelected = null;
+			} else {
+				state.eventSelected = eventId;
+			}
+			console.log('Event selected:', state);
+			return state;
+		});
 	},
 
-	// Remove an event from a specific category
-	removeEvent(eventCategoryId: string, eventId: string) {
-		timelineStore.update((state) => ({
-			...state,
-			events: state.events.map((category) =>
-				category.eventCategoryId === eventCategoryId
-					? {
-							...category,
-							events: category.events.filter((event) => event.eventId !== eventId)
-						}
-					: category
-			)
-		}));
+	addRelatedTagToEvent(tagId: string) {
+		timelineStore.update((state) => {
+			// Helper to toggle a tag in a tagsRelated array
+			const toggleTag = (tags: string[]) =>
+				tags.includes(tagId) ? tags.filter((tag) => tag !== tagId) : [...tags, tagId];
+			if (state.onPlay) {
+				state.onPlay = {
+					...state.onPlay,
+					tagsRelated: toggleTag(state.onPlay.tagsRelated)
+				};
+			} else if (state.eventSelected) {
+				state.eventTimeline = state.eventTimeline.map((event) =>
+					event.id === state.eventSelected
+						? { ...event, tagsRelated: toggleTag(event.tagsRelated) }
+						: event
+				);
+			}
+			return state;
+		});
 	},
 
-	// Add a new action category
-	addActionCategory(newCategory: TagsData) {
-		timelineStore.update((state) => ({
-			...state,
-			actions: [...state.actions, newCategory]
-		}));
+	removeEvent(eventId: string) {
+		timelineStore.update((state) => {
+			state.eventTimeline = state.eventTimeline.filter((e) => e.id !== eventId);
+			return state;
+		});
 	},
 
-	// Add a tag to a specific action category
-	addAction(categoryId: string, newTag: TagsData['tags'][0]) {
-		timelineStore.update((state) => ({
-			...state,
-			actions: state.actions.map((category) =>
-				category.categoryId === categoryId
-					? { ...category, tags: [...category.tags, newTag] }
-					: category
-			)
-		}));
+	removeAction(actionId: string) {
+		timelineStore.update((state) => {
+			state.actionTimeline = state.actionTimeline.filter((a) => a.id !== actionId);
+			return state;
+		});
 	},
 
-	// Update a tag in a specific action category
-	updateAction(categoryId: string, tagId: string, updatedTag: Partial<TagsData['tags'][0]>) {
-		timelineStore.update((state) => ({
-			...state,
-			actions: state.actions.map((category) =>
-				category.categoryId === categoryId
-					? {
-							...category,
-							tags: category.tags.map((tag) =>
-								tag.tagId === tagId ? { ...tag, ...updatedTag } : tag
-							)
-						}
-					: category
-			)
-		}));
-	},
-
-	// Remove a tag from a specific action category
-	removeAction(categoryId: string, tagId: string) {
-		timelineStore.update((state) => ({
-			...state,
-			actions: state.actions.map((category) =>
-				category.categoryId === categoryId
-					? {
-							...category,
-							tags: category.tags.filter((tag) => tag.tagId !== tagId)
-						}
-					: category
-			)
-		}));
+	setOnPlay(event: RangeDataWithTags | null) {
+		timelineStore.update((state) => {
+			state.onPlay = event;
+			return state;
+		});
 	}
 };
