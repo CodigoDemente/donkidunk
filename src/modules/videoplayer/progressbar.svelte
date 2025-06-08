@@ -1,27 +1,18 @@
 <script lang="ts">
-	import { IconChevronDown } from '@tabler/icons-svelte';
-	import { selectorsTimeline } from '../../stores/timeline/selectors';
-	import type { RangeData, RangeDataWithTags } from '../../stores/timeline/types';
-	import Markers from './markers.svelte';
+	import Stroke from '../../components/stroke/stroke.svelte';
 	import { selectorsBoard } from '../../stores/board/selectors';
-	import Tagtime from '../../components/tagtime/tagtime.svelte';
 	import { timelineActions } from '../../stores/timeline/actions';
-	import { timelineStore } from '../../stores/timeline/store';
+	import { selectorsTimeline } from '../../stores/timeline/selectors';
+	import Markers from './markers.svelte';
 	import Tagsbox from './tagsbox.svelte';
 
 	const {
 		eventCategoriesListById,
 		actionCategoriesListById,
 		actionButtonsListById,
-		eventButtonsListById,
-		tagsListById
+		eventButtonsListById
 	} = selectorsBoard;
-	const {
-		timelineEventsByCategory,
-		timelineActionsByCategory,
-		timelineOnPlay,
-		timelineSelectedEvent
-	} = selectorsTimeline;
+	const { timelineEventsByCategory, timelineActionsByCategory, timelineOnPlay } = selectorsTimeline;
 
 	type Props = {
 		currentTime: number;
@@ -89,49 +80,30 @@
 				{#if Object.entries($eventCategoriesListById).length > 0}
 					<div class="mt-2 mb-4 flex flex-col items-start gap-2">
 						{#each Object.keys($eventCategoriesListById) as categoryId}
-							<div class="relative h-5 w-full rounded-xs bg-gray-800">
-								{#if $timelineEventsByCategory[categoryId]}
-									{#each $timelineEventsByCategory[categoryId] as event (event.id)}
-										<Tagtime
-											start={event.timestamp.start}
-											end={event.timestamp.end}
-											total={duration}
-											color={$eventCategoriesListById[categoryId]?.color}
-											name={$eventButtonsListById[event.buttonId]?.name}
-											onClick={() =>
-												$timelineOnPlay === null && timelineActions.setEventSelected(event.id)}
-										/>
-									{/each}
-								{/if}
-								{#if $timelineOnPlay && categoryId === $timelineOnPlay.categoryId}
-									<Tagtime
-										start={$timelineOnPlay.timestamp.start}
-										end={currentTime}
-										total={duration}
-										color={$eventCategoriesListById[categoryId]?.color}
-										name={$eventButtonsListById[$timelineOnPlay.buttonId]?.name}
-									/>
-								{/if}
-							</div>
+							<Stroke
+								{categoryId}
+								allTagsByCategory={$timelineEventsByCategory}
+								{duration}
+								boardCategoriesById={$eventCategoriesListById}
+								buttonsListById={$eventButtonsListById}
+								onPlayObject={$timelineOnPlay}
+								{currentTime}
+								onClick={timelineActions.setEventSelected}
+							/>
 						{/each}
 					</div>
 				{/if}
 				{#if Object.entries($actionCategoriesListById).length > 0}
 					<div class="flex w-full flex-col items-start gap-1">
 						{#each Object.keys($actionCategoriesListById) as categoryId}
-							<div class="relative h-5 w-full rounded-xs bg-gray-800">
-								{#if $timelineActionsByCategory[categoryId]}
-									{#each $timelineActionsByCategory[categoryId] as action (action.id)}
-										<Tagtime
-											start={action.timestamp.start}
-											end={action.timestamp.end ? action.timestamp.end : currentTime}
-											total={duration}
-											color={$actionCategoriesListById[categoryId]?.color}
-											name={$actionButtonsListById[action.buttonId]?.name}
-										/>
-									{/each}
-								{/if}
-							</div>
+							<Stroke
+								{categoryId}
+								allTagsByCategory={$timelineActionsByCategory}
+								{duration}
+								boardCategoriesById={$actionCategoriesListById}
+								buttonsListById={$actionButtonsListById}
+								{currentTime}
+							/>
 						{/each}
 					</div>
 				{/if}
