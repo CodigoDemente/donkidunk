@@ -28,7 +28,17 @@ const timelineActionsByCategory = derived(timelineStore, ($timelineStore) => {
 	);
 });
 
+const timelineOnPlay = derived(timelineStore, ($timelineStore) => {
+	return $timelineStore.onPlay;
+});
+
+const timelineSelectedEvent = derived(timelineStore, ($timelineStore) => {
+	return $timelineStore.eventSelected;
+});
+
 export const selectorsTimeline = {
 	timelineEventsByCategory,
-	timelineActionsByCategory
+	timelineActionsByCategory,
+	timelineOnPlay,
+	timelineSelectedEvent
 };

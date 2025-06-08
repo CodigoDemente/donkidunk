@@ -3,12 +3,14 @@ import type { RangeData, RangeDataWithTags } from './types';
 
 export interface TimelineStore {
 	onPlay: null | RangeDataWithTags;
+	eventSelected: null | string;
 	eventTimeline: RangeDataWithTags[];
 	actionTimeline: RangeData[];
 }
 
 const initialState: TimelineStore = {
 	onPlay: null,
+	eventSelected: null,
 	eventTimeline: [
 		{
 			id: '1',
