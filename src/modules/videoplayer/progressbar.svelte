@@ -5,9 +5,23 @@
 	import Markers from './markers.svelte';
 	import { selectorsBoard } from '../../stores/board/selectors';
 	import Tagtime from '../../components/tagtime/tagtime.svelte';
+	import { timelineActions } from '../../stores/timeline/actions';
+	import { timelineStore } from '../../stores/timeline/store';
+	import Tagsbox from './tagsbox.svelte';
 
-	const { eventCategoriesListById, actionCategoriesListById } = selectorsBoard;
-	const { timelineEventsByCategory, timelineActionsByCategory } = selectorsTimeline;
+	const {
+		eventCategoriesListById,
+		actionCategoriesListById,
+		actionButtonsListById,
+		eventButtonsListById,
+		tagsListById
+	} = selectorsBoard;
+	const {
+		timelineEventsByCategory,
+		timelineActionsByCategory,
+		timelineOnPlay,
+		timelineSelectedEvent
+	} = selectorsTimeline;
 
 	type Props = {
 		currentTime: number;
@@ -28,9 +42,6 @@
 		handleProgressClick,
 		progress = $bindable()
 	}: Props = $props();
-
-	let isBoxOpen: boolean = $state(false);
-	let tags = ['Tag 1', 'Tag 2', 'Tag 3', 'Tag 4'];
 </script>
 
 <div class="flex w-full flex-row">
@@ -75,36 +86,51 @@
 				draggable="true"
 				class="relative"
 			>
-				{#if Object.entries($timelineEventsByCategory).length > 0}
+				{#if Object.entries($eventCategoriesListById).length > 0}
 					<div class="mt-2 mb-4 flex flex-col items-start gap-2">
-						{#each Object.entries($timelineEventsByCategory) as [key, value] (key)}
+						{#each Object.keys($eventCategoriesListById) as categoryId}
 							<div class="relative h-5 w-full rounded-xs bg-gray-800">
-								{#each value as RangeDataWithTags[] as event}
+								{#if $timelineEventsByCategory[categoryId]}
+									{#each $timelineEventsByCategory[categoryId] as event (event.id)}
+										<Tagtime
+											start={event.timestamp.start}
+											end={event.timestamp.end}
+											total={duration}
+											color={$eventCategoriesListById[categoryId]?.color}
+											name={$eventButtonsListById[event.buttonId]?.name}
+											onClick={() =>
+												$timelineOnPlay === null && timelineActions.setEventSelected(event.id)}
+										/>
+									{/each}
+								{/if}
+								{#if $timelineOnPlay && categoryId === $timelineOnPlay.categoryId}
 									<Tagtime
-										start={event.timestamp.start}
-										end={event.timestamp.end}
+										start={$timelineOnPlay.timestamp.start}
+										end={currentTime}
 										total={duration}
-										color={$eventCategoriesListById[key]?.color}
-										name={$eventCategoriesListById[key]?.name}
+										color={$eventCategoriesListById[categoryId]?.color}
+										name={$eventButtonsListById[$timelineOnPlay.buttonId]?.name}
 									/>
-								{/each}
+								{/if}
 							</div>
 						{/each}
 					</div>
 				{/if}
-				{#if Object.entries($timelineActionsByCategory).length > 0}
+				{#if Object.entries($actionCategoriesListById).length > 0}
 					<div class="flex w-full flex-col items-start gap-1">
-						{#each Object.entries($timelineActionsByCategory) as [key, value] (key)}
+						{#each Object.keys($actionCategoriesListById) as categoryId}
 							<div class="relative h-5 w-full rounded-xs bg-gray-800">
-								{#each value as RangeData[] as action, index (index)}
-									<Tagtime
-										start={action.timestamp.start}
-										end={action.timestamp.end}
-										total={duration}
-										color={$actionCategoriesListById[key]?.color}
-										name={$actionCategoriesListById[key]?.name}
-									/>
-								{/each}
+								{#if $timelineActionsByCategory[categoryId]}
+									{#each $timelineActionsByCategory[categoryId] as action (action.id)}
+										<Tagtime
+											start={action.timestamp.start}
+											end={action.timestamp.end ? action.timestamp.end : currentTime}
+											total={duration}
+											color={$actionCategoriesListById[categoryId]?.color}
+											name={$actionButtonsListById[action.buttonId]?.name}
+										/>
+									{/each}
+								{/if}
 							</div>
 						{/each}
 					</div>
@@ -120,30 +146,5 @@
 	</div>
 </div>
 <div class="relative mt-2 bg-gray-700">
-	<!-- Line that toggles the box -->
-	<button
-		class="flex w-full cursor-pointer items-center bg-gray-700 px-1 text-gray-200"
-		onclick={() => (isBoxOpen = !isBoxOpen)}
-	>
-		<p class="text-xs">Tags related</p>
-		<IconChevronDown
-			class="ml-auto p-1 transition-transform duration-200"
-			style="transform: {isBoxOpen ? 'rotate(180deg)' : 'rotate(0deg)'}"
-		/>
-	</button>
-
-	<!-- Collapsible box -->
-	{#if isBoxOpen}
-		<div class="rounded-md bg-gray-800 p-2 shadow-md">
-			<div class="flex flex-wrap gap-2">
-				{#each tags as tag}
-					<button
-						class="rounded bg-sky-500 px-3 py-1 text-sm font-medium text-white hover:bg-sky-600"
-					>
-						{tag}
-					</button>
-				{/each}
-			</div>
-		</div>
-	{/if}
+	<Tagsbox />
 </div>
