@@ -30,6 +30,7 @@
 					<p class="text-sm text-gray-400">No tags related to the current play.</p>
 				{:else}
 					{#each $timelineOnPlay.tagsRelated as tag}
+						<!-- TODO: replace and create Button component for all buttons -->
 						<button
 							class="rounded bg-sky-500 px-3 py-1 text-sm font-medium text-white hover:bg-sky-600"
 						>
