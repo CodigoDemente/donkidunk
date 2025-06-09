@@ -1,5 +1,4 @@
 use std::env;
-
 use which::which;
 
 mod server;
