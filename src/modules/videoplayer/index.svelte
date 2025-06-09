@@ -1,13 +1,18 @@
 <script lang="ts">
 	import { convertFileSrc } from '@tauri-apps/api/core';
 	import { platform } from '@tauri-apps/plugin-os';
-	import Controls from './controls.svelte';
+
 	import Progressbar from './progressbar.svelte';
 	import { SkipDirection, SkipType } from './+types';
+	import Controls from './controls.svelte';
 
 	type Props = {
 		video: string | undefined;
 	};
+
+	export function getCurrentTime() {
+		return currentTime;
+	}
 
 	const { video }: Props = $props();
 
