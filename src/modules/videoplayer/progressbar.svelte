@@ -1,13 +1,18 @@
 <script lang="ts">
-	import { IconChevronDown } from '@tabler/icons-svelte';
-	import { selectorsTimeline } from '../../persistence/stores/timeline/selectors.svelte';
-	import type { RangeData, RangeDataWithTags } from '../../persistence/stores/timeline/types';
-	import Markers from './markers.svelte';
+	import Stroke from '../../components/stroke/stroke.svelte';
 	import { selectorsBoard } from '../../persistence/stores/board/selectors.svelte';
-	import Tagtime from '../../components/tagtime/tagtime.svelte';
+	import { timelineActions } from '../../persistence/stores/timeline/actions';
+	import { selectorsTimeline } from '../../persistence/stores/timeline/selectors.svelte';
+	import Markers from './markers.svelte';
+	import Tagsbox from './tagsbox.svelte';
 
-	const { eventCategoriesListById, actionCategoriesListById } = selectorsBoard;
-	const { timelineEventsByCategory, timelineActionsByCategory } = selectorsTimeline;
+	const {
+		eventCategoriesListById,
+		actionCategoriesListById,
+		actionButtonsListById,
+		eventButtonsListById
+	} = selectorsBoard;
+	const { timelineEventsByCategory, timelineActionsByCategory, timelineOnPlay } = selectorsTimeline;
 
 	type Props = {
 		currentTime: number;
@@ -75,37 +80,33 @@
 				draggable="true"
 				class="relative"
 			>
-				{#if Object.entries(timelineEventsByCategory).length > 0}
+				{#if Object.entries(eventCategoriesListById).length > 0}
 					<div class="mt-2 mb-4 flex flex-col items-start gap-2">
-						{#each Object.entries(timelineEventsByCategory) as [key, value] (key)}
-							<div class="relative h-5 w-full rounded-xs bg-gray-800">
-								{#each value as RangeDataWithTags[] as event}
-									<Tagtime
-										start={event.timestamp.start}
-										end={event.timestamp.end}
-										total={duration}
-										color={eventCategoriesListById[key]?.color}
-										name={eventCategoriesListById[key]?.name}
-									/>
-								{/each}
-							</div>
+						{#each Object.keys(eventCategoriesListById) as categoryId (categoryId)}
+							<Stroke
+								{categoryId}
+								allTagsByCategory={timelineEventsByCategory}
+								{duration}
+								boardCategoriesById={eventCategoriesListById}
+								buttonsListById={eventButtonsListById}
+								onPlayObject={timelineOnPlay}
+								{currentTime}
+								onClick={timelineActions.setEventSelected}
+							/>
 						{/each}
 					</div>
 				{/if}
-				{#if Object.entries(timelineActionsByCategory).length > 0}
+				{#if Object.entries(actionCategoriesListById).length > 0}
 					<div class="flex w-full flex-col items-start gap-1">
-						{#each Object.entries(timelineActionsByCategory) as [key, value] (key)}
-							<div class="relative h-5 w-full rounded-xs bg-gray-800">
-								{#each value as RangeData[] as action, index (index)}
-									<Tagtime
-										start={action.timestamp.start}
-										end={action.timestamp.end}
-										total={duration}
-										color={actionCategoriesListById[key]?.color}
-										name={actionCategoriesListById[key]?.name}
-									/>
-								{/each}
-							</div>
+						{#each Object.keys(actionCategoriesListById) as categoryId (categoryId)}
+							<Stroke
+								{categoryId}
+								allTagsByCategory={timelineActionsByCategory}
+								{duration}
+								boardCategoriesById={actionCategoriesListById}
+								buttonsListById={actionButtonsListById}
+								{currentTime}
+							/>
 						{/each}
 					</div>
 				{/if}
@@ -120,30 +121,5 @@
 	</div>
 </div>
 <div class="relative mt-2 bg-gray-700">
-	<!-- Line that toggles the box -->
-	<button
-		class="flex w-full cursor-pointer items-center bg-gray-700 px-1 text-gray-200"
-		onclick={() => (isBoxOpen = !isBoxOpen)}
-	>
-		<p class="text-xs">Tags related</p>
-		<IconChevronDown
-			class="ml-auto p-1 transition-transform duration-200"
-			style="transform: {isBoxOpen ? 'rotate(180deg)' : 'rotate(0deg)'}"
-		/>
-	</button>
-
-	<!-- Collapsible box -->
-	{#if isBoxOpen}
-		<div class="rounded-md bg-gray-800 p-2 shadow-md">
-			<div class="flex flex-wrap gap-2">
-				{#each tags as tag}
-					<button
-						class="rounded bg-sky-500 px-3 py-1 text-sm font-medium text-white hover:bg-sky-600"
-					>
-						{tag}
-					</button>
-				{/each}
-			</div>
-		</div>
-	{/if}
+	<Tagsbox />
 </div>

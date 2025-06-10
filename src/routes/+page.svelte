@@ -1,15 +1,20 @@
 <script lang="ts">
+	import type { SvelteComponent } from 'svelte';
 	import Board from '../modules/board/index.svelte';
 	import VideoPlayer from '../modules/videoplayer/index.svelte';
 	import ProjectStore from '../persistence/stores/project/store.svelte';
 	import '../styles/page.css';
 
-	let videoPlayerRef: any = null;
+	type VideoPlayerComponent = SvelteComponent & {
+		getCurrentTime: () => number;
+	};
+
+	let videoPlayerRef: VideoPlayerComponent | null = null;
 	let leftWidth = 50;
 	let isResizing = false;
 
 	function handleCheckTime() {
-		return videoPlayerRef.getCurrentTime();
+		return videoPlayerRef?.getCurrentTime() ?? 0;
 	}
 
 	function startResize() {
