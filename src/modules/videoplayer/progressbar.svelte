@@ -11,8 +11,9 @@
 		actionCategoriesListById,
 		actionButtonsListById,
 		eventButtonsListById
-	} = selectorsBoard;
-	const { timelineEventsByCategory, timelineActionsByCategory, timelineOnPlay } = selectorsTimeline;
+	} = selectorsBoard();
+	const { timelineEventsByCategory, timelineActionsByCategory, timelineOnPlay } =
+		selectorsTimeline();
 
 	type Props = {
 		currentTime: number;
@@ -33,9 +34,6 @@
 		handleProgressClick,
 		progress = $bindable()
 	}: Props = $props();
-
-	let isBoxOpen: boolean = $state(false);
-	let tags = ['Tag 1', 'Tag 2', 'Tag 3', 'Tag 4'];
 </script>
 
 <div class="flex w-full flex-row">

@@ -49,11 +49,11 @@
 
 	$effect(() => {
 		if (videoPlayer) {
-			videoPlayer.onplay = (event) => {
+			videoPlayer.onplay = () => {
 				videoIsPlaying = true;
 			};
 
-			videoPlayer.onpause = (event) => {
+			videoPlayer.onpause = () => {
 				videoIsPlaying = false;
 			};
 		}

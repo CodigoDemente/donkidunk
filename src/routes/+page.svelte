@@ -41,7 +41,12 @@
 	<div class="flex-shrink-0" style="width: {leftWidth}%">
 		<VideoPlayer video={ProjectStore.video?.path} bind:this={videoPlayerRef} />
 	</div>
-	<div class="w-1 cursor-col-resize bg-gray-900" on:mousedown={startResize}></div>
+	<div
+		class="w-1 cursor-col-resize bg-gray-900"
+		on:mousedown={startResize}
+		role="separator"
+		aria-orientation="horizontal"
+	></div>
 	<div class="flex-grow">
 		<Board checkTime={handleCheckTime} />
 	</div>

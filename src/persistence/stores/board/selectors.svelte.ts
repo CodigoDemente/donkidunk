@@ -55,10 +55,10 @@ const actionButtonsListById = $derived.by(() => {
 	);
 });
 
-export const selectorsBoard = {
+export const selectorsBoard = () => ({
 	eventCategoriesListById,
 	actionCategoriesListById,
 	tagsListById,
 	eventButtonsListById,
 	actionButtonsListById
-};
+});

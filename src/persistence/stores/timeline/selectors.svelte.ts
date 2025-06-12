@@ -35,9 +35,9 @@ const timelineSelectedEvent = $derived.by(() => {
 	return timelineStore.eventSelected;
 });
 
-export const selectorsTimeline = {
+export const selectorsTimeline = () => ({
 	timelineEventsByCategory,
 	timelineActionsByCategory,
 	timelineOnPlay,
 	timelineSelectedEvent
-};
+});

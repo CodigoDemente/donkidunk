@@ -6,8 +6,8 @@
 
 	let isBoxOpen: boolean = $state(false);
 
-	const { tagsListById } = selectorsBoard;
-	const { timelineOnPlay, timelineSelectedEvent } = selectorsTimeline;
+	const { tagsListById } = selectorsBoard();
+	const { timelineOnPlay, timelineSelectedEvent } = selectorsTimeline();
 </script>
 
 <!-- Line that toggles the box -->
