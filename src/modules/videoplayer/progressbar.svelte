@@ -1,19 +1,11 @@
 <script lang="ts">
 	import Stroke from '../../components/stroke/stroke.svelte';
-	import { selectorsBoard } from '../../persistence/stores/board/selectors.svelte';
+	import { BoardSelectors } from '../../persistence/stores/board/selectors.svelte';
 	import { timelineActions } from '../../persistence/stores/timeline/actions';
-	import { selectorsTimeline } from '../../persistence/stores/timeline/selectors.svelte';
+	import { TimelineSelectors } from '../../persistence/stores/timeline/selectors.svelte';
+	import { timelineStore } from '../../persistence/stores/timeline/store.svelte';
 	import Markers from './markers.svelte';
 	import Tagsbox from './tagsbox.svelte';
-
-	const {
-		eventCategoriesListById,
-		actionCategoriesListById,
-		actionButtonsListById,
-		eventButtonsListById
-	} = selectorsBoard();
-	const { timelineEventsByCategory, timelineActionsByCategory, timelineOnPlay } =
-		selectorsTimeline();
 
 	type Props = {
 		currentTime: number;
@@ -78,31 +70,31 @@
 				draggable="true"
 				class="relative"
 			>
-				{#if Object.entries(eventCategoriesListById).length > 0}
+				{#if Object.entries(BoardSelectors.getEventCategoriesById()).length > 0}
 					<div class="mt-2 mb-4 flex flex-col items-start gap-2">
-						{#each Object.keys(eventCategoriesListById) as categoryId (categoryId)}
+						{#each Object.keys(BoardSelectors.getEventCategoriesById()) as categoryId (categoryId)}
 							<Stroke
 								{categoryId}
-								allTagsByCategory={timelineEventsByCategory}
+								allTagsByCategory={TimelineSelectors.getEventsByCategory()}
 								{duration}
-								boardCategoriesById={eventCategoriesListById}
-								buttonsListById={eventButtonsListById}
-								onPlayObject={timelineOnPlay}
+								boardCategoriesById={BoardSelectors.getEventCategoriesById()}
+								buttonsListById={BoardSelectors.getEventButtonsById()}
+								onPlayObject={TimelineSelectors.getOnPlay()}
 								{currentTime}
 								onClick={timelineActions.setEventSelected}
 							/>
 						{/each}
 					</div>
 				{/if}
-				{#if Object.entries(actionCategoriesListById).length > 0}
+				{#if Object.entries(BoardSelectors.getActionCategoriesById()).length > 0}
 					<div class="flex w-full flex-col items-start gap-1">
-						{#each Object.keys(actionCategoriesListById) as categoryId (categoryId)}
+						{#each Object.keys(BoardSelectors.getActionCategoriesById()) as categoryId (categoryId)}
 							<Stroke
 								{categoryId}
-								allTagsByCategory={timelineActionsByCategory}
+								allTagsByCategory={TimelineSelectors.getActionsByCategory()}
 								{duration}
-								boardCategoriesById={actionCategoriesListById}
-								buttonsListById={actionButtonsListById}
+								boardCategoriesById={BoardSelectors.getActionCategoriesById()}
+								buttonsListById={BoardSelectors.getActionButtonsById()}
 								{currentTime}
 							/>
 						{/each}
