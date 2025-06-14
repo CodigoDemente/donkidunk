@@ -1,8 +1,8 @@
-import { timelineStore } from './store.svelte';
-import type { RangeData, RangeDataWithTags } from './types';
+import TimelineStore from './store.svelte';
+import type { RangeData, RangeDataWithTags } from './types/RangeData';
 
 const timelineEventsByCategory = $derived.by(() => {
-	return timelineStore.eventTimeline.reduce(
+	return TimelineStore.eventTimeline.reduce(
 		(acc, event) => {
 			if (!acc[event.categoryId]) {
 				acc[event.categoryId] = [];
@@ -15,7 +15,7 @@ const timelineEventsByCategory = $derived.by(() => {
 });
 
 const timelineActionsByCategory = $derived.by(() => {
-	return timelineStore.actionTimeline.reduce(
+	return TimelineStore.actionTimeline.reduce(
 		(acc, action) => {
 			if (!acc[action.categoryId]) {
 				acc[action.categoryId] = [];
@@ -27,9 +27,9 @@ const timelineActionsByCategory = $derived.by(() => {
 	);
 });
 
-const timelineOnPlay = $derived(timelineStore.onPlay);
+const timelineOnPlay = $derived(TimelineStore.onPlay);
 
-const timelineSelectedEvent = $derived(timelineStore.eventSelected);
+const timelineSelectedEvent = $derived(TimelineStore.eventSelected);
 
 export class TimelineSelectors {
 	static getEventsByCategory() {

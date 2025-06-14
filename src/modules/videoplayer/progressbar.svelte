@@ -3,7 +3,6 @@
 	import { BoardSelectors } from '../../persistence/stores/board/selectors.svelte';
 	import { timelineActions } from '../../persistence/stores/timeline/actions';
 	import { TimelineSelectors } from '../../persistence/stores/timeline/selectors.svelte';
-	import { timelineStore } from '../../persistence/stores/timeline/store.svelte';
 	import Markers from './markers.svelte';
 	import Tagsbox from './tagsbox.svelte';
 

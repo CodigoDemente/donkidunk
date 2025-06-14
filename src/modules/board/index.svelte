@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { boardStore } from '../../persistence/stores/board/store.svelte';
+	import BoardStore from '../../persistence/stores/board/store.svelte';
 	import { boardActions } from '../../persistence/stores/board/actions';
 	import { timelineActions } from '../../persistence/stores/timeline/actions';
 
@@ -31,7 +31,7 @@
 		<div class="toggle-edit-play">
 			<button
 				id="mode-toggle-play"
-				class="toggle-btn {boardStore.isEditing ? '' : 'active'}"
+				class="toggle-btn {BoardStore.isEditing ? '' : 'active'}"
 				on:click={() => boardActions.setEditingMode(false)}
 				aria-label="Play Mode"
 			>
@@ -39,7 +39,7 @@
 			</button>
 			<button
 				id="mode-toggle-edit"
-				class="toggle-btn {boardStore.isEditing ? 'active' : ''}"
+				class="toggle-btn {BoardStore.isEditing ? 'active' : ''}"
 				on:click={() => boardActions.setEditingMode(true)}
 				aria-label="Edit Mode"
 			>
@@ -83,12 +83,12 @@
 			</div>
 		{/if}
 		<div class="categories-container">
-			{#each boardStore.eventCategories as category (category.id)}
+			{#each BoardStore.eventCategories as category (category.id)}
 				<div class="category" style="--color: {category.color}; position: relative;">
 					<input
 						type="text"
 						bind:value={category.name}
-						disabled={!boardStore.isEditing}
+						disabled={!BoardStore.isEditing}
 						placeholder="Category Name"
 						class="text-xs"
 					/>
@@ -138,7 +138,7 @@
 	<!-- Tags Section -->
 	<div class="board">
 		<p class="text-xs text-white">Tags Board</p>
-		{#each boardStore.tagsRelatedToEvents as tag (tag.id)}
+		{#each BoardStore.tagsRelatedToEvents as tag (tag.id)}
 			<button
 				on:click={() => timelineActions.addRelatedTagToEvent(tag.id)}
 				class="m-1 inline-block rounded px-2 py-1"
@@ -188,7 +188,7 @@
 			</div>
 		{/if}
 		<div class="categories-container">
-			{#each boardStore.actionCategories as category (category.id)}
+			{#each BoardStore.actionCategories as category (category.id)}
 				<div class="category" style="--color: {category.color}; position: relative;">
 					<input
 						type="text"

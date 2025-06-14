@@ -1,8 +1,10 @@
-import { boardStore } from './store.svelte';
-import type { Action, Category, Tag } from './types';
+import BoardStore from './store.svelte';
+import type { Action } from './types/Action';
+import type { Category } from './types/Category';
+import type { Tag } from './types/Tag';
 
 const eventCategoriesListById = $derived.by(() => {
-	return boardStore.eventCategories.reduce(
+	return BoardStore.eventCategories.reduce(
 		(acc, category) => {
 			acc[category.id] = category;
 			return acc;
@@ -12,7 +14,7 @@ const eventCategoriesListById = $derived.by(() => {
 });
 
 const actionCategoriesListById = $derived.by(() => {
-	return boardStore.actionCategories.reduce(
+	return BoardStore.actionCategories.reduce(
 		(acc, category) => {
 			acc[category.id] = category;
 			return acc;
@@ -22,7 +24,7 @@ const actionCategoriesListById = $derived.by(() => {
 });
 
 const tagsListById = $derived.by(() => {
-	return boardStore.tagsRelatedToEvents.reduce(
+	return BoardStore.tagsRelatedToEvents.reduce(
 		(acc, tag) => {
 			acc[tag.id] = tag;
 			return acc;
@@ -32,7 +34,7 @@ const tagsListById = $derived.by(() => {
 });
 
 const eventButtonsListById = $derived.by(() => {
-	return boardStore.eventCategories.reduce(
+	return BoardStore.eventCategories.reduce(
 		(acc, category) => {
 			category.buttons.forEach((button) => {
 				acc[button.id] = button;
@@ -44,7 +46,7 @@ const eventButtonsListById = $derived.by(() => {
 });
 
 const actionButtonsListById = $derived.by(() => {
-	return boardStore.actionCategories.reduce(
+	return BoardStore.actionCategories.reduce(
 		(acc, category) => {
 			category.buttons.forEach((button) => {
 				acc[button.id] = button;

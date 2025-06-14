@@ -1,13 +1,7 @@
-import type { RangeData, RangeDataWithTags } from './types';
+import { makeStoreProxy, StoreScope } from '..';
+import type { TimelineData } from './types/Timeline';
 
-export interface TimelineStore {
-	onPlay: null | RangeDataWithTags;
-	eventSelected: null | string;
-	eventTimeline: RangeDataWithTags[];
-	actionTimeline: RangeData[];
-}
-
-const initialState: TimelineStore = {
+const initialState: TimelineData = {
 	onPlay: null,
 	eventSelected: null,
 	eventTimeline: [
@@ -81,4 +75,6 @@ const initialState: TimelineStore = {
 	]
 };
 
-export const timelineStore = $state<TimelineStore>(initialState);
+const timelineStore = $state<TimelineData>(initialState);
+
+export default makeStoreProxy(timelineStore, StoreScope.TIMELINE);

@@ -1,4 +1,4 @@
-import { boardStore } from './store.svelte';
+import BoardStore from './store.svelte';
 
 // Helper to generate unique IDs
 function uuid() {
@@ -7,7 +7,7 @@ function uuid() {
 
 export const boardActions = {
 	setEditingMode(value: boolean) {
-		boardStore.isEditing = value;
+		BoardStore.isEditing = value;
 	},
 
 	updateCategoryPosition(
@@ -16,7 +16,7 @@ export const boardActions = {
 		x: number,
 		y: number
 	) {
-		const cat = boardStore[section].find((c) => c.id === categoryId);
+		const cat = BoardStore[section].find((c) => c.id === categoryId);
 
 		if (cat) {
 			cat.onGrid = [x, y];
@@ -28,7 +28,7 @@ export const boardActions = {
 		categoryId: string,
 		name: string
 	) {
-		const cat = boardStore[section].find((c) => c.id === categoryId);
+		const cat = BoardStore[section].find((c) => c.id === categoryId);
 
 		if (cat) {
 			cat.buttons.push({
@@ -39,7 +39,7 @@ export const boardActions = {
 	},
 
 	addCategory(section: 'eventCategories' | 'actionCategories', name: string, color: string) {
-		boardStore[section].push({
+		BoardStore[section].push({
 			id: uuid(),
 			name: name,
 			color: color,

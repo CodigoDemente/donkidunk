@@ -1,13 +1,16 @@
 import { BaseDirectory, readTextFile, writeTextFile } from '@tauri-apps/plugin-fs';
 import { info, error } from '@tauri-apps/plugin-log';
-import ProjectData from '../stores/project/store.svelte';
+import ProjectStore from '../stores/project/store.svelte';
+import BoardStore from '../stores/board/store.svelte';
+import TimelineStore from '../stores/timeline/store.svelte';
 import { listen } from '@tauri-apps/api/event';
 import { invoke } from '@tauri-apps/api/core';
-import { StoreScope } from '../stores';
+import { STORE_CHANGED_EVENT, StoreScope } from '../stores';
+import type { StoreScopeEvent } from './types/StoreScopeEvent';
 
 class FilePersistence {
 	private fileName: string = '';
-	private extension: string = '.json';
+	private extension: string = 'json';
 	private isInitialized = false;
 	private unListen: (() => void) | null = null;
 	private autoSave: boolean = false;
@@ -24,21 +27,18 @@ class FilePersistence {
 			}
 			this.isInitialized = true;
 
-			this.unListen = await listen<{ property: string; value?: string }>(
-				'project-changed',
-				async (event) => {
-					await invoke('set_menu_item_enabling_status', {
-						menuId: 'save_project',
-						enabled: true
-					});
+			this.unListen = await listen<StoreScopeEvent>(STORE_CHANGED_EVENT, async (event) => {
+				await invoke('set_menu_item_enabling_status', {
+					menuId: 'save_project',
+					enabled: true
+				});
 
-					await this.handleStateChange(
-						StoreScope.PROJECT,
-						event.payload.property,
-						event.payload.value
-					);
-				}
-			);
+				await this.handleStateChange(
+					event.payload.scope,
+					event.payload.property,
+					event.payload.value
+				);
+			});
 		} catch (err) {
 			error(`Error initializing FilePersistence: ${err}`);
 		}
@@ -122,18 +122,26 @@ class FilePersistence {
 
 		let data: Record<string, unknown>;
 
-		if (scope === StoreScope.PROJECT) {
-			data = ProjectData;
-		} else {
-			error(`Unsupported store scope: ${scope}`);
-			return;
+		switch (scope) {
+			case StoreScope.TIMELINE:
+				data = TimelineStore;
+				break;
+			case StoreScope.BOARD:
+				data = BoardStore;
+				break;
+			case StoreScope.PROJECT:
+				data = ProjectStore;
+				break;
+			default:
+				error(`Unsupported store scope: ${scope}`);
+				return;
 		}
 
 		clearTimeout(this.timer!);
 
 		this.timer = setTimeout(async () => {
 			await this.save(scope, data);
-			info('Project data auto-saved');
+			info(`${scope} data auto-saved`);
 		}, 500);
 	}
 }

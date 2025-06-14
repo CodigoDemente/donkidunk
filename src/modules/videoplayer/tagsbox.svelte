@@ -1,13 +1,10 @@
 <script lang="ts">
 	import { IconChevronDown } from '@tabler/icons-svelte';
-	import { timelineStore } from '../../persistence/stores/timeline/store.svelte';
+	import TimelineStore from '../../persistence/stores/timeline/store.svelte';
 	import { TimelineSelectors } from '../../persistence/stores/timeline/selectors.svelte';
 	import { BoardSelectors } from '../../persistence/stores/board/selectors.svelte';
 
 	let isBoxOpen: boolean = $state(false);
-
-	$inspect(TimelineSelectors.getSelectedEvent());
-	$inspect(BoardSelectors.getTagsById());
 </script>
 
 <!-- Line that toggles the box -->
@@ -39,7 +36,7 @@
 					{/each}
 				{/if}
 			{:else if TimelineSelectors.getSelectedEvent()}
-				{#each timelineStore.eventTimeline.find((event) => event.id === TimelineSelectors.getSelectedEvent())?.tagsRelated ?? [] as tag (tag)}
+				{#each TimelineStore.eventTimeline.find((event) => event.id === TimelineSelectors.getSelectedEvent())?.tagsRelated ?? [] as tag (tag)}
 					<button
 						class="rounded bg-sky-500 px-3 py-1 text-sm font-medium text-white hover:bg-sky-600"
 					>

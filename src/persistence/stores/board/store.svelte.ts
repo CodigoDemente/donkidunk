@@ -1,13 +1,7 @@
-import type { Category, Tag } from './types';
+import { makeStoreProxy, StoreScope } from '..';
+import type { BoardData } from './types/Board';
 
-interface BoardStore {
-	isEditing: boolean;
-	eventCategories: Category[];
-	actionCategories: Category[];
-	tagsRelatedToEvents: Tag[];
-}
-
-const initialState: BoardStore = {
+const initialState: BoardData = {
 	isEditing: false,
 	eventCategories: [
 		{
@@ -37,17 +31,17 @@ const initialState: BoardStore = {
 	],
 	tagsRelatedToEvents: [
 		{
-			id: '#4',
+			id: '14-5',
 			name: 'Whatever',
 			color: '#FFDD00'
 		},
 		{
-			id: '#5',
+			id: '14-6',
 			name: 'Whatever3',
 			color: '#FF0000'
 		},
 		{
-			id: '#6',
+			id: '14-7',
 			name: 'Whatever4',
 			color: '#FF0000'
 		}
@@ -152,4 +146,6 @@ const initialState: BoardStore = {
 	]
 };
 
-export const boardStore = $state<BoardStore>(initialState);
+const boardStore = $state<BoardData>(initialState);
+
+export default makeStoreProxy(boardStore, StoreScope.BOARD);
