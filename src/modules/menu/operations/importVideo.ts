@@ -1,7 +1,6 @@
 import { open } from '@tauri-apps/plugin-dialog';
-import ProjectStore from '../../../persistence/stores/project/store.svelte';
-import { enableSaveProject } from './enableItems';
 import { debug } from '@tauri-apps/plugin-log';
+import { setVideoPath } from '../../../persistence/stores/project/actions';
 
 export async function importVideo() {
 	debug('Import video action triggered');
@@ -19,10 +18,8 @@ export async function importVideo() {
 
 	if (path) {
 		debug(`Selected video path: ${path}`);
-		ProjectStore.video.path = path;
+		await setVideoPath(path);
 	} else {
 		debug('No video path selected');
 	}
-
-	await enableSaveProject();
 }

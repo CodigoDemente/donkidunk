@@ -3,19 +3,16 @@
 	import { bindMenuEvents } from '../modules/menu';
 	import '../styles/page.css';
 	import Navbar from '../modules/navbar/navbar.svelte';
-	import filePersistenceStore from '../persistence/file/index.svelte';
+	import { destroyEvents, initEvents } from '../events';
 
 	onMount(async () => {
 		// Initialize the menu
-		bindMenuEvents();
-
-		// Initialize file persistence
-		await filePersistenceStore.initialize();
+		await bindMenuEvents();
+		await initEvents();
 	});
 
 	onDestroy(async () => {
-		// Cleanup file persistence
-		await filePersistenceStore.destroy();
+		await destroyEvents();
 	});
 
 	document.addEventListener('dragover', (event) => {

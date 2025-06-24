@@ -1,10 +1,10 @@
 import { homeDir } from '@tauri-apps/api/path';
 import { save } from '@tauri-apps/plugin-dialog';
 import { debug } from '@tauri-apps/plugin-log';
-import ProjectStore from '../../../persistence/stores/project/store.svelte';
-import { openDatabase } from '../../../persistence/database/index.svelte';
-import filePersistenceStore from '../../../persistence/file/index.svelte';
-import { enableImportVideo, enableSaveProject } from './enableItems';
+import { v4 as uuidv4 } from 'uuid';
+import { createBackupDatabase } from '../../../persistence/database/actions';
+import { enableImportVideo } from './enableItems';
+import { setFilePath, setLastSavedTimestamp } from '../../../persistence/stores/project/actions';
 
 export async function createNewProject() {
 	debug('New project action triggered');
@@ -28,14 +28,13 @@ export async function createNewProject() {
 		return;
 	}
 
-	await openDatabase(path, false, true);
+	setFilePath(path);
 
-	ProjectStore.file.newlyCreated = true;
+	const backupId = uuidv4();
 
-	ProjectStore.metadata.timestamp = new Date().toISOString();
+	await createBackupDatabase(backupId);
 
-	filePersistenceStore.enableAutoSave();
+	await setLastSavedTimestamp(new Date().toISOString());
 
-	await enableSaveProject();
 	await enableImportVideo();
 }

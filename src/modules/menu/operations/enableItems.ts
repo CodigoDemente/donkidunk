@@ -13,3 +13,10 @@ export async function enableSaveProject() {
 		enabled: true
 	});
 }
+
+export async function disableSaveProject() {
+	return await invoke('set_menu_item_enabling_status', {
+		menuId: 'save_project',
+		enabled: false
+	});
+}

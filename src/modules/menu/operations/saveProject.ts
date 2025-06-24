@@ -1,16 +1,10 @@
-import { invoke } from '@tauri-apps/api/core';
-import { saveProjectToDatabase } from '../../../persistence/database/index.svelte';
-import ProjectStore from '../../../persistence/stores/project/store.svelte';
+import { dumpIntoOriginalDatabase } from '../../../persistence/database/actions';
+import { getFilePath, setLastSavedTimestamp } from '../../../persistence/stores/project/actions';
 
 export async function saveProject() {
 	const timeStamp = new Date().toISOString();
 
-	ProjectStore.metadata.timestamp = timeStamp;
+	await setLastSavedTimestamp(timeStamp);
 
-	await saveProjectToDatabase(ProjectStore);
-
-	await invoke('set_menu_item_enabling_status', {
-		menuId: 'save_project',
-		enabled: false
-	});
+	await dumpIntoOriginalDatabase(getFilePath());
 }

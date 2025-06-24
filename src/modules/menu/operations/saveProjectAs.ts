@@ -1,10 +1,8 @@
 import { homeDir } from '@tauri-apps/api/path';
 import { save } from '@tauri-apps/plugin-dialog';
-import ProjectStore from '../../../persistence/stores/project/store.svelte';
-import { closeDatabase, openDatabase } from '../../../persistence/database/index.svelte';
-import { copyFile } from '@tauri-apps/plugin-fs';
 import { saveProject } from './saveProject';
 import { debug } from '@tauri-apps/plugin-log';
+import { setFilePath } from '../../../persistence/stores/project/actions';
 
 export async function saveProjectAs() {
 	const homePath = await homeDir();
@@ -26,13 +24,7 @@ export async function saveProjectAs() {
 		return;
 	}
 
-	const currDbPath = ProjectStore.file.path;
-
-	await closeDatabase();
-
-	await copyFile(currDbPath, path);
-
-	await openDatabase(path, false, false);
+	setFilePath(path);
 
 	await saveProject();
 }

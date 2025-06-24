@@ -3,13 +3,15 @@ import type Database from '@tauri-apps/plugin-sql';
 export type ProjectData = {
 	metadata: {
 		timestamp: string;
+		backupId: string | null;
+		dirty: boolean;
 	};
 	file: {
-		newlyCreated: boolean;
-		path: string;
+		currentPath: string;
+		originalPath: string;
 	};
 	video: {
-		path: string;
+		path?: string;
 	};
 	database: Database | null;
 };

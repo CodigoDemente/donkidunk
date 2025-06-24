@@ -1,18 +1,22 @@
 import { makeStoreProxy, StoreScope } from '..';
 import type { ProjectData } from './types/Project';
 
-const ProjectStore: ProjectData = $state({
+export const InitialProjectData: ProjectData = {
 	metadata: {
-		timestamp: ''
+		timestamp: '',
+		backupId: '',
+		dirty: false
 	},
 	file: {
-		newlyCreated: false,
-		path: ''
+		currentPath: '',
+		originalPath: ''
 	},
 	video: {
 		path: ''
 	},
 	database: null
-});
+};
+
+const ProjectStore: ProjectData = $state(InitialProjectData);
 
 export default makeStoreProxy(ProjectStore, StoreScope.PROJECT);

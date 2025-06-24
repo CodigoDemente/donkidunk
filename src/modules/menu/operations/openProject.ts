@@ -1,11 +1,17 @@
 import { ask, open } from '@tauri-apps/plugin-dialog';
 import { debug } from '@tauri-apps/plugin-log';
-import { loadProjectFromDatabase, openDatabase } from '../../../persistence/database/index.svelte';
-import ProjectStore from '../../../persistence/stores/project/store.svelte';
-import filePersistenceStore from '../../../persistence/file/index.svelte';
-import type { ProjectData } from '../../../persistence/stores/project/types/Project';
+import {
+	backupDatabase,
+	checkBackupExistence,
+	closeDatabase,
+	loadProjectFromDatabase,
+	openDatabase,
+	restoreBackup
+} from '../../../persistence/database/actions';
 import { enableImportVideo } from './enableItems';
-import { StoreScope } from '../../../persistence/stores';
+import { ProjectRepositoryFactory } from '../../../factories/ProjectRepositoryFactory';
+import ProjectStore from '../../../persistence/stores/project/store.svelte';
+import { setFilePath } from '../../../persistence/stores/project/actions';
 
 export async function openProject() {
 	debug('Open project action triggered');
@@ -24,25 +30,22 @@ export async function openProject() {
 	if (path) {
 		debug(`Selected path: ${path}`);
 
-		await openDatabase(path, false);
-
-		ProjectStore.file.newlyCreated = false;
+		setFilePath(path);
+		await openDatabase(path);
 	} else {
 		debug('No path selected');
+		return;
 	}
 
-	const savedData = await filePersistenceStore.load<ProjectData>(StoreScope.PROJECT);
+	const backupId = await ProjectRepositoryFactory.getInstance().getBackupId();
 
-	const savedTimestamp = savedData?.metadata?.timestamp;
+	// Use the store directly instead of the actions to avoid writing it again to the database
+	ProjectStore.metadata.backupId = backupId;
 
-	await loadProjectFromDatabase();
+	const backupExists = await checkBackupExistence(backupId);
+	let backupRestored = false;
 
-	filePersistenceStore.enableAutoSave();
-
-	if (
-		savedTimestamp &&
-		new Date(ProjectStore.metadata.timestamp).getTime() < new Date(savedTimestamp).getTime()
-	) {
+	if (backupExists) {
 		const answer = await ask(
 			'There is a more recent version of your project saved as backup. Do you want to restore it?',
 			{
@@ -53,12 +56,25 @@ export async function openProject() {
 		);
 
 		if (answer) {
-			ProjectStore.metadata.timestamp = savedTimestamp;
-			ProjectStore.video.path = savedData?.video?.path || '';
+			await restoreBackup(backupId!);
+
+			backupRestored = true;
 
 			debug('Project restored from backup');
 		}
 	}
+
+	if (!backupRestored) {
+		const backupPath = await backupDatabase(backupId!);
+
+		await closeDatabase();
+
+		setFilePath(path);
+
+		await openDatabase(backupPath, true);
+	}
+
+	await loadProjectFromDatabase(ProjectRepositoryFactory.getInstance());
 
 	await enableImportVideo();
 }
