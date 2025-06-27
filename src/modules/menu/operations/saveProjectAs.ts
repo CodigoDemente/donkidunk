@@ -2,7 +2,7 @@ import { homeDir } from '@tauri-apps/api/path';
 import { save } from '@tauri-apps/plugin-dialog';
 import { saveProject } from './saveProject';
 import { debug } from '@tauri-apps/plugin-log';
-import { setFilePath } from '../../../persistence/stores/project/actions';
+import { projectActions } from '../../../persistence/stores/project/actions';
 
 export async function saveProjectAs() {
 	const homePath = await homeDir();
@@ -24,7 +24,7 @@ export async function saveProjectAs() {
 		return;
 	}
 
-	setFilePath(path);
+	projectActions.setFilePath(path);
 
 	await saveProject();
 }

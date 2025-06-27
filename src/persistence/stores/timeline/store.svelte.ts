@@ -1,4 +1,3 @@
-import { makeStoreProxy, StoreScope } from '..';
 import type { TimelineData } from './types/Timeline';
 
 const initialState: TimelineData = {
@@ -77,4 +76,4 @@ const initialState: TimelineData = {
 
 const timelineStore = $state<TimelineData>(initialState);
 
-export default makeStoreProxy(timelineStore, StoreScope.TIMELINE);
+export default timelineStore;

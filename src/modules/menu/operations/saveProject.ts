@@ -1,10 +1,10 @@
 import { dumpIntoOriginalDatabase } from '../../../persistence/database/actions';
-import { getFilePath, setLastSavedTimestamp } from '../../../persistence/stores/project/actions';
+import { projectActions } from '../../../persistence/stores/project/actions';
 
 export async function saveProject() {
 	const timeStamp = new Date().toISOString();
 
-	await setLastSavedTimestamp(timeStamp);
+	await projectActions.setLastSavedTimestamp(timeStamp);
 
-	await dumpIntoOriginalDatabase(getFilePath());
+	await dumpIntoOriginalDatabase(projectActions.getFilePath());
 }

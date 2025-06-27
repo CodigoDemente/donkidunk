@@ -3,61 +3,63 @@ import { ProjectRepositoryFactory } from '../../../factories/ProjectRepositoryFa
 import ProjectStore from './store.svelte';
 import { emit } from '@tauri-apps/api/event';
 
-export function getProjectDirty(): boolean {
-	return ProjectStore.metadata.dirty;
-}
+export const projectActions = {
+	getProjectDirty(): boolean {
+		return ProjectStore.metadata.dirty;
+	},
 
-export function setProjectDirty(isDirty: boolean): void {
-	ProjectStore.metadata.dirty = isDirty;
-}
+	setProjectDirty(isDirty: boolean): void {
+		ProjectStore.metadata.dirty = isDirty;
+	},
 
-export async function setLastSavedTimestamp(timestamp: string): Promise<void> {
-	const repository = ProjectRepositoryFactory.getInstance();
-	await repository.setLastSavedTimestamp(timestamp);
+	async setLastSavedTimestamp(timestamp: string): Promise<void> {
+		const repository = ProjectRepositoryFactory.getInstance();
+		await repository.setLastSavedTimestamp(timestamp);
 
-	ProjectStore.metadata.timestamp = timestamp;
+		ProjectStore.metadata.timestamp = timestamp;
 
-	await emit('project:dirty');
-}
+		await emit('project:dirty');
+	},
 
-export function getFilePath(): string {
-	return ProjectStore.file.originalPath;
-}
+	getFilePath(): string {
+		return ProjectStore.file.originalPath;
+	},
 
-export function setFilePath(path: string): void {
-	ProjectStore.file.originalPath = path;
-}
+	setFilePath(path: string): void {
+		ProjectStore.file.originalPath = path;
+	},
 
-export function getCurrentFilePath(): string {
-	return ProjectStore.file.currentPath;
-}
+	getCurrentFilePath(): string {
+		return ProjectStore.file.currentPath;
+	},
 
-export function setCurrentFilePath(path: string): void {
-	ProjectStore.file.currentPath = path;
-}
+	setCurrentFilePath(path: string): void {
+		ProjectStore.file.currentPath = path;
+	},
 
-export function setDatabase(db: Database | null): void {
-	ProjectStore.database = db;
-}
+	setDatabase(db: Database | null): void {
+		ProjectStore.database = db;
+	},
 
-export function getDatabase(): Database | null {
-	return ProjectStore.database;
-}
+	getDatabase(): Database | null {
+		return ProjectStore.database;
+	},
 
-export async function setBackupId(backupId: string): Promise<void> {
-	const repository = ProjectRepositoryFactory.getInstance();
-	await repository.setBackupId(backupId);
+	async setBackupId(backupId: string): Promise<void> {
+		const repository = ProjectRepositoryFactory.getInstance();
+		await repository.setBackupId(backupId);
 
-	ProjectStore.metadata.backupId = backupId;
+		ProjectStore.metadata.backupId = backupId;
 
-	await emit('project:dirty');
-}
+		await emit('project:dirty');
+	},
 
-export async function setVideoPath(path: string): Promise<void> {
-	const repository = ProjectRepositoryFactory.getInstance();
-	await repository.setVideoPath(path);
+	async setVideoPath(path: string): Promise<void> {
+		const repository = ProjectRepositoryFactory.getInstance();
+		await repository.setVideoPath(path);
 
-	ProjectStore.video.path = path;
+		ProjectStore.video.path = path;
 
-	await emit('project:dirty');
-}
+		await emit('project:dirty');
+	}
+};

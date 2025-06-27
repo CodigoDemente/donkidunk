@@ -1,4 +1,3 @@
-import { makeStoreProxy, StoreScope } from '..';
 import type { ProjectData } from './types/Project';
 
 export const InitialProjectData: ProjectData = {
@@ -19,4 +18,4 @@ export const InitialProjectData: ProjectData = {
 
 const ProjectStore: ProjectData = $state(InitialProjectData);
 
-export default makeStoreProxy(ProjectStore, StoreScope.PROJECT);
+export default ProjectStore;

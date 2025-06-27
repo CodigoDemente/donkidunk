@@ -23,6 +23,7 @@ export const migrations: Migration[] = [
 		CREATE TABLE IF NOT EXISTS category (
 			id INTEGER PRIMARY KEY,
 			type TEXT CHECK( type in ('event', 'action') ) NOT NULL,
+			name TEXT NOT NULL,
 			color TEXT NOT NULL,
 			grid_position_x INTEGER NOT NULL,
 			grid_position_y INTEGER NOT NULL

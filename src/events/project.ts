@@ -1,6 +1,6 @@
 import { listen } from '@tauri-apps/api/event';
 import { disableSaveProject, enableSaveProject } from '../modules/menu/operations/enableItems';
-import { setProjectDirty } from '../persistence/stores/project/actions';
+import { projectActions } from '../persistence/stores/project/actions';
 
 export class ProjectEventHandler {
 	private unliseners: (() => void)[] = [];
@@ -23,12 +23,12 @@ export class ProjectEventHandler {
 
 	private async projectDirty(): Promise<void> {
 		await enableSaveProject();
-		setProjectDirty(true);
+		projectActions.setProjectDirty(true);
 	}
 
 	private async projectSaved(): Promise<void> {
 		await disableSaveProject();
-		setProjectDirty(false);
+		projectActions.setProjectDirty(false);
 	}
 
 	async destroy(): Promise<void> {

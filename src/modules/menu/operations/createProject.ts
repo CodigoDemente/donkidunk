@@ -4,7 +4,7 @@ import { debug } from '@tauri-apps/plugin-log';
 import { v4 as uuidv4 } from 'uuid';
 import { createBackupDatabase } from '../../../persistence/database/actions';
 import { enableImportVideo } from './enableItems';
-import { setFilePath, setLastSavedTimestamp } from '../../../persistence/stores/project/actions';
+import { projectActions } from '../../../persistence/stores/project/actions';
 
 export async function createNewProject() {
 	debug('New project action triggered');
@@ -28,13 +28,13 @@ export async function createNewProject() {
 		return;
 	}
 
-	setFilePath(path);
+	projectActions.setFilePath(path);
 
 	const backupId = uuidv4();
 
 	await createBackupDatabase(backupId);
 
-	await setLastSavedTimestamp(new Date().toISOString());
+	await projectActions.setLastSavedTimestamp(new Date().toISOString());
 
 	await enableImportVideo();
 }

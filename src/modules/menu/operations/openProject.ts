@@ -4,6 +4,7 @@ import {
 	backupDatabase,
 	checkBackupExistence,
 	closeDatabase,
+	loadBoardFromDatabase,
 	loadProjectFromDatabase,
 	openDatabase,
 	restoreBackup
@@ -11,7 +12,8 @@ import {
 import { enableImportVideo } from './enableItems';
 import { ProjectRepositoryFactory } from '../../../factories/ProjectRepositoryFactory';
 import ProjectStore from '../../../persistence/stores/project/store.svelte';
-import { setFilePath } from '../../../persistence/stores/project/actions';
+import { projectActions } from '../../../persistence/stores/project/actions';
+import { BoardRepositoryFactory } from '../../../factories/BoardRepositoryFactory';
 
 export async function openProject() {
 	debug('Open project action triggered');
@@ -30,7 +32,7 @@ export async function openProject() {
 	if (path) {
 		debug(`Selected path: ${path}`);
 
-		setFilePath(path);
+		projectActions.setFilePath(path);
 		await openDatabase(path);
 	} else {
 		debug('No path selected');
@@ -69,12 +71,13 @@ export async function openProject() {
 
 		await closeDatabase();
 
-		setFilePath(path);
+		projectActions.setFilePath(path);
 
 		await openDatabase(backupPath, true);
 	}
 
 	await loadProjectFromDatabase(ProjectRepositoryFactory.getInstance());
+	await loadBoardFromDatabase(BoardRepositoryFactory.getInstance());
 
 	await enableImportVideo();
 }

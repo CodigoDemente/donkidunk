@@ -2,21 +2,16 @@ import Database from '@tauri-apps/plugin-sql';
 import { debug } from '@tauri-apps/plugin-log';
 import { v4 as uuidv4 } from 'uuid';
 import ProjectStore from '../stores/project/store.svelte';
+import BoardStore from '../stores/board/store.svelte';
 import { migrations } from './migrations';
 import { appLocalDataDir, BaseDirectory, join } from '@tauri-apps/api/path';
 import { exists, truncate } from '@tauri-apps/plugin-fs';
 import type { ProjectRepository } from '../../ports/ProjectRepository';
 import { ProjectRepositoryFactory } from '../../factories/ProjectRepositoryFactory';
-import {
-	getDatabase,
-	getFilePath,
-	setBackupId,
-	setCurrentFilePath,
-	setDatabase,
-	setFilePath,
-	setLastSavedTimestamp
-} from '../stores/project/actions';
+import { projectActions } from '../stores/project/actions';
 import { emit } from '@tauri-apps/api/event';
+import { BoardRepositoryFactory } from '../../factories/BoardRepositoryFactory';
+import type { BoardRepository } from '../../ports/BoardRepository';
 
 const DB_BACKUP_EXTENSION = 'dnk';
 
@@ -105,8 +100,11 @@ export async function openDatabase(
 	ProjectRepositoryFactory.reset();
 	const repository = ProjectRepositoryFactory.create(db);
 
-	setCurrentFilePath(dbPath);
-	setDatabase(db);
+	BoardRepositoryFactory.reset();
+	BoardRepositoryFactory.create(db);
+
+	projectActions.setCurrentFilePath(dbPath);
+	projectActions.setDatabase(db);
 
 	let backupId = await repository.getBackupId();
 
@@ -115,7 +113,7 @@ export async function openDatabase(
 
 		backupId = preexistingBackupId || uuidv4();
 
-		await setBackupId(backupId);
+		await projectActions.setBackupId(backupId);
 	}
 
 	return db;
@@ -124,13 +122,13 @@ export async function openDatabase(
 export async function closeDatabase(): Promise<void> {
 	debug('Closing database');
 
-	const db = getDatabase();
+	const db = projectActions.getDatabase();
 
 	await db?.close();
 
-	setFilePath('');
-	setCurrentFilePath('');
-	setDatabase(null);
+	projectActions.setFilePath('');
+	projectActions.setCurrentFilePath('');
+	projectActions.setDatabase(null);
 
 	debug('Database closed successfully');
 }
@@ -152,6 +150,12 @@ export async function loadProjectFromDatabase(repository: ProjectRepository): Pr
 	}
 }
 
+export async function loadBoardFromDatabase(repository: BoardRepository): Promise<void> {
+	BoardStore.eventCategories = await repository.getSectionCategories('event');
+	BoardStore.actionCategories = await repository.getSectionCategories('action');
+	BoardStore.tagsRelatedToEvents = await repository.getTagsRelatedToEvents();
+}
+
 export async function backupDatabase(backupId: string): Promise<string> {
 	debug(`Backing up database`);
 
@@ -166,7 +170,7 @@ export async function backupDatabase(backupId: string): Promise<string> {
 		});
 	}
 
-	const db = getDatabase();
+	const db = projectActions.getDatabase();
 
 	if (!db) {
 		debug('No database connection found');
@@ -195,7 +199,7 @@ export async function emptyBackup(backupId: string): Promise<void> {
 export async function restoreBackup(backupId: string): Promise<void> {
 	debug(`Restoring database from backup: ${backupId}`);
 
-	const originalFilePath = getFilePath();
+	const originalFilePath = projectActions.getFilePath();
 
 	await closeDatabase();
 
@@ -204,9 +208,9 @@ export async function restoreBackup(backupId: string): Promise<void> {
 
 	await openDatabase(backupPath, true);
 
-	await setLastSavedTimestamp(new Date().toISOString());
+	await projectActions.setLastSavedTimestamp(new Date().toISOString());
 
-	setFilePath(originalFilePath);
+	projectActions.setFilePath(originalFilePath);
 
 	debug('Database restored from backup successfully');
 }
@@ -231,7 +235,7 @@ export async function checkBackupExistence(backupId: string | null): Promise<boo
 export async function dumpIntoOriginalDatabase(originalPath: string): Promise<void> {
 	debug(`Dumping database into original path: ${originalPath}`);
 
-	const db = getDatabase();
+	const db = projectActions.getDatabase();
 
 	if (!db) {
 		debug('No database connection found');

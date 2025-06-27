@@ -3,7 +3,8 @@
 	"conventionalCommits.scopes": [
 		"timeline",
 		"project",
-		"menu"
+		"menu",
+		"board"
 	],
 	"terminal.integrated.env.osx": {
 		"PATH": ""
