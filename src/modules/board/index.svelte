@@ -9,7 +9,7 @@
 	let newEventCategoryName = '';
 	let newEventCategoryColor = '#ffffff';
 
-	let showAddButtonBox: string | null = null; // holds category id or null
+	let showAddButtonBox: number | null = null; // holds category id or null
 	let newButtonName = '';
 
 	function openAddEventCategoryBox() {
@@ -18,7 +18,7 @@
 		newEventCategoryColor = '#ffffff';
 	}
 
-	function openAddButtonBox(categoryId: string) {
+	function openAddButtonBox(categoryId: number) {
 		showAddButtonBox = categoryId;
 		newButtonName = '';
 	}

@@ -1,7 +1,6 @@
 import { emit } from '@tauri-apps/api/event';
 import { BoardRepositoryFactory } from '../../../factories/BoardRepositoryFactory';
 import BoardStore from './store.svelte';
-import { v4 as uuidv4 } from 'uuid';
 
 export const boardActions = {
 	setEditingMode(value: boolean) {
@@ -10,7 +9,7 @@ export const boardActions = {
 
 	async updateCategoryPosition(
 		section: 'eventCategories' | 'actionCategories',
-		categoryId: string,
+		categoryId: number,
 		x: number,
 		y: number
 	): Promise<void> {
@@ -26,7 +25,7 @@ export const boardActions = {
 		await emit('project:dirty');
 	},
 
-	async updateCategoryName(categoryId: string, categoryName: string): Promise<void> {
+	async updateCategoryName(categoryId: number, categoryName: string): Promise<void> {
 		const repository = BoardRepositoryFactory.getInstance();
 
 		await repository.updateCategoryName(categoryId, categoryName);
@@ -36,21 +35,22 @@ export const boardActions = {
 
 	async addButtonToCategory(
 		section: 'eventCategories' | 'actionCategories',
-		categoryId: string,
+		categoryId: number,
 		name: string
 	): Promise<void> {
 		const repository = BoardRepositoryFactory.getInstance();
 
 		const cat = BoardStore[section].find((c) => c.id === categoryId);
 
+		const res = await repository.addButtonToCategory(categoryId, name);
+
 		if (cat) {
 			cat.buttons.push({
-				id: `${categoryId}-${uuidv4()}`,
+				id: res,
 				name: name
 			});
 		}
 
-		await repository.addButtonToCategory(categoryId, name);
 		await emit('project:dirty');
 	},
 
@@ -61,15 +61,20 @@ export const boardActions = {
 	): Promise<void> {
 		const repository = BoardRepositoryFactory.getInstance();
 
+		const res = await repository.addCategory(
+			section === 'eventCategories' ? 'event' : 'action',
+			name,
+			color
+		);
+
 		BoardStore[section].push({
-			id: uuidv4(),
+			id: res,
 			name: name,
 			color: color,
 			onGrid: [0, 0],
 			buttons: []
 		});
 
-		await repository.addCategory(section === 'eventCategories' ? 'event' : 'action', name, color);
 		await emit('project:dirty');
 	}
 };

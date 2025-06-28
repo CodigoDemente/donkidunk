@@ -1,4 +1,4 @@
 export type DatabaseButton = {
-	id: string;
+	id: number;
 	name: string;
 };

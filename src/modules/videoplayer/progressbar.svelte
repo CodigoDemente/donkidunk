@@ -73,7 +73,7 @@
 					<div class="mt-2 mb-4 flex flex-col items-start gap-2">
 						{#each Object.keys(BoardSelectors.getEventCategoriesById()) as categoryId (categoryId)}
 							<Stroke
-								{categoryId}
+								categoryId={+categoryId}
 								allTagsByCategory={TimelineSelectors.getEventsByCategory()}
 								{duration}
 								boardCategoriesById={BoardSelectors.getEventCategoriesById()}
@@ -89,7 +89,7 @@
 					<div class="flex w-full flex-col items-start gap-1">
 						{#each Object.keys(BoardSelectors.getActionCategoriesById()) as categoryId (categoryId)}
 							<Stroke
-								{categoryId}
+								categoryId={+categoryId}
 								allTagsByCategory={TimelineSelectors.getActionsByCategory()}
 								{duration}
 								boardCategoriesById={BoardSelectors.getActionCategoriesById()}

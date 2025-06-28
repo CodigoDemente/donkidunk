@@ -59,23 +59,26 @@ export class SQLiteBoardRepository implements BoardRepository {
 		}));
 	}
 
-	async addCategory(section: 'event' | 'action', name: string, color: string): Promise<void> {
-		await this.db.execute(
+	async addCategory(section: 'event' | 'action', name: string, color: string): Promise<number> {
+		const result = await this.db.execute(
 			`INSERT INTO category (type, name, color, grid_position_x, grid_position_y)
              VALUES ($1, $2, $3, 0, 0)`,
 			[section, name, color]
 		);
+
+		return result.lastInsertId!;
 	}
 
-	async addButtonToCategory(categoryId: string, name: string): Promise<void> {
-		await this.db.execute(
+	async addButtonToCategory(categoryId: number, name: string): Promise<number> {
+		const result = await this.db.execute(
 			`INSERT INTO button (name, category_id)
              VALUES ($1, $2)`,
 			[name, categoryId]
 		);
+		return result.lastInsertId!;
 	}
 
-	async updateCategoryPosition(categoryId: string, x: number, y: number): Promise<void> {
+	async updateCategoryPosition(categoryId: number, x: number, y: number): Promise<void> {
 		await this.db.execute(
 			`UPDATE category
              SET grid_position_x = $1, grid_position_y = $2
@@ -84,7 +87,7 @@ export class SQLiteBoardRepository implements BoardRepository {
 		);
 	}
 
-	async updateCategoryName(categoryId: string, categoryName: string): Promise<void> {
+	async updateCategoryName(categoryId: number, categoryName: string): Promise<void> {
 		await this.db.execute(
 			`UPDATE category
              SET name = $1

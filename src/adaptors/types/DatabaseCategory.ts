@@ -1,7 +1,7 @@
 import type { DatabaseButton } from './DatabaseButton';
 
 export type DatabaseCategory = {
-	id: string;
+	id: number;
 	name: string;
 	color: string;
 	grid_position_x: number;

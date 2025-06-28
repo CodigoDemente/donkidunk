@@ -1,5 +1,5 @@
 export type DatabaseTag = {
-	id: string;
+	id: number;
 	name: string;
 	color: string;
 };

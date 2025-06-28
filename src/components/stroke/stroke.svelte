@@ -1,6 +1,10 @@
 <script lang="ts">
-	import type { Action, Category } from '../../persistence/stores/board/types';
-	import type { RangeData, RangeDataWithTags } from '../../persistence/stores/timeline/types';
+	import type { Action } from '../../persistence/stores/board/types/Action';
+	import type { Category } from '../../persistence/stores/board/types/Category';
+	import type {
+		RangeData,
+		RangeDataWithTags
+	} from '../../persistence/stores/timeline/types/RangeData';
 	import Tagtime from '../tagtime/tagtime.svelte';
 
 	let {
@@ -13,14 +17,14 @@
 		currentTime,
 		onClick
 	}: {
-		categoryId: string;
+		categoryId: number;
 		allTagsByCategory: Record<string, RangeDataWithTags[] | RangeData[]>;
 		duration: number;
 		boardCategoriesById: Record<string, Category>;
 		buttonsListById: Record<string, Action>;
 		onPlayObject?: RangeDataWithTags | null;
 		currentTime: number;
-		onClick?: (id: string) => void;
+		onClick?: (id: number) => void;
 	} = $props();
 </script>
 

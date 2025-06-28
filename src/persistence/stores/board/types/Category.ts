@@ -1,7 +1,7 @@
 import type { Action } from './Action';
 
 export interface Category {
-	id: string;
+	id: number;
 	name: string;
 	color: string;
 	onGrid: number[];

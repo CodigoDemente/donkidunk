@@ -1,18 +1,13 @@
 import TimelineStore from './store.svelte';
 import type { RangeDataWithTags } from './types/RangeData';
 
-// Helper to generate unique IDs
-function uuid() {
-	return Math.random().toString(36).substring(2, 10) + Date.now();
-}
-
 const createNewEvent = (
-	buttonId: string,
-	categoryId: string,
+	buttonId: number,
+	categoryId: number,
 	timeCursor: number
 ): RangeDataWithTags => {
 	return {
-		id: uuid(),
+		id: Math.floor(Math.random() * 1000),
 		buttonId: buttonId,
 		categoryId: categoryId,
 		timestamp: {
@@ -24,7 +19,7 @@ const createNewEvent = (
 };
 
 export const timelineActions = {
-	addEvent(buttonId: string, categoryId: string, timeCursor: number) {
+	addEvent(buttonId: number, categoryId: number, timeCursor: number) {
 		const newEvent = createNewEvent(buttonId, categoryId, timeCursor);
 
 		if (TimelineStore.onPlay === null) {
@@ -45,7 +40,7 @@ export const timelineActions = {
 		}
 	},
 
-	addAction(buttonId: string, categoryId: string, timeCursor: number) {
+	addAction(buttonId: number, categoryId: number, timeCursor: number) {
 		const actionInAction = TimelineStore.actionTimeline.find(
 			(a) => a.buttonId === buttonId && a.categoryId === categoryId && a.timestamp.end === null
 		);
@@ -55,7 +50,7 @@ export const timelineActions = {
 		} else {
 			TimelineStore.eventSelected = null; // Clear any selected event
 			TimelineStore.actionTimeline.push({
-				id: uuid(),
+				id: Math.floor(Math.random() * 1000),
 				buttonId: buttonId,
 				categoryId: categoryId,
 				timestamp: {
@@ -66,7 +61,7 @@ export const timelineActions = {
 		}
 	},
 
-	setEventSelected(eventId: string) {
+	setEventSelected(eventId: number) {
 		if (TimelineStore.eventSelected === eventId) {
 			TimelineStore.eventSelected = null;
 		} else {
@@ -75,9 +70,9 @@ export const timelineActions = {
 		console.log('Event selected:', TimelineStore);
 	},
 
-	addRelatedTagToEvent(tagId: string) {
+	addRelatedTagToEvent(tagId: number) {
 		// Helper to toggle a tag in a tagsRelated array
-		const toggleTag = (tags: string[]) =>
+		const toggleTag = (tags: number[]) =>
 			tags.includes(tagId) ? tags.filter((tag) => tag !== tagId) : [...tags, tagId];
 		if (TimelineStore.onPlay) {
 			TimelineStore.onPlay = {
@@ -93,11 +88,11 @@ export const timelineActions = {
 		}
 	},
 
-	removeEvent(eventId: string) {
+	removeEvent(eventId: number) {
 		TimelineStore.eventTimeline = TimelineStore.eventTimeline.filter((e) => e.id !== eventId);
 	},
 
-	removeAction(actionId: string) {
+	removeAction(actionId: number) {
 		TimelineStore.actionTimeline = TimelineStore.actionTimeline.filter((a) => a.id !== actionId);
 	},
 
