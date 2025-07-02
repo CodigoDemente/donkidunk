@@ -104,7 +104,6 @@ export const timelineActions = {
 		} else {
 			TimelineStore.eventSelected = eventId;
 		}
-		console.log('Event selected:', TimelineStore);
 	},
 
 	async addRelatedTagToEvent(tagId: number) {

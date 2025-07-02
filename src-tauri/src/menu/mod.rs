@@ -24,7 +24,6 @@ fn find_item_and_set_enabled_by_id(
     }
 
     for item in items {
-        
         log::debug!("Checking and setting enabled by item ID: {}", item.id().0);
 
         match item {
