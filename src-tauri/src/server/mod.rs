@@ -20,7 +20,7 @@ pub fn get_linux_file_url(file_path: &str) -> String {
         Err(_) => "16780".to_string(),
     };
 
-    format!("http://localhost:{}/?file={}", port, file_path)
+    format!("http://localhost:{port}/?file={file_path}")
 }
 
 #[cfg(target_os = "linux")]
@@ -32,7 +32,7 @@ pub async fn setup_webserver() {
 
     let app = Router::new().route("/", get(download_file));
 
-    let listner = TcpListener::bind(format!("127.0.0.1:{}", port))
+    let listner = TcpListener::bind(format!("127.0.0.1:{port}"))
         .await
         .unwrap();
 
@@ -46,7 +46,7 @@ pub async fn download_file(
 ) -> Result<impl IntoResponse, Infallible> {
     let file_path = params.get("file").map_or("", String::as_str);
 
-    log::debug!("File path: {}", file_path);
+    log::debug!("File path: {file_path}");
 
     ServeFile::new(file_path).oneshot(req).await
 }

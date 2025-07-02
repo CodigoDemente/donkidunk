@@ -139,7 +139,7 @@ fn build_menu(app: &App) -> Result<Menu<Wry>, Error> {
 fn generic_event_handler(app: &AppHandle, event: MenuEvent) {
     let event_id = event.id.0;
 
-    log::debug!("Menu event triggered: {}", event_id);
+    log::debug!("Menu event triggered: {event_id}");
 
     app.emit("menu_event", MenuEventData { id: event_id })
         .unwrap();
