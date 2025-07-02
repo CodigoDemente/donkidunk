@@ -129,7 +129,8 @@
 						{#each category.buttons as button (button.id)}
 							<button
 								class="mt-1 rounded bg-gray-700 p-1 text-xs text-white"
-								onclick={() => timelineActions.addEvent(button.id, category.id, checkTime())}
+								onclick={async () =>
+									await timelineActions.addEvent(button.id, category.id, checkTime())}
 							>
 								{button.name}
 							</button>
@@ -145,7 +146,7 @@
 		<p class="text-xs text-white">Tags Board</p>
 		{#each BoardStore.tagsRelatedToEvents as tag (tag.id)}
 			<button
-				onclick={() => timelineActions.addRelatedTagToEvent(tag.id)}
+				onclick={async () => await timelineActions.addRelatedTagToEvent(tag.id)}
 				class="m-1 inline-block rounded px-2 py-1"
 				style="background: {tag.color}; color: #222;"
 			>
@@ -238,7 +239,8 @@
 					<div>
 						{#each category.buttons as button (button.id)}
 							<button
-								onclick={() => timelineActions.addAction(button.id, category.id, checkTime())}
+								onclick={async () =>
+									await timelineActions.addAction(button.id, category.id, checkTime())}
 								class="mt-1 rounded bg-gray-700 p-1 text-xs text-white"
 							>
 								{button.name}

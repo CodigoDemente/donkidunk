@@ -11,7 +11,7 @@ export class SQLiteBoardRepository implements BoardRepository {
 	async getSectionCategories(section: 'event' | 'action'): Promise<Category[]> {
 		const categories = await this.db.select<DatabaseCategory[]>(
 			`SELECT category.id, type, category.name, color, grid_position_x, grid_position_y, button.id AS button_id, button.name AS button_name
-             FROM category INNER JOIN button ON category.id = button.category_id
+             FROM category LEFT JOIN button ON category.id = button.category_id
              WHERE type = $1
              ORDER BY grid_position_y, grid_position_x`,
 			[section]

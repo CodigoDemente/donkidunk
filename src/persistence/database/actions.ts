@@ -12,6 +12,9 @@ import { projectActions } from '../stores/project/actions';
 import { emit } from '@tauri-apps/api/event';
 import { BoardRepositoryFactory } from '../../factories/BoardRepositoryFactory';
 import type { BoardRepository } from '../../ports/BoardRepository';
+import { TimelineRepositoryFactory } from '../../factories/TimelineRepositoryFactory';
+import TimelineStore from '../stores/timeline/store.svelte';
+import type { TimelineRepository } from '../../ports/TimelineRepository';
 
 const DB_BACKUP_EXTENSION = 'dnk';
 
@@ -103,6 +106,9 @@ export async function openDatabase(
 	BoardRepositoryFactory.reset();
 	BoardRepositoryFactory.create(db);
 
+	TimelineRepositoryFactory.reset();
+	TimelineRepositoryFactory.create(db);
+
 	projectActions.setCurrentFilePath(dbPath);
 	projectActions.setDatabase(db);
 
@@ -154,6 +160,11 @@ export async function loadBoardFromDatabase(repository: BoardRepository): Promis
 	BoardStore.eventCategories = await repository.getSectionCategories('event');
 	BoardStore.actionCategories = await repository.getSectionCategories('action');
 	BoardStore.tagsRelatedToEvents = await repository.getTagsRelatedToEvents();
+}
+
+export async function loadTimelineFromDatabase(repository: TimelineRepository): Promise<void> {
+	TimelineStore.eventTimeline = await repository.getEvents();
+	TimelineStore.actionTimeline = await repository.getActions();
 }
 
 export async function backupDatabase(backupId: string): Promise<string> {

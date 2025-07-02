@@ -6,6 +6,7 @@ import {
 	closeDatabase,
 	loadBoardFromDatabase,
 	loadProjectFromDatabase,
+	loadTimelineFromDatabase,
 	openDatabase,
 	restoreBackup
 } from '../../../persistence/database/actions';
@@ -14,6 +15,7 @@ import { ProjectRepositoryFactory } from '../../../factories/ProjectRepositoryFa
 import ProjectStore from '../../../persistence/stores/project/store.svelte';
 import { projectActions } from '../../../persistence/stores/project/actions';
 import { BoardRepositoryFactory } from '../../../factories/BoardRepositoryFactory';
+import { TimelineRepositoryFactory } from '../../../factories/TimelineRepositoryFactory';
 
 export async function openProject() {
 	debug('Open project action triggered');
@@ -78,6 +80,7 @@ export async function openProject() {
 
 	await loadProjectFromDatabase(ProjectRepositoryFactory.getInstance());
 	await loadBoardFromDatabase(BoardRepositoryFactory.getInstance());
+	await loadTimelineFromDatabase(TimelineRepositoryFactory.getInstance());
 
 	await enableImportVideo();
 }

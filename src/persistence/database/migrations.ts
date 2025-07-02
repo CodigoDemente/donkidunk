@@ -60,7 +60,7 @@ export const migrations: Migration[] = [
 			category_id INTEGER NOT NULL,
 			type TEXT CHECK( type in ('event', 'action') ) NOT NULL,
 			timestamp_start REAL NOT NULL,
-			timestamp_end REAL NOT NULL,
+			timestamp_end REAL,
 			FOREIGN KEY (button_id) REFERENCES button(id) ON DELETE CASCADE,
 			FOREIGN KEY (category_id) REFERENCES category(id) ON DELETE CASCADE
 		);`

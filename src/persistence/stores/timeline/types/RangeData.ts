@@ -4,7 +4,7 @@ export interface RangeData {
 	categoryId: number;
 	timestamp: {
 		start: number;
-		end: number | null;
+		end: number | undefined;
 	};
 }
 

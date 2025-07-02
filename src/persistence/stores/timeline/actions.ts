@@ -1,5 +1,7 @@
+import { emit } from '@tauri-apps/api/event';
+import { TimelineRepositoryFactory } from '../../../factories/TimelineRepositoryFactory';
 import TimelineStore from './store.svelte';
-import type { RangeDataWithTags } from './types/RangeData';
+import type { RangeData, RangeDataWithTags } from './types/RangeData';
 
 const createNewEvent = (
 	buttonId: number,
@@ -12,14 +14,16 @@ const createNewEvent = (
 		categoryId: categoryId,
 		timestamp: {
 			start: timeCursor,
-			end: null // Assuming end is null for new events
+			end: undefined // Assuming end is undefined for new events
 		},
 		tagsRelated: []
 	};
 };
 
 export const timelineActions = {
-	addEvent(buttonId: number, categoryId: number, timeCursor: number) {
+	async addEvent(buttonId: number, categoryId: number, timeCursor: number) {
+		const repository = TimelineRepositoryFactory.getInstance();
+
 		const newEvent = createNewEvent(buttonId, categoryId, timeCursor);
 
 		if (TimelineStore.onPlay === null) {
@@ -33,32 +37,65 @@ export const timelineActions = {
 			TimelineStore.onPlay.categoryId === categoryId
 		) {
 			TimelineStore.onPlay.timestamp.end = timeCursor;
+
+			const newEvent = TimelineStore.onPlay;
+
+			const newEventId = await repository.addEntry(
+				newEvent.buttonId,
+				newEvent.categoryId,
+				'event',
+				newEvent.timestamp.start,
+				newEvent.timestamp.end
+			);
+
+			TimelineStore.onPlay.id = newEventId;
+
 			TimelineStore.eventTimeline.push(TimelineStore.onPlay);
 			TimelineStore.eventSelected = TimelineStore.onPlay.id;
 			TimelineStore.onPlay = null;
 			return;
 		}
+
+		await emit('project:dirty');
 	},
 
-	addAction(buttonId: number, categoryId: number, timeCursor: number) {
+	async addAction(buttonId: number, categoryId: number, timeCursor: number) {
+		const repository = TimelineRepositoryFactory.getInstance();
+
 		const actionInAction = TimelineStore.actionTimeline.find(
 			(a) => a.buttonId === buttonId && a.categoryId === categoryId && a.timestamp.end === null
 		);
 
 		if (actionInAction) {
+			await repository.updateEntryEndTime(actionInAction.id, timeCursor);
 			actionInAction.timestamp.end = timeCursor;
 		} else {
 			TimelineStore.eventSelected = null; // Clear any selected event
-			TimelineStore.actionTimeline.push({
-				id: Math.floor(Math.random() * 1000),
+
+			const newAction: RangeData = {
+				id: 0, // ID will be set by the database
 				buttonId: buttonId,
 				categoryId: categoryId,
 				timestamp: {
 					start: timeCursor,
-					end: null // Assuming end is null for new actions
+					end: undefined // Assuming end is undefined for new actions
 				}
-			});
+			};
+
+			const newActionId = await repository.addEntry(
+				newAction.buttonId,
+				newAction.categoryId,
+				'action',
+				newAction.timestamp.start,
+				undefined
+			);
+
+			newAction.id = newActionId;
+
+			TimelineStore.actionTimeline.push(newAction);
 		}
+
+		await emit('project:dirty');
 	},
 
 	setEventSelected(eventId: number) {
@@ -70,10 +107,22 @@ export const timelineActions = {
 		console.log('Event selected:', TimelineStore);
 	},
 
-	addRelatedTagToEvent(tagId: number) {
+	async addRelatedTagToEvent(tagId: number) {
+		const repository = TimelineRepositoryFactory.getInstance();
+
+		let op = 'add';
+
 		// Helper to toggle a tag in a tagsRelated array
-		const toggleTag = (tags: number[]) =>
-			tags.includes(tagId) ? tags.filter((tag) => tag !== tagId) : [...tags, tagId];
+		const toggleTag = (tags: number[]) => {
+			if (tags.includes(tagId)) {
+				op = 'remove';
+
+				return tags.filter((tag) => tag !== tagId);
+			}
+
+			return [...tags, tagId];
+		};
+
 		if (TimelineStore.onPlay) {
 			TimelineStore.onPlay = {
 				...TimelineStore.onPlay,
@@ -86,14 +135,42 @@ export const timelineActions = {
 					: event
 			);
 		}
+
+		if (TimelineStore.onPlay || TimelineStore.eventSelected) {
+			if (op === 'add') {
+				await repository.addTagToEntry(
+					TimelineStore.eventSelected || TimelineStore.onPlay!.id,
+					tagId
+				);
+			} else {
+				await repository.removeTagFromEntry(
+					TimelineStore.eventSelected || TimelineStore.onPlay!.id,
+					tagId
+				);
+			}
+		}
+
+		await emit('project:dirty');
 	},
 
-	removeEvent(eventId: number) {
+	async removeEvent(eventId: number) {
+		const repository = TimelineRepositoryFactory.getInstance();
+
 		TimelineStore.eventTimeline = TimelineStore.eventTimeline.filter((e) => e.id !== eventId);
+
+		await repository.removeEntry(eventId);
+
+		await emit('project:dirty');
 	},
 
-	removeAction(actionId: number) {
+	async removeAction(actionId: number) {
+		const repository = TimelineRepositoryFactory.getInstance();
+
 		TimelineStore.actionTimeline = TimelineStore.actionTimeline.filter((a) => a.id !== actionId);
+
+		await repository.removeEntry(actionId);
+
+		await emit('project:dirty');
 	},
 
 	setOnPlay(event: RangeDataWithTags | null) {
