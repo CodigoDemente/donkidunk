@@ -1,10 +1,17 @@
 {
 	"svelte.enable-ts-plugin": true,
-	"terminal.integrated.env.linux": {
-    	"GTK_PATH": null,
-    	"GIO_MODULE_DIR": null,
-	},
 	"conventionalCommits.scopes": [
+		"timeline",
+		"project",
+		"menu",
+		"board",
 		"ffmpeg"
-	]
+	],
+	"terminal.integrated.env.linux": {
+		"GTK_PATH": null,
+		"GIO_MODULE_DIR": null,
+	},
+	"terminal.integrated.env.osx": {
+		"PATH": ""
+	},
 }

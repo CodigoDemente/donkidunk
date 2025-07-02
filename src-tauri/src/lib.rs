@@ -1,3 +1,4 @@
+use menu::MenuExtensions;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::process::Command;
@@ -13,21 +14,24 @@ struct Clip {
     attributes: HashMap<String, u8>,
 }
 
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
+mod menu;
+mod server;
+
 #[tauri::command]
-fn greet(name: &str) -> String {
-    ffmpeg_next::init().unwrap();
+async fn set_menu_item_enabling_status(
+    app: tauri::AppHandle,
+    menu_id: &str,
+    enabled: bool,
+) -> Result<(), String> {
+    let menu = app.menu();
 
-    let version = ffmpeg_next::util::version();
+    if let Some(menu) = menu {
+        let menu_id = tauri::menu::MenuId::new(menu_id);
+        menu.set_enabled_by_item_id(&menu_id, enabled)
+            .map_err(|e| e.to_string())?;
+    }
 
-    format!(
-        "Hello, {}! You've been greeted from Rust using FFMPEG version {}.{}.{} from {}",
-        name,
-        (version >> 16) & 0xFF,
-        (version >> 8) & 0xFF,
-        version & 0xFF,
-        env::var("FFMPEG_PATH").unwrap()
-    )
+    Ok(())
 }
 
 #[tauri::command]
@@ -46,14 +50,13 @@ fn cut_video() -> Result<String, String> {
     let mut all_parts: Vec<String> = Vec::new();
 
     for clip in all_clips {
-        all_parts.push(
-            format!(
-                "between(t,{},{})",
-                clip.time_start/1000, clip.time_end/1000
-            )
-        );
+        all_parts.push(format!(
+            "between(t,{},{})",
+            clip.time_start / 1000,
+            clip.time_end / 1000
+        ));
     }
-    
+
     let select_command = all_parts.join("+");
 
     println!("select_command: {}", select_command);
@@ -76,7 +79,10 @@ fn cut_video() -> Result<String, String> {
         .arg("-i")
         .arg(INPUT_PATH)
         .arg("-vf")
-        .arg(format!("select='{}', setpts=N/FRAME_RATE/TB", select_command))
+        .arg(format!(
+            "select='{}', setpts=N/FRAME_RATE/TB",
+            select_command
+        ))
         .arg("-af")
         .arg(format!("aselect='{}', asetpts=N/SR/TB", select_command))
         .arg(&output_path)
@@ -85,7 +91,10 @@ fn cut_video() -> Result<String, String> {
 
     let end = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
 
-    println!("Time elapsed in seconds: {:?}", end.as_secs() - start.as_secs());
+    println!(
+        "Time elapsed in seconds: {:?}",
+        end.as_secs() - start.as_secs()
+    );
 
     if status.success() {
         Ok(output_path)
@@ -95,7 +104,8 @@ fn cut_video() -> Result<String, String> {
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
-pub fn run() {
+#[tokio::main]
+pub async fn run() {
     let ffmpeg_path = which("ffmpeg");
 
     if ffmpeg_path.is_err() {
@@ -105,10 +115,26 @@ pub fn run() {
     env::set_var("FFMPEG_PATH", ffmpeg_path.unwrap().to_str().unwrap());
 
     tauri::Builder::default()
+        .invoke_handler(tauri::generate_handler![
+            #[cfg(target_os = "linux")]
+            server::get_linux_file_url,
+            set_menu_item_enabling_status,
+            cut_video,
+        ])
+        .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_log::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet, cut_video])
+        .plugin(tauri_plugin_sql::Builder::default().build())
+        .setup(|app| {
+            #[cfg(target_os = "linux")]
+            tokio::spawn(server::setup_webserver());
+
+            menu::setup_menu(app)?;
+
+            Ok(())
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

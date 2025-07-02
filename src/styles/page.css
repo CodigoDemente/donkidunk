@@ -1,11 +1,16 @@
+@import 'tailwindcss';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
 	font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
 	font-size: 16px;
 	line-height: 24px;
 	font-weight: 400;
 
-	color: #0f0f0f;
-	background-color: #f6f6f6;
+	color: #94a3b8;
+	background-color: #020617;
 
 	font-synthesis: none;
 	text-rendering: optimizeLegibility;
@@ -16,11 +21,8 @@
 
 .container {
 	margin: 0;
-	padding-top: 10vh;
 	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	text-align: center;
+	max-width: 100%;
 }
 
 @media (prefers-color-scheme: dark) {
