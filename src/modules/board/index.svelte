@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { boardStore } from '../../stores/board/store';
-	import { boardActions } from '../../stores/board/actions';
-	import { timelineActions } from '../../stores/timeline/actions';
+	import BoardStore from '../../persistence/stores/board/store.svelte';
+	import { boardActions } from '../../persistence/stores/board/actions';
+	import { timelineActions } from '../../persistence/stores/timeline/actions';
 
 	export let checkTime: () => number;
 
@@ -9,7 +9,7 @@
 	let newEventCategoryName = '';
 	let newEventCategoryColor = '#ffffff';
 
-	let showAddButtonBox: string | null = null; // holds category id or null
+	let showAddButtonBox: number | null = null; // holds category id or null
 	let newButtonName = '';
 
 	function openAddEventCategoryBox() {
@@ -18,7 +18,7 @@
 		newEventCategoryColor = '#ffffff';
 	}
 
-	function openAddButtonBox(categoryId: string) {
+	function openAddButtonBox(categoryId: number) {
 		showAddButtonBox = categoryId;
 		newButtonName = '';
 	}
@@ -31,16 +31,16 @@
 		<div class="toggle-edit-play">
 			<button
 				id="mode-toggle-play"
-				class="toggle-btn {$boardStore.isEditing ? '' : 'active'}"
-				on:click={() => boardActions.setEditingMode(false)}
+				class="toggle-btn {BoardStore.isEditing ? '' : 'active'}"
+				onclick={() => boardActions.setEditingMode(false)}
 				aria-label="Play Mode"
 			>
 				▶️ Play
 			</button>
 			<button
 				id="mode-toggle-edit"
-				class="toggle-btn {$boardStore.isEditing ? 'active' : ''}"
-				on:click={() => boardActions.setEditingMode(true)}
+				class="toggle-btn {BoardStore.isEditing ? 'active' : ''}"
+				onclick={() => boardActions.setEditingMode(true)}
 				aria-label="Edit Mode"
 			>
 				✏️ Edit
@@ -51,7 +51,7 @@
 	<!-- Events Section -->
 	<div class="board">
 		<p class="text-xs text-white">Events Board</p>
-		<button class="plus-button absolute top-2 right-2" on:click={openAddEventCategoryBox}>+</button>
+		<button class="plus-button absolute top-2 right-2" onclick={openAddEventCategoryBox}>+</button>
 		{#if showAddEventCategory}
 			<div class="add-category-modal">
 				<input
@@ -63,8 +63,8 @@
 				<input type="color" bind:value={newEventCategoryColor} class="mb-2" />
 				<button
 					class="w-full rounded bg-orange-500 px-2 py-1 text-white"
-					on:click={() => {
-						boardActions.addCategory(
+					onclick={async () => {
+						await boardActions.addCategory(
 							'eventCategories',
 							newEventCategoryName,
 							newEventCategoryColor
@@ -76,24 +76,25 @@
 				</button>
 				<button
 					class="mt-1 w-full text-xs text-gray-400"
-					on:click={() => (showAddEventCategory = false)}
+					onclick={() => (showAddEventCategory = false)}
 				>
 					Cancel
 				</button>
 			</div>
 		{/if}
 		<div class="categories-container">
-			{#each $boardStore.eventCategories as category (category.id)}
+			{#each BoardStore.eventCategories as category (category.id)}
 				<div class="category" style="--color: {category.color}; position: relative;">
 					<input
 						type="text"
 						bind:value={category.name}
-						disabled={!$boardStore.isEditing}
+						disabled={!BoardStore.isEditing}
 						placeholder="Category Name"
 						class="text-xs"
+						onchange={async () => await boardActions.updateCategoryName(category.id, category.name)}
 					/>
 					<input type="color" bind:value={category.color} class="mt-2" />
-					<button class="plus-button mt-2" on:click={() => openAddButtonBox(category.id)}>+</button>
+					<button class="plus-button mt-2" onclick={() => openAddButtonBox(category.id)}>+</button>
 					{#if showAddButtonBox === category.id}
 						<div class="add-category-modal" style="top: 40px; right: 0;">
 							<input
@@ -104,8 +105,12 @@
 							/>
 							<button
 								class="w-full rounded bg-orange-500 px-2 py-1 text-white"
-								on:click={() => {
-									boardActions.addButtonToCategory('eventCategories', category.id, newButtonName);
+								onclick={async () => {
+									await boardActions.addButtonToCategory(
+										'eventCategories',
+										category.id,
+										newButtonName
+									);
 									showAddButtonBox = null;
 									newButtonName = '';
 								}}
@@ -114,7 +119,7 @@
 							</button>
 							<button
 								class="mt-1 w-full text-xs text-gray-400"
-								on:click={() => (showAddButtonBox = null)}
+								onclick={() => (showAddButtonBox = null)}
 							>
 								Cancel
 							</button>
@@ -124,7 +129,8 @@
 						{#each category.buttons as button (button.id)}
 							<button
 								class="mt-1 rounded bg-gray-700 p-1 text-xs text-white"
-								on:click={() => timelineActions.addEvent(button.id, category.id, checkTime())}
+								onclick={async () =>
+									await timelineActions.addEvent(button.id, category.id, checkTime())}
 							>
 								{button.name}
 							</button>
@@ -138,9 +144,9 @@
 	<!-- Tags Section -->
 	<div class="board">
 		<p class="text-xs text-white">Tags Board</p>
-		{#each $boardStore.tagsRelatedToEvents as tag (tag.id)}
+		{#each BoardStore.tagsRelatedToEvents as tag (tag.id)}
 			<button
-				on:click={() => timelineActions.addRelatedTagToEvent(tag.id)}
+				onclick={async () => await timelineActions.addRelatedTagToEvent(tag.id)}
 				class="m-1 inline-block rounded px-2 py-1"
 				style="background: {tag.color}; color: #222;"
 			>
@@ -154,7 +160,7 @@
 		<p class="text-xs text-white">Actions Board</p>
 		<button
 			class="plus-button"
-			on:click={openAddEventCategoryBox}
+			onclick={openAddEventCategoryBox}
 			style="position: absolute; top: 8px; right: 8px;">+</button
 		>
 		{#if showAddEventCategory}
@@ -168,8 +174,8 @@
 				<input type="color" bind:value={newEventCategoryColor} class="mb-2" />
 				<button
 					class="w-full rounded bg-orange-500 px-2 py-1 text-white"
-					on:click={() => {
-						boardActions.addCategory(
+					onclick={async () => {
+						await boardActions.addCategory(
 							'actionCategories',
 							newEventCategoryName,
 							newEventCategoryColor
@@ -181,23 +187,25 @@
 				</button>
 				<button
 					class="mt-1 w-full text-xs text-gray-400"
-					on:click={() => (showAddEventCategory = false)}
+					onclick={() => (showAddEventCategory = false)}
 				>
 					Cancel
 				</button>
 			</div>
 		{/if}
 		<div class="categories-container">
-			{#each $boardStore.actionCategories as category (category.id)}
+			{#each BoardStore.actionCategories as category (category.id)}
 				<div class="category" style="--color: {category.color}; position: relative;">
 					<input
 						type="text"
 						bind:value={category.name}
 						placeholder="Category Name"
 						class="text-xs"
+						disabled={!BoardStore.isEditing}
+						onchange={async () => await boardActions.updateCategoryName(category.id, category.name)}
 					/>
 					<input type="color" bind:value={category.color} class="mt-2" />
-					<button class="plus-button mt-2" on:click={() => openAddButtonBox(category.id)}>+</button>
+					<button class="plus-button mt-2" onclick={() => openAddButtonBox(category.id)}>+</button>
 					{#if showAddButtonBox === category.id}
 						<div class="add-category-modal" style="top: 40px; right: 0;">
 							<input
@@ -208,8 +216,12 @@
 							/>
 							<button
 								class="w-full rounded bg-orange-500 px-2 py-1 text-white"
-								on:click={() => {
-									boardActions.addButtonToCategory('actionCategories', category.id, newButtonName);
+								onclick={async () => {
+									await boardActions.addButtonToCategory(
+										'actionCategories',
+										category.id,
+										newButtonName
+									);
 									showAddButtonBox = null;
 									newButtonName = '';
 								}}
@@ -218,7 +230,7 @@
 							</button>
 							<button
 								class="mt-1 w-full text-xs text-gray-400"
-								on:click={() => (showAddButtonBox = null)}
+								onclick={() => (showAddButtonBox = null)}
 							>
 								Cancel
 							</button>
@@ -227,7 +239,8 @@
 					<div>
 						{#each category.buttons as button (button.id)}
 							<button
-								on:click={() => timelineActions.addAction(button.id, category.id, checkTime())}
+								onclick={async () =>
+									await timelineActions.addAction(button.id, category.id, checkTime())}
 								class="mt-1 rounded bg-gray-700 p-1 text-xs text-white"
 							>
 								{button.name}

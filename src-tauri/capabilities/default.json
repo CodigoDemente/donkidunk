@@ -7,9 +7,39 @@
   ],
   "permissions": [
     "core:default",
+    "core:window:allow-destroy",
     "opener:default",
+    "sql:default",
+    "sql:allow-execute",
     "log:default",
     "dialog:default",
-    "os:default"
+    "os:default",
+    "fs:default",
+    "fs:allow-app-write-recursive",
+    "fs:allow-truncate",
+    {
+      "identifier": "fs:allow-copy-file",
+      "allow": [
+        {
+          "path": "$APPLOCALDATA/**"
+        }
+      ]
+    },
+    {
+      "identifier": "fs:allow-exists",
+      "allow": [
+        {
+          "path": "$APPLOCALDATA/**"
+        }
+      ]
+    },
+    {
+      "identifier": "fs:allow-remove",
+      "allow": [
+        {
+          "path": "$APPLOCALDATA/**"
+        }
+      ]
+    }
   ]
 }

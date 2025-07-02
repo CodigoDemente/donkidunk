@@ -49,13 +49,11 @@
 
 	$effect(() => {
 		if (videoPlayer) {
-			videoPlayer.onplay = (event) => {
-				console.log(event);
+			videoPlayer.onplay = () => {
 				videoIsPlaying = true;
 			};
 
-			videoPlayer.onpause = (event) => {
-				console.log(event);
+			videoPlayer.onpause = () => {
 				videoIsPlaying = false;
 			};
 		}
@@ -114,12 +112,10 @@
 	// Controls
 
 	function play() {
-		if (videoPlayer) {
-			if (!videoIsPlaying) {
-				videoPlayer.play();
-			} else {
-				videoPlayer.pause();
-			}
+		if (!videoIsPlaying) {
+			videoPlayer?.play();
+		} else {
+			videoPlayer?.pause();
 		}
 	}
 

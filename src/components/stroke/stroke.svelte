@@ -1,16 +1,31 @@
 <script lang="ts">
-	import type { Action, Category } from '../../stores/board/types';
-	import type { RangeData, RangeDataWithTags } from '../../stores/timeline/types';
+	import type { Action } from '../../persistence/stores/board/types/Action';
+	import type { Category } from '../../persistence/stores/board/types/Category';
+	import type {
+		RangeData,
+		RangeDataWithTags
+	} from '../../persistence/stores/timeline/types/RangeData';
 	import Tagtime from '../tagtime/tagtime.svelte';
 
-	export let categoryId: string;
-	export let allTagsByCategory: Record<string, RangeDataWithTags[] | RangeData[]>;
-	export let duration: number;
-	export let boardCategoriesById: Record<string, Category>;
-	export let buttonsListById: Record<string, Action>;
-	export let onPlayObject: RangeDataWithTags | null = null;
-	export let currentTime: number;
-	export let onClick: (number: string) => void = () => {};
+	let {
+		categoryId,
+		allTagsByCategory,
+		duration,
+		boardCategoriesById,
+		buttonsListById,
+		onPlayObject,
+		currentTime,
+		onClick
+	}: {
+		categoryId: number;
+		allTagsByCategory: Record<string, RangeDataWithTags[] | RangeData[]>;
+		duration: number;
+		boardCategoriesById: Record<string, Category>;
+		buttonsListById: Record<string, Action>;
+		onPlayObject?: RangeDataWithTags | null;
+		currentTime: number;
+		onClick?: (id: number) => void;
+	} = $props();
 </script>
 
 <div class="relative h-5 w-full rounded-xs bg-gray-800">

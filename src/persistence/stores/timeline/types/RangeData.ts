@@ -1,13 +1,13 @@
 export interface RangeData {
-	id: string;
-	buttonId: string;
-	categoryId: string;
+	id: number;
+	buttonId: number;
+	categoryId: number;
 	timestamp: {
 		start: number;
-		end: number | null;
+		end: number | undefined;
 	};
 }
 
 export interface RangeDataWithTags extends RangeData {
-	tagsRelated: string[];
+	tagsRelated: number[];
 }

@@ -1,45 +1,36 @@
-import { Menu, Submenu } from '@tauri-apps/api/menu';
-import { open } from '@tauri-apps/plugin-dialog';
 import { debug } from '@tauri-apps/plugin-log';
-import ProjectStore from '../../stores/project.svelte';
+import { listen } from '@tauri-apps/api/event';
+import { createNewProject } from './operations/createProject';
+import { openProject } from './operations/openProject';
+import { saveProjectAs } from './operations/saveProjectAs';
+import { saveProject } from './operations/saveProject';
+import { importVideo } from './operations/importVideo';
 
-export async function buildMenu() {
-	const fileSubmenu = await Submenu.new({
-		id: 'file-submenu',
-		text: 'File',
-		items: [
-			{
-				id: 'import-video',
-				text: 'Import Video',
-				enabled: true,
-				action: (id) => {
-					debug(`Action triggered for ${id}`);
-					open({
-						directory: false,
-						multiple: false,
-						filters: [
-							{
-								name: 'Video Files',
-								extensions: ['mp4']
-							}
-						]
-					}).then((path) => {
-						if (path) {
-							debug(`Selected path: ${path}`);
-							ProjectStore.setVideoPath(path as string);
-						} else {
-							debug('No path selected');
-						}
-					});
-				}
-			}
-		]
+type MenuEvent = {
+	id: string;
+};
+
+export async function bindMenuEvents() {
+	listen<MenuEvent>('menu_event', async (event) => {
+		debug(`Menu event triggered: ${event.id}`);
+		switch (event.payload.id) {
+			case 'new_project':
+				await createNewProject();
+				break;
+			case 'open_project':
+				await openProject();
+				break;
+			case 'save_project_as':
+				await saveProjectAs();
+				break;
+			case 'save_project':
+				await saveProject();
+				break;
+			case 'import_video':
+				await importVideo();
+				break;
+			default:
+				debug(`Unknown menu event: ${event.id}`);
+		}
 	});
-
-	const menu = await Menu.new({
-		id: 'main-menu',
-		items: [fileSubmenu]
-	});
-
-	await menu.setAsAppMenu();
 }
