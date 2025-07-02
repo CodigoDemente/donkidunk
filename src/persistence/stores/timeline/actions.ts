@@ -63,7 +63,7 @@ export const timelineActions = {
 		const repository = TimelineRepositoryFactory.getInstance();
 
 		const actionInAction = TimelineStore.actionTimeline.find(
-			(a) => a.buttonId === buttonId && a.categoryId === categoryId && a.timestamp.end === null
+			(a) => a.buttonId === buttonId && a.categoryId === categoryId && a.timestamp.end === undefined
 		);
 
 		if (actionInAction) {
