@@ -12,7 +12,7 @@ jobs:
           sudo apt-get update
       - name: Install system dependencies
         run: |
-          sudo apt install libwebkit2gtk-4.1-dev \
+          sudo apt-get install libwebkit2gtk-4.1-dev \
             build-essential \
             curl \
             wget \
@@ -42,10 +42,13 @@ jobs:
       - name: Lint frontend
         run: |
           pnpm lint
+      - name: Build project
+        run: |
+          pnpm tauri build
       - name: Test backend
         working-directory: ./src-tauri
         run: |
-          cargo test
+          cargo test --tests
       - name: Lint backend
         working-directory: ./src-tauri
         run: |
@@ -54,9 +57,6 @@ jobs:
         working-directory: ./src-tauri
         run: |
           cargo fmt -- --check
-      - name: Build project
-        run: |
-          pnpm tauri build
   macos:
     name: MacOS - Build, test and lint
     runs-on: macos-latest
@@ -80,7 +80,7 @@ jobs:
       - name: Test backend
         working-directory: ./src-tauri
         run: |
-          cargo test
+          cargo test --tests
       - name: Lint backend
         working-directory: ./src-tauri
         run: |
@@ -121,10 +121,6 @@ jobs:
             echo "Failed to download WebView2 installer"
             exit 1
           }
-      - name: Test backend
-        working-directory: ./src-tauri
-        run: |
-          cargo test
       - name: Lint backend
         working-directory: ./src-tauri
         run: |

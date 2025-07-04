@@ -1,15 +1,15 @@
 use anyhow::Result;
 use tauri::{
     menu::{Menu, MenuEvent, MenuId, MenuItemBuilder, MenuItemKind, Submenu, SubmenuBuilder},
-    App, AppHandle, Emitter, Error, Wry,
+    App, AppHandle, Emitter, Error,
 };
 
 pub trait MenuExtensions {
     fn set_enabled_by_item_id(&self, id: &MenuId, enabled: bool) -> Result<()>;
 }
 
-fn find_item_and_set_enabled_by_id(
-    items: &Vec<MenuItemKind<Wry>>,
+fn find_item_and_set_enabled_by_id<R: tauri::Runtime>(
+    items: &Vec<MenuItemKind<R>>,
     id: &MenuId,
     enabled: bool,
 ) -> Result<()> {
@@ -38,7 +38,7 @@ fn find_item_and_set_enabled_by_id(
     Ok(())
 }
 
-impl MenuExtensions for Menu<Wry> {
+impl<R: tauri::Runtime> MenuExtensions for Menu<R> {
     fn set_enabled_by_item_id(&self, id: &MenuId, enabled: bool) -> Result<()> {
         find_item_and_set_enabled_by_id(&self.items()?, id, enabled)?;
 
@@ -46,7 +46,7 @@ impl MenuExtensions for Menu<Wry> {
     }
 }
 
-impl MenuExtensions for Submenu<Wry> {
+impl<R: tauri::Runtime> MenuExtensions for Submenu<R> {
     fn set_enabled_by_item_id(&self, id: &MenuId, enabled: bool) -> Result<()> {
         if self.id() == id {
             self.set_enabled(enabled)?;
@@ -63,17 +63,19 @@ struct MenuEventData {
     id: String,
 }
 
-pub fn setup_menu(app: &App) -> Result<(), Error> {
+pub fn setup_menu<R: tauri::Runtime>(app: &mut App<R>) -> Result<(), Error> {
     let menu = build_menu(app)?;
 
     app.set_menu(menu)?;
 
-    app.on_menu_event(generic_event_handler);
+    app.on_menu_event(|app, event| {
+        generic_event_handler(app, event);
+    });
 
     Ok(())
 }
 
-fn build_menu(app: &App) -> Result<Menu<Wry>, Error> {
+fn build_menu<R: tauri::Runtime>(app: &mut App<R>) -> Result<Menu<R>, Error> {
     let handle = app.handle();
 
     let menu = Menu::new(handle)?;
@@ -136,7 +138,7 @@ fn build_menu(app: &App) -> Result<Menu<Wry>, Error> {
     Ok(menu)
 }
 
-fn generic_event_handler(app: &AppHandle, event: MenuEvent) {
+fn generic_event_handler<R: tauri::Runtime>(app: &AppHandle<R>, event: MenuEvent) {
     let event_id = event.id.0;
 
     log::debug!("Menu event triggered: {event_id}");

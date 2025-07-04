@@ -61,7 +61,7 @@ jobs:
       - name: Install system dependencies
         if: matrix.platform == 'ubuntu-latest' # This must match the platform value defined above.
         run: |
-          sudo apt install libwebkit2gtk-4.1-dev \
+          sudo apt-get install libwebkit2gtk-4.1-dev \
             build-essential \
             curl \
             wget \

@@ -41,6 +41,15 @@
         }
       ]
     },
-    "shell:default"
+   {
+      "identifier": "shell:allow-execute",
+      "allow": [
+        {
+          "name": "./bin/donkidunk_ffmpeg",
+          "sidecar": true
+        }
+      ]
+    },
+    "shell:allow-open"
   ]
 }
