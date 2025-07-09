@@ -1,4 +1,7 @@
-use std::{process::Command, time::{SystemTime, UNIX_EPOCH}};
+use std::{
+    process::Command,
+    time::{SystemTime, UNIX_EPOCH},
+};
 
 use tauri_plugin_shell::ShellExt;
 
@@ -65,4 +68,3 @@ pub async fn cut_video<R: tauri::Runtime>(
         Err("Failed to cut video".into())
     }
 }
-

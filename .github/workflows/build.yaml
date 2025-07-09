@@ -121,6 +121,13 @@ jobs:
             echo "Failed to download WebView2 installer"
             exit 1
           }
+      - name: Build project
+        run: |
+          pnpm tauri build
+      - name: Test backend
+        working-directory: ./src-tauri
+        run: |
+          cargo test --tests
       - name: Lint backend
         working-directory: ./src-tauri
         run: |
@@ -129,6 +136,3 @@ jobs:
         working-directory: ./src-tauri
         run: |
           cargo fmt -- --check
-      - name: Build project
-        run: |
-          pnpm tauri build

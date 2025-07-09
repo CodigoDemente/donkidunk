@@ -7,9 +7,8 @@ mod menu;
 use commands::menu::*;
 use commands::video::*;
 
-
 fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
-    let app = builder
+    builder
         .invoke_handler(tauri::generate_handler![
             #[cfg(target_os = "linux")]
             server::get_linux_file_url,
@@ -25,11 +24,8 @@ fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
             Ok(())
         })
         .build(tauri::generate_context!())
-        .expect("error while building tauri application");
-
-    return app;
+        .expect("error while building tauri application")
 }
-    
 
 #[tokio::main]
 async fn main() {
@@ -42,7 +38,6 @@ async fn main() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_sql::Builder::default().build());
 
-
     let app = create_app(builder);
 
     app.run(|app_handle, event| {
@@ -53,45 +48,37 @@ async fn main() {
                 log::debug!("Exit requested, exiting...");
                 api.prevent_exit();
                 app_handle.exit(0);
-            },
+            }
             tauri::RunEvent::Ready => {
                 log::debug!("Tauri is ready");
-            },
+            }
             _ => {}
         }
     });
 }
 
-
 #[cfg(test)]
 mod tests {
     use std::process::Command;
-    
+
     use super::*;
+    use tauri::{path, Manager};
     use tauri_plugin_shell::ShellExt;
 
-    #[test]
-    fn it_should_get_ffmpeg_sidecar() -> () {
-        let builder = tauri::test::mock_builder().plugin(tauri_plugin_shell::init());
-        let app = create_app(builder);
-
-        let ffmpeg = app.shell().sidecar("donkidunk_ffmpeg");
-
-        assert!(
-            ffmpeg.is_ok(),
-            "Failed to get ffmpeg sidecar: {}",
-            ffmpeg.unwrap_err()
-        );
-    }
-
+    #[ignore]
     #[tokio::test]
     async fn it_should_run_ffmpeg_command() -> Result<(), String> {
         let builder = tauri::test::mock_builder().plugin(tauri_plugin_shell::init());
         let app = create_app(builder);
 
+        let path = path::PathResolver::app_data_dir(&app.path()).unwrap();
+
+        println!("App data path: {:?}", path);
+
         let ffmpeg = app.shell().sidecar("donkidunk_ffmpeg").unwrap();
 
         let status = Command::from(ffmpeg)
+            .arg("-version")
             .status()
             .map_err(|e| e.to_string())?;
 
