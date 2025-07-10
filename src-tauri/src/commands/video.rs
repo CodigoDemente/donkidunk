@@ -45,9 +45,7 @@ pub async fn cut_video<R: tauri::Runtime>(
         .arg("-i")
         .arg(video_path)
         .arg("-vf")
-        .arg(format!(
-            "select='{select_command}', setpts=N/FRAME_RATE/TB",
-        ))
+        .arg(format!("select='{select_command}', setpts=N/FRAME_RATE/TB",))
         .arg("-af")
         .arg(format!("aselect='{select_command}', asetpts=N/SR/TB"))
         .arg(&output_path)
