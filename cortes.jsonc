@@ -1,0 +1,13 @@
+[
+	{
+		"time_start": 0,
+		"time_end": 3004, // Milliseconds
+		"type": 1, // Some type ID assigned to the button
+		"attributes": {
+			"3": 1, // Attribute ID 3 assigned to the button
+			"4": 1, // Attribute ID 4 assigned to the button
+			"10": 1, // Attribute ID 10 assigned to the button
+			"49": 1 // Attribute ID 49 assigned to the button
+		}
+	}
+]

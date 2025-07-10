@@ -43,6 +43,9 @@
       "appimage": {
         "bundleMediaFramework": true
       }
-    }
+    },
+    "externalBin": [
+      "./bin/donkidunk_ffmpeg"
+    ]
   }
 }

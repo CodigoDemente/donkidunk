@@ -19,6 +19,18 @@
             "program": "${workspaceFolder}/src-tauri/target/release/donkidunk",
             // task for the `beforeBuildCommand` if used, must be configured in `.vscode/tasks.json`
             "preLaunchTask": "ui:build"
+        },
+        {
+            "type": "lldb-dap",
+            "request": "launch",
+            "name": "Debug unit tests in library 'yourprogram'",
+            "cargo": {
+                "args": [
+                    "test",
+                ]
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}/src-tauri"
         }
     ]
 }
