@@ -19,7 +19,7 @@ pub async fn cut_video<R: tauri::Runtime>(
 
     let start = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
 
-    println!("ranges: {:?}", ranges);
+    println!("ranges: {ranges:?}");
 
     let mut all_parts: Vec<String> = Vec::new();
 
@@ -46,11 +46,10 @@ pub async fn cut_video<R: tauri::Runtime>(
         .arg(video_path)
         .arg("-vf")
         .arg(format!(
-            "select='{}', setpts=N/FRAME_RATE/TB",
-            select_command
+            "select='{select_command}', setpts=N/FRAME_RATE/TB",
         ))
         .arg("-af")
-        .arg(format!("aselect='{}', asetpts=N/SR/TB", select_command))
+        .arg(format!("aselect='{select_command}', asetpts=N/SR/TB"))
         .arg(&output_path)
         .status()
         .map_err(|e| e.to_string())?;

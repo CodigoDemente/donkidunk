@@ -41,7 +41,7 @@ async fn main() {
     let app = create_app(builder);
 
     app.run(|app_handle, event| {
-        log::debug!("Tauri event: {:?}", event);
+        log::debug!("Tauri event: {event:?}");
 
         match event {
             tauri::RunEvent::ExitRequested { api, .. } => {
