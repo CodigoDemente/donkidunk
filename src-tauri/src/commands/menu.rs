@@ -25,6 +25,7 @@ mod tests {
         use super::*;
 
         #[test]
+        #[cfg_attr(target_os = "macos", ignore)] // macOS menu can only be created in the main thread
         fn should_enable_item_by_id() {
             let app = tauri::test::mock_app();
             let mock_id = "test_menu";
