@@ -78,16 +78,6 @@ jobs:
           plugins: gstreamer appimage
           dir: /usr/local/bin
 
-      - name: Cache vcpkg
-        if: matrix.platform == 'windows-latest' # This must match the platform value defined above.
-        id: cache-vcpkg
-        uses: actions/cache@v4
-        with:
-          path: C:\vcpkg
-          key: vcpkg-${{ runner.os }}-${{ hashFiles('.github/workflows/build.yaml') }}
-          restore-keys: |
-            vcpkg-${{ runner.os }}
-
       - name: setup node
         uses: actions/setup-node@v4
         with:

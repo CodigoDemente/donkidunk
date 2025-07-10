@@ -1,16 +1,39 @@
 name: build
 on:
   pull_request:
+  push:
+    branches:
+      - main
 jobs:
-  linux:
-    name: Linux - Build, test and lint
-    runs-on: ubuntu-latest
+  build-lint:
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [windows-latest, macos-latest, ubuntu-latest]
+        rust:
+          - stable
+        include:
+          - platform: 'macos-latest' # for Arm based macs (M1 and above).
+            args: '--target aarch64-apple-darwin'
+          - platform: 'macos-latest' # for Intel based macs.
+            args: '--target x86_64-apple-darwin'
+          - platform: 'ubuntu-latest'
+            args: ''
+          - platform: 'windows-latest'
+            args: ''
+
+    runs-on: ${{ matrix.platform }}
+
     steps:
       - uses: actions/checkout@v2
+
       - name: Update system repositories
+        if: matrix.platform == 'ubuntu-latest' # This must match the platform value defined above.
         run: |
           sudo apt-get update
+
       - name: Install system dependencies
+        if: matrix.platform == 'ubuntu-latest' # This must match the platform value defined above.
         run: |
           sudo apt-get install libwebkit2gtk-4.1-dev \
             build-essential \
@@ -21,97 +44,16 @@ jobs:
             libssl-dev \
             libayatana-appindicator3-dev \
             librsvg2-dev
+
       - name: Install LinuxDeploy
+        if: matrix.platform == 'ubuntu-latest' # This must match the platform value defined above.
         uses: miurahr/install-linuxdeploy-action@v1
         with:
           plugins: gstreamer appimage
           dir: /usr/local/bin
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      - uses: pnpm/action-setup@v4
-        with:
-          run_install: true
-      - name: Install dependencies
-        run: |
-          pnpm install
-      - name: Test frontend
-        run: |
-          pnpm test
-      - name: Lint frontend
-        run: |
-          pnpm lint
-      - name: Build project
-        run: |
-          pnpm tauri build
-      - name: Test backend
-        working-directory: ./src-tauri
-        run: |
-          cargo test --tests
-      - name: Lint backend
-        working-directory: ./src-tauri
-        run: |
-          cargo clippy -- -D warnings
-      - name: Format backend
-        working-directory: ./src-tauri
-        run: |
-          cargo fmt -- --check
-  macos:
-    name: MacOS - Build, test and lint
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      - uses: pnpm/action-setup@v4
-        with:
-          run_install: true
-      - name: Test frontend
-        run: |
-          pnpm test
-      - name: Lint frontend
-        run: |
-          pnpm lint
-      - name: Build project
-        run: |
-          pnpm tauri build
-      - name: Test backend
-        working-directory: ./src-tauri
-        run: |
-          cargo test --tests
-      - name: Lint backend
-        working-directory: ./src-tauri
-        run: |
-          cargo clippy -- -D warnings
-      - name: Format backend
-        working-directory: ./src-tauri
-        run: |
-          cargo fmt -- --check
-  windows:
-    name: Windows - Build, test and lint
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      - name: Set up Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: x86_64-pc-windows-msvc
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          run_install: true
-      - name: Test frontend
-        run: |
-          pnpm test
-      - name: Lint frontend
-        run: |
-          pnpm lint
+
       - name: Install WebView2
+        if: matrix.platform == 'windows-latest' # This must match the platform value defined above.
         run: |
           Remove-Item -Path WebView2Installer.exe -ErrorAction Ignore
           Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/p/?LinkId=2124703" -OutFile "WebView2Installer.exe"
@@ -121,18 +63,125 @@ jobs:
             echo "Failed to download WebView2 installer"
             exit 1
           }
-      - name: Build project
+
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          # Those targets are only used on macos runners so it's in an `if` to slightly speed up windows and linux builds.
+          targets: ${{ (matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin') || (matrix.platform == 'windows-latest' && 'x86_64-pc-windows-msvc') || '' }}
+
+      - uses: Swatinem/rust-cache@v1
+        with:
+          key: v1 # increment this to bust the cache if needed
+
+      - name: Install frontend dependencies
+        run: pnpm install
+
+      - name: Lint frontend
         run: |
-          pnpm tauri build
-      - name: Test backend
-        working-directory: ./src-tauri
-        run: |
-          cargo test --tests
-      - name: Lint backend
-        working-directory: ./src-tauri
-        run: |
-          cargo clippy -- -D warnings
+          pnpm lint
+
       - name: Format backend
         working-directory: ./src-tauri
         run: |
           cargo fmt -- --check
+
+      - name: Build project
+        run: |
+          pnpm tauri build
+
+      - name: Lint backend
+        working-directory: ./src-tauri
+        run: |
+          cargo clippy -- -D warnings
+
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [windows-latest, macos-latest, ubuntu-latest]
+        rust:
+          - stable
+        include:
+          - platform: 'macos-latest' # for Arm based macs (M1 and above).
+            args: '--target aarch64-apple-darwin'
+          - platform: 'macos-latest' # for Intel based macs.
+            args: '--target x86_64-apple-darwin'
+          - platform: 'ubuntu-latest'
+            args: ''
+          - platform: 'windows-latest'
+            args: ''
+
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Update system repositories
+        if: matrix.platform == 'ubuntu-latest' # This must match the platform value defined above.
+        run: |
+          sudo apt-get update
+
+      - name: Install system dependencies
+        if: matrix.platform == 'ubuntu-latest' # This must match the platform value defined above.
+        run: |
+          sudo apt-get install libwebkit2gtk-4.1-dev \
+            build-essential \
+            curl \
+            wget \
+            file \
+            libxdo-dev \
+            libssl-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev
+
+      - name: Install LinuxDeploy
+        if: matrix.platform == 'ubuntu-latest' # This must match the platform value defined above.
+        uses: miurahr/install-linuxdeploy-action@v1
+        with:
+          plugins: gstreamer appimage
+          dir: /usr/local/bin
+
+      - name: Install WebView2
+        if: matrix.platform == 'windows-latest' # This must match the platform value defined above.
+        run: |
+          Remove-Item -Path WebView2Installer.exe -ErrorAction Ignore
+          Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/p/?LinkId=2124703" -OutFile "WebView2Installer.exe"
+          if (Test-Path "WebView2Installer.exe") {
+            Start-Process -FilePath WebView2Installer.exe -ArgumentList "/silent /install" -NoNewWindow -Wait
+          } else {
+            echo "Failed to download WebView2 installer"
+            exit 1
+          }
+
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          # Those targets are only used on macos runners so it's in an `if` to slightly speed up windows and linux builds.
+          targets: ${{ (matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin') || (matrix.platform == 'windows-latest' && 'x86_64-pc-windows-msvc') || '' }}
+
+      - uses: Swatinem/rust-cache@v1
+        with:
+          key: v1 # increment this to bust the cache if needed
+
+      - name: Install frontend dependencies
+        run: pnpm install
+
+      - name: Test frontend
+        run: |
+          pnpm test
+
+      - name: Test backend
+        working-directory: ./src-tauri
+        run: |
+          cargo test --tests
