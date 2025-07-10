@@ -81,14 +81,11 @@ jobs:
 
       - uses: Swatinem/rust-cache@v1
         with:
+          shared-key: ${{ matrix.platform }}
           key: v1 # increment this to bust the cache if needed
 
       - name: Install frontend dependencies
         run: pnpm install
-
-      - name: Lint frontend
-        run: |
-          pnpm lint
 
       - name: Format backend
         working-directory: ./src-tauri
@@ -103,6 +100,10 @@ jobs:
         working-directory: ./src-tauri
         run: |
           cargo clippy -- -D warnings
+
+      - name: Lint frontend
+        run: |
+          pnpm lint
 
   test:
     strategy:
@@ -180,6 +181,7 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
         with:
+          shared-key: ${{ matrix.platform }}
           key: v1 # increment this to bust the cache if needed
 
       - name: Install frontend dependencies
