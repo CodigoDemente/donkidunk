@@ -31,9 +31,9 @@ export class ProjectEventHandler {
 		projectActions.setProjectDirty(false);
 	}
 
-	async destroy(): Promise<void> {
+	destroy(): void {
 		for (const unlisten of this.unliseners) {
-			await unlisten();
+			unlisten();
 		}
 		this.unliseners = [];
 	}
