@@ -11,8 +11,8 @@
 		await initEvents();
 	});
 
-	onDestroy(async () => {
-		await destroyEvents();
+	onDestroy(() => {
+		destroyEvents();
 	});
 
 	document.addEventListener('dragover', (event) => {

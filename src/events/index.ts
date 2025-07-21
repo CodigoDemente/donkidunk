@@ -9,7 +9,7 @@ export async function initEvents(): Promise<void> {
 	await windowEventHandler.init();
 }
 
-export async function destroyEvents(): Promise<void> {
-	await projectEventHandler.destroy();
-	await windowEventHandler.destroy();
+export function destroyEvents(): void {
+	projectEventHandler.destroy();
+	windowEventHandler.destroy();
 }

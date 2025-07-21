@@ -15,7 +15,7 @@ export class WindowEventHandler {
 		);
 	}
 
-	async destroy(): Promise<void> {
+	destroy(): void {
 		for (const unlistener of this.unlisteners) {
 			unlistener();
 		}
@@ -37,10 +37,12 @@ export class WindowEventHandler {
 			}
 		}
 
-		const currentFilePath = projectActions.getCurrentFilePath();
+		if (projectActions.getDatabase()) {
+			const currentFilePath = projectActions.getCurrentFilePath();
 
-		await closeDatabase();
+			await closeDatabase();
 
-		await remove(currentFilePath);
+			await remove(currentFilePath);
+		}
 	}
 }
