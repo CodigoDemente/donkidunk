@@ -5,6 +5,8 @@
 	import { BoardSelectors } from '../../persistence/stores/board/selectors.svelte';
 
 	let isBoxOpen: boolean = $state(false);
+
+	const timelineStore = TimelineStore.state;
 </script>
 
 <!-- Line that toggles the box -->
@@ -36,7 +38,7 @@
 					{/each}
 				{/if}
 			{:else if TimelineSelectors.getSelectedEvent()}
-				{#each TimelineStore.eventTimeline.find((event) => event.id === TimelineSelectors.getSelectedEvent())?.tagsRelated ?? [] as tag (tag)}
+				{#each timelineStore.eventTimeline.find((event) => event.id === TimelineSelectors.getSelectedEvent())?.tagsRelated ?? [] as tag (tag)}
 					<button
 						class="rounded bg-sky-500 px-3 py-1 text-sm font-medium text-white hover:bg-sky-600"
 					>

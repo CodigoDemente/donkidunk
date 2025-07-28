@@ -3,6 +3,8 @@ import { TimelineRepositoryFactory } from '../../../factories/TimelineRepository
 import TimelineStore from './store.svelte';
 import type { RangeData, RangeDataWithTags } from './types/RangeData';
 
+const timelineStore = TimelineStore.state;
+
 const createNewEvent = (
 	buttonId: number,
 	categoryId: number,
@@ -26,19 +28,19 @@ export const timelineActions = {
 
 		const newEvent = createNewEvent(buttonId, categoryId, timeCursor);
 
-		if (TimelineStore.onPlay === null) {
-			TimelineStore.onPlay = newEvent;
-			TimelineStore.eventSelected = null; // Clear any selected event
+		if (timelineStore.onPlay === null) {
+			timelineStore.onPlay = newEvent;
+			timelineStore.eventSelected = null; // Clear any selected event
 			return;
 		}
 		if (
-			TimelineStore.onPlay &&
-			TimelineStore.onPlay.buttonId === buttonId &&
-			TimelineStore.onPlay.categoryId === categoryId
+			timelineStore.onPlay &&
+			timelineStore.onPlay.buttonId === buttonId &&
+			timelineStore.onPlay.categoryId === categoryId
 		) {
-			TimelineStore.onPlay.timestamp.end = timeCursor;
+			timelineStore.onPlay.timestamp.end = timeCursor;
 
-			const newEvent = TimelineStore.onPlay;
+			const newEvent = timelineStore.onPlay;
 
 			const newEventId = await repository.addEntry(
 				newEvent.buttonId,
@@ -48,11 +50,11 @@ export const timelineActions = {
 				newEvent.timestamp.end
 			);
 
-			TimelineStore.onPlay.id = newEventId;
+			timelineStore.onPlay.id = newEventId;
 
-			TimelineStore.eventTimeline.push(TimelineStore.onPlay);
-			TimelineStore.eventSelected = TimelineStore.onPlay.id;
-			TimelineStore.onPlay = null;
+			timelineStore.eventTimeline.push(timelineStore.onPlay);
+			timelineStore.eventSelected = timelineStore.onPlay.id;
+			timelineStore.onPlay = null;
 			return;
 		}
 
@@ -62,7 +64,7 @@ export const timelineActions = {
 	async addAction(buttonId: number, categoryId: number, timeCursor: number) {
 		const repository = TimelineRepositoryFactory.getInstance();
 
-		const actionInAction = TimelineStore.actionTimeline.find(
+		const actionInAction = timelineStore.actionTimeline.find(
 			(a) => a.buttonId === buttonId && a.categoryId === categoryId && a.timestamp.end === undefined
 		);
 
@@ -70,7 +72,7 @@ export const timelineActions = {
 			await repository.updateEntryEndTime(actionInAction.id, timeCursor);
 			actionInAction.timestamp.end = timeCursor;
 		} else {
-			TimelineStore.eventSelected = null; // Clear any selected event
+			timelineStore.eventSelected = null; // Clear any selected event
 
 			const newAction: RangeData = {
 				id: 0, // ID will be set by the database
@@ -92,17 +94,17 @@ export const timelineActions = {
 
 			newAction.id = newActionId;
 
-			TimelineStore.actionTimeline.push(newAction);
+			timelineStore.actionTimeline.push(newAction);
 		}
 
 		await emit('project:dirty');
 	},
 
 	setEventSelected(eventId: number) {
-		if (TimelineStore.eventSelected === eventId) {
-			TimelineStore.eventSelected = null;
+		if (timelineStore.eventSelected === eventId) {
+			timelineStore.eventSelected = null;
 		} else {
-			TimelineStore.eventSelected = eventId;
+			timelineStore.eventSelected = eventId;
 		}
 	},
 
@@ -122,28 +124,28 @@ export const timelineActions = {
 			return [...tags, tagId];
 		};
 
-		if (TimelineStore.onPlay) {
-			TimelineStore.onPlay = {
-				...TimelineStore.onPlay,
-				tagsRelated: toggleTag(TimelineStore.onPlay.tagsRelated)
+		if (timelineStore.onPlay) {
+			timelineStore.onPlay = {
+				...timelineStore.onPlay,
+				tagsRelated: toggleTag(timelineStore.onPlay.tagsRelated)
 			};
-		} else if (TimelineStore.eventSelected) {
-			TimelineStore.eventTimeline = TimelineStore.eventTimeline.map((event) =>
-				event.id === TimelineStore.eventSelected
+		} else if (timelineStore.eventSelected) {
+			timelineStore.eventTimeline = timelineStore.eventTimeline.map((event) =>
+				event.id === timelineStore.eventSelected
 					? { ...event, tagsRelated: toggleTag(event.tagsRelated) }
 					: event
 			);
 		}
 
-		if (TimelineStore.onPlay || TimelineStore.eventSelected) {
+		if (timelineStore.onPlay || timelineStore.eventSelected) {
 			if (op === 'add') {
 				await repository.addTagToEntry(
-					TimelineStore.eventSelected || TimelineStore.onPlay!.id,
+					timelineStore.eventSelected || timelineStore.onPlay!.id,
 					tagId
 				);
 			} else {
 				await repository.removeTagFromEntry(
-					TimelineStore.eventSelected || TimelineStore.onPlay!.id,
+					timelineStore.eventSelected || timelineStore.onPlay!.id,
 					tagId
 				);
 			}
@@ -155,7 +157,7 @@ export const timelineActions = {
 	async removeEvent(eventId: number) {
 		const repository = TimelineRepositoryFactory.getInstance();
 
-		TimelineStore.eventTimeline = TimelineStore.eventTimeline.filter((e) => e.id !== eventId);
+		timelineStore.eventTimeline = timelineStore.eventTimeline.filter((e) => e.id !== eventId);
 
 		await repository.removeEntry(eventId);
 
@@ -165,7 +167,7 @@ export const timelineActions = {
 	async removeAction(actionId: number) {
 		const repository = TimelineRepositoryFactory.getInstance();
 
-		TimelineStore.actionTimeline = TimelineStore.actionTimeline.filter((a) => a.id !== actionId);
+		timelineStore.actionTimeline = timelineStore.actionTimeline.filter((a) => a.id !== actionId);
 
 		await repository.removeEntry(actionId);
 
@@ -173,6 +175,6 @@ export const timelineActions = {
 	},
 
 	setOnPlay(event: RangeDataWithTags | null) {
-		TimelineStore.onPlay = event;
+		timelineStore.onPlay = event;
 	}
 };

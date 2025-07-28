@@ -13,6 +13,8 @@
 	let leftWidth = 50;
 	let isResizing = false;
 
+	const projectStore = ProjectStore.state;
+
 	function handleCheckTime() {
 		return videoPlayerRef?.getCurrentTime() ?? 0;
 	}
@@ -39,7 +41,7 @@
 
 <div class="flex w-full flex-row gap-1">
 	<div class="flex-shrink-0" style="width: {leftWidth}%">
-		<VideoPlayer video={ProjectStore.video?.path} bind:this={videoPlayerRef} />
+		<VideoPlayer video={projectStore.video?.path} bind:this={videoPlayerRef} />
 	</div>
 	<div
 		class="w-1 cursor-col-resize bg-gray-900"

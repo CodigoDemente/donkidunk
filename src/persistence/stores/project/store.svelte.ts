@@ -16,6 +16,18 @@ export const InitialProjectData: ProjectData = {
 	database: null
 };
 
-const ProjectStore: ProjectData = $state(InitialProjectData);
+let projectStore: ProjectData = $state(InitialProjectData);
 
-export default ProjectStore;
+export default class ProjectStore {
+	static get state(): ProjectData {
+		return projectStore;
+	}
+
+	static set state(newState: ProjectData) {
+		projectStore = newState;
+	}
+
+	static reset() {
+		projectStore = InitialProjectData;
+	}
+}
