@@ -2,13 +2,14 @@
 	import { invoke } from '@tauri-apps/api/core';
 	import ProjectStore from '../../persistence/stores/project/store.svelte';
 
+	const projectStore = ProjectStore.state;
 	let exporting = false;
 
 	async function export_video(): Promise<void> {
 		exporting = true;
 
 		const result = await invoke('cut_video', {
-			videoPath: ProjectStore.video.path,
+			videoPath: projectStore.video.path,
 			ranges: [
 				[0, 13097],
 				[18894, 35699],

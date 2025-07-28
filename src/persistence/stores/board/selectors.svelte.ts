@@ -3,8 +3,10 @@ import type { Action } from './types/Action';
 import type { Category } from './types/Category';
 import type { Tag } from './types/Tag';
 
+const boardStore = BoardStore.state;
+
 const eventCategoriesListById = $derived.by(() => {
-	return BoardStore.eventCategories.reduce(
+	return boardStore.eventCategories.reduce(
 		(acc, category) => {
 			acc[category.id] = category;
 			return acc;
@@ -14,7 +16,7 @@ const eventCategoriesListById = $derived.by(() => {
 });
 
 const actionCategoriesListById = $derived.by(() => {
-	return BoardStore.actionCategories.reduce(
+	return boardStore.actionCategories.reduce(
 		(acc, category) => {
 			acc[category.id] = category;
 			return acc;
@@ -24,7 +26,7 @@ const actionCategoriesListById = $derived.by(() => {
 });
 
 const tagsListById = $derived.by(() => {
-	return BoardStore.tagsRelatedToEvents.reduce(
+	return boardStore.tagsRelatedToEvents.reduce(
 		(acc, tag) => {
 			acc[tag.id] = tag;
 			return acc;
@@ -34,7 +36,7 @@ const tagsListById = $derived.by(() => {
 });
 
 const eventButtonsListById = $derived.by(() => {
-	return BoardStore.eventCategories.reduce(
+	return boardStore.eventCategories.reduce(
 		(acc, category) => {
 			category.buttons.forEach((button) => {
 				acc[button.id] = button;
@@ -46,7 +48,7 @@ const eventButtonsListById = $derived.by(() => {
 });
 
 const actionButtonsListById = $derived.by(() => {
-	return BoardStore.actionCategories.reduce(
+	return boardStore.actionCategories.reduce(
 		(acc, category) => {
 			category.buttons.forEach((button) => {
 				acc[button.id] = button;

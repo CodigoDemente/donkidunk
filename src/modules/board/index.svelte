@@ -12,6 +12,8 @@
 	let showAddButtonBox: number | null = null; // holds category id or null
 	let newButtonName = '';
 
+	const boardStore = BoardStore.state;
+
 	function openAddEventCategoryBox() {
 		showAddEventCategory = true;
 		newEventCategoryName = '';
@@ -31,7 +33,7 @@
 		<div class="toggle-edit-play">
 			<button
 				id="mode-toggle-play"
-				class="toggle-btn {BoardStore.isEditing ? '' : 'active'}"
+				class="toggle-btn {boardStore.isEditing ? '' : 'active'}"
 				onclick={() => boardActions.setEditingMode(false)}
 				aria-label="Play Mode"
 			>
@@ -39,7 +41,7 @@
 			</button>
 			<button
 				id="mode-toggle-edit"
-				class="toggle-btn {BoardStore.isEditing ? 'active' : ''}"
+				class="toggle-btn {boardStore.isEditing ? 'active' : ''}"
 				onclick={() => boardActions.setEditingMode(true)}
 				aria-label="Edit Mode"
 			>
@@ -83,12 +85,12 @@
 			</div>
 		{/if}
 		<div class="categories-container">
-			{#each BoardStore.eventCategories as category (category.id)}
+			{#each boardStore.eventCategories as category (category.id)}
 				<div class="category" style="--color: {category.color}; position: relative;">
 					<input
 						type="text"
 						bind:value={category.name}
-						disabled={!BoardStore.isEditing}
+						disabled={!boardStore.isEditing}
 						placeholder="Category Name"
 						class="text-xs"
 						onchange={async () => await boardActions.updateCategoryName(category.id, category.name)}
@@ -144,7 +146,7 @@
 	<!-- Tags Section -->
 	<div class="board">
 		<p class="text-xs text-white">Tags Board</p>
-		{#each BoardStore.tagsRelatedToEvents as tag (tag.id)}
+		{#each boardStore.tagsRelatedToEvents as tag (tag.id)}
 			<button
 				onclick={async () => await timelineActions.addRelatedTagToEvent(tag.id)}
 				class="m-1 inline-block rounded px-2 py-1"
@@ -194,14 +196,14 @@
 			</div>
 		{/if}
 		<div class="categories-container">
-			{#each BoardStore.actionCategories as category (category.id)}
+			{#each boardStore.actionCategories as category (category.id)}
 				<div class="category" style="--color: {category.color}; position: relative;">
 					<input
 						type="text"
 						bind:value={category.name}
 						placeholder="Category Name"
 						class="text-xs"
-						disabled={!BoardStore.isEditing}
+						disabled={!boardStore.isEditing}
 						onchange={async () => await boardActions.updateCategoryName(category.id, category.name)}
 					/>
 					<input type="color" bind:value={category.color} class="mt-2" />

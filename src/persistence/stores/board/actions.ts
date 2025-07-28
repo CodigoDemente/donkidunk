@@ -2,9 +2,11 @@ import { emit } from '@tauri-apps/api/event';
 import { BoardRepositoryFactory } from '../../../factories/BoardRepositoryFactory';
 import BoardStore from './store.svelte';
 
+const boardStore = BoardStore.state;
+
 export const boardActions = {
 	setEditingMode(value: boolean) {
-		BoardStore.isEditing = value;
+		boardStore.isEditing = value;
 	},
 
 	async updateCategoryPosition(
@@ -15,7 +17,7 @@ export const boardActions = {
 	): Promise<void> {
 		const repository = BoardRepositoryFactory.getInstance();
 
-		const cat = BoardStore[section].find((c) => c.id === categoryId);
+		const cat = boardStore[section].find((c) => c.id === categoryId);
 
 		if (cat) {
 			cat.onGrid = [x, y];
@@ -40,7 +42,7 @@ export const boardActions = {
 	): Promise<void> {
 		const repository = BoardRepositoryFactory.getInstance();
 
-		const cat = BoardStore[section].find((c) => c.id === categoryId);
+		const cat = boardStore[section].find((c) => c.id === categoryId);
 
 		const res = await repository.addButtonToCategory(categoryId, name);
 
@@ -67,7 +69,7 @@ export const boardActions = {
 			color
 		);
 
-		BoardStore[section].push({
+		boardStore[section].push({
 			id: res,
 			name: name,
 			color: color,

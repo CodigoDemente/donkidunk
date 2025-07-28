@@ -145,26 +145,32 @@ export async function loadProjectFromDatabase(repository: ProjectRepository): Pr
 	// Here we don't use the repository nor the actions for setting the values because we know that in the
 	// database the values are already set, so we can directly assign them to the store.
 
+	const projectStore = ProjectStore.state;
+
 	const videoPath = await repository.getVideoPath();
 	if (videoPath) {
-		ProjectStore.video.path = videoPath;
+		projectStore.video.path = videoPath;
 	}
 
 	const savedTimestamp = await repository.getLastSavedTimestamp();
 	if (savedTimestamp) {
-		ProjectStore.metadata.timestamp = savedTimestamp;
+		projectStore.metadata.timestamp = savedTimestamp;
 	}
 }
 
 export async function loadBoardFromDatabase(repository: BoardRepository): Promise<void> {
-	BoardStore.eventCategories = await repository.getSectionCategories('event');
-	BoardStore.actionCategories = await repository.getSectionCategories('action');
-	BoardStore.tagsRelatedToEvents = await repository.getTagsRelatedToEvents();
+	const boardStore = BoardStore.state;
+
+	boardStore.eventCategories = await repository.getSectionCategories('event');
+	boardStore.actionCategories = await repository.getSectionCategories('action');
+	boardStore.tagsRelatedToEvents = await repository.getTagsRelatedToEvents();
 }
 
 export async function loadTimelineFromDatabase(repository: TimelineRepository): Promise<void> {
-	TimelineStore.eventTimeline = await repository.getEvents();
-	TimelineStore.actionTimeline = await repository.getActions();
+	const timeLineStore = TimelineStore.state;
+
+	timeLineStore.eventTimeline = await repository.getEvents();
+	timeLineStore.actionTimeline = await repository.getActions();
 }
 
 export async function backupDatabase(backupId: string): Promise<string> {

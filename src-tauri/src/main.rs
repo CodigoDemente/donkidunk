@@ -8,6 +8,8 @@ mod server;
 
 use commands::menu::*;
 use commands::video::*;
+#[cfg(debug_assertions)]
+use tauri::Manager;
 
 fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
     builder
@@ -22,6 +24,9 @@ fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
             tokio::spawn(server::setup_webserver());
 
             menu::setup_menu(app)?;
+
+            #[cfg(debug_assertions)]
+            app.get_webview_window("main").unwrap().open_devtools();
 
             Ok(())
         })

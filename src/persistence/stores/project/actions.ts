@@ -3,53 +3,55 @@ import { ProjectRepositoryFactory } from '../../../factories/ProjectRepositoryFa
 import ProjectStore from './store.svelte';
 import { emit } from '@tauri-apps/api/event';
 
+const projectStore = ProjectStore.state;
+
 export const projectActions = {
 	getProjectDirty(): boolean {
-		return ProjectStore.metadata.dirty;
+		return projectStore.metadata.dirty;
 	},
 
 	setProjectDirty(isDirty: boolean): void {
-		ProjectStore.metadata.dirty = isDirty;
+		projectStore.metadata.dirty = isDirty;
 	},
 
 	async setLastSavedTimestamp(timestamp: string): Promise<void> {
 		const repository = ProjectRepositoryFactory.getInstance();
 		await repository.setLastSavedTimestamp(timestamp);
 
-		ProjectStore.metadata.timestamp = timestamp;
+		projectStore.metadata.timestamp = timestamp;
 
 		await emit('project:dirty');
 	},
 
 	getFilePath(): string {
-		return ProjectStore.file.originalPath;
+		return projectStore.file.originalPath;
 	},
 
 	setFilePath(path: string): void {
-		ProjectStore.file.originalPath = path;
+		projectStore.file.originalPath = path;
 	},
 
 	getCurrentFilePath(): string {
-		return ProjectStore.file.currentPath;
+		return projectStore.file.currentPath;
 	},
 
 	setCurrentFilePath(path: string): void {
-		ProjectStore.file.currentPath = path;
+		projectStore.file.currentPath = path;
 	},
 
 	setDatabase(db: Database | null): void {
-		ProjectStore.database = db;
+		projectStore.database = db;
 	},
 
 	getDatabase(): Database | null {
-		return ProjectStore.database;
+		return projectStore.database;
 	},
 
 	async setBackupId(backupId: string): Promise<void> {
 		const repository = ProjectRepositoryFactory.getInstance();
 		await repository.setBackupId(backupId);
 
-		ProjectStore.metadata.backupId = backupId;
+		projectStore.metadata.backupId = backupId;
 
 		await emit('project:dirty');
 	},
@@ -58,7 +60,7 @@ export const projectActions = {
 		const repository = ProjectRepositoryFactory.getInstance();
 		await repository.setVideoPath(path);
 
-		ProjectStore.video.path = path;
+		projectStore.video.path = path;
 
 		await emit('project:dirty');
 	}

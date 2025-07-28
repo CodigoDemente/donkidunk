@@ -7,6 +7,18 @@ const initialState: TimelineData = {
 	actionTimeline: []
 };
 
-const timelineStore = $state<TimelineData>(initialState);
+let timelineStore = $state<TimelineData>(initialState);
 
-export default timelineStore;
+export default class TimelineStore {
+	static get state(): TimelineData {
+		return timelineStore;
+	}
+
+	static set state(newState: TimelineData) {
+		timelineStore = newState;
+	}
+
+	static reset() {
+		timelineStore = initialState;
+	}
+}

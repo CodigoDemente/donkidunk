@@ -43,8 +43,10 @@ export async function openProject() {
 
 	const backupId = await ProjectRepositoryFactory.getInstance().getBackupId();
 
+	const projectStore = ProjectStore.state;
+
 	// Use the store directly instead of the actions to avoid writing it again to the database
-	ProjectStore.metadata.backupId = backupId;
+	projectStore.metadata.backupId = backupId;
 
 	const backupExists = await checkBackupExistence(backupId);
 	let backupRestored = false;

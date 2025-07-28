@@ -7,6 +7,18 @@ const initialState: BoardData = {
 	actionCategories: []
 };
 
-const boardStore = $state<BoardData>(initialState);
+let boardStore = $state<BoardData>(initialState);
 
-export default boardStore;
+export default class BoardStore {
+	static get state() {
+		return boardStore;
+	}
+
+	static set state(newState: BoardData) {
+		boardStore = newState;
+	}
+
+	static reset() {
+		boardStore = initialState;
+	}
+}
