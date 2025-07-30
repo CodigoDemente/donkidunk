@@ -10,11 +10,11 @@ const initialState: TimelineData = {
 let timelineStore = $state<TimelineData>(initialState);
 
 export default class TimelineStore {
-	static get state(): TimelineData {
+	static getState(): TimelineData {
 		return timelineStore;
 	}
 
-	static set state(newState: TimelineData) {
+	static setState(newState: TimelineData) {
 		timelineStore = newState;
 	}
 

@@ -2,7 +2,7 @@
 	import { invoke } from '@tauri-apps/api/core';
 	import ProjectStore from '../../persistence/stores/project/store.svelte';
 
-	const projectStore = ProjectStore.state;
+	const projectStore = ProjectStore.getState();
 	let exporting = false;
 
 	async function export_video(): Promise<void> {

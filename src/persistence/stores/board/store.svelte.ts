@@ -10,11 +10,11 @@ const initialState: BoardData = {
 let boardStore = $state<BoardData>(initialState);
 
 export default class BoardStore {
-	static get state() {
+	static getState() {
 		return boardStore;
 	}
 
-	static set state(newState: BoardData) {
+	static setState(newState: BoardData) {
 		boardStore = newState;
 	}
 

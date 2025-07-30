@@ -3,6 +3,7 @@ import { UndoManager } from './UndoManager';
 import type { BoardData } from '../stores/board/types/Board';
 import type { TimelineData } from '../stores/timeline/types/Timeline';
 import { StateHistory } from 'runed';
+import { emit } from '@tauri-apps/api/event';
 
 // Mock StateHistory from runed library
 vi.mock('runed', () => ({
@@ -14,7 +15,12 @@ vi.mock('runed', () => ({
 	}))
 }));
 
+vi.mock('@tauri-apps/api/event', () => ({
+	emit: vi.fn()
+}));
+
 const mockStateHistory = vi.mocked(StateHistory);
+const mockEmit = vi.mocked(emit);
 
 describe('UndoManager', () => {
 	let mockBoardStore: {
@@ -59,7 +65,7 @@ describe('UndoManager', () => {
 		};
 
 		// Create a new UndoManager instance
-		undoManager = UndoManager.create(mockBoardStore, mockTimelineStore);
+		undoManager = new UndoManager(mockBoardStore, mockTimelineStore);
 	});
 
 	describe('create', () => {
@@ -128,6 +134,16 @@ describe('UndoManager', () => {
 			expect(mockBoardHistory.redo).not.toHaveBeenCalled();
 			expect(mockTimelineHistory.redo).not.toHaveBeenCalled();
 		});
+
+		test('should emit undo:updated event when adding edition', () => {
+			undoManager.addBoardEdition();
+			expect(mockEmit).toHaveBeenCalledWith('undo:updated');
+		});
+
+		test('should emit redo:empty event when adding edition', () => {
+			undoManager.addBoardEdition();
+			expect(mockEmit).toHaveBeenCalledWith('redo:empty');
+		});
 	});
 
 	describe('addTimelineEdition', () => {
@@ -153,6 +169,40 @@ describe('UndoManager', () => {
 			undoManager.undo();
 			expect(mockTimelineHistory.undo).toHaveBeenCalledTimes(2);
 			expect(mockBoardHistory.undo).not.toHaveBeenCalled();
+		});
+
+		test('should clear redo stack when adding new edition', () => {
+			const mockBoardHistory = mockStateHistory.mock.results[0].value;
+			const mockTimelineHistory = mockStateHistory.mock.results[1].value;
+
+			// Add edition and undo it (to create redo state)
+			undoManager.addTimelineEdition();
+			undoManager.undo();
+
+			// Verify redo works
+			undoManager.redo();
+			expect(mockTimelineHistory.redo).toHaveBeenCalledTimes(1);
+
+			// Add new edition should clear redo stack
+			undoManager.addTimelineEdition();
+
+			// Clear mocks to test redo after new edition
+			vi.clearAllMocks();
+
+			// Redo should do nothing now (redo stack was cleared)
+			undoManager.redo();
+			expect(mockBoardHistory.redo).not.toHaveBeenCalled();
+			expect(mockTimelineHistory.redo).not.toHaveBeenCalled();
+		});
+
+		test('should emit undo:updated event when adding edition', () => {
+			undoManager.addTimelineEdition();
+			expect(mockEmit).toHaveBeenCalledWith('undo:updated');
+		});
+
+		test('should emit redo:empty event when adding edition', () => {
+			undoManager.addTimelineEdition();
+			expect(mockEmit).toHaveBeenCalledWith('redo:empty');
 		});
 	});
 
@@ -229,6 +279,20 @@ describe('UndoManager', () => {
 			undoManager.undo(); // Should undo first Board
 			expect(mockTimelineHistory.undo).toHaveBeenCalledTimes(1);
 			expect(mockBoardHistory.undo).toHaveBeenCalledTimes(2);
+		});
+
+		test('should emit undo:empty when undo stack is empty after undo', () => {
+			undoManager.addBoardEdition();
+			undoManager.undo();
+
+			expect(mockEmit).toHaveBeenCalledWith('undo:empty');
+		});
+
+		test('should emit redo:updated when redo stack is not empty', () => {
+			undoManager.addBoardEdition();
+			undoManager.undo();
+
+			expect(mockEmit).toHaveBeenCalledWith('redo:updated');
 		});
 	});
 
@@ -316,6 +380,22 @@ describe('UndoManager', () => {
 			undoManager.redo(); // Should redo second Board
 			expect(mockTimelineHistory.redo).toHaveBeenCalledTimes(1);
 			expect(mockBoardHistory.redo).toHaveBeenCalledTimes(2);
+		});
+
+		test('should emit redo:empty when redo stack is empty after redo', () => {
+			undoManager.addBoardEdition();
+			undoManager.undo();
+			undoManager.redo();
+
+			expect(mockEmit).toHaveBeenCalledWith('redo:empty');
+		});
+
+		test('should emit undo:updated when undo stack is not empty', () => {
+			undoManager.addBoardEdition();
+			undoManager.undo();
+			undoManager.redo();
+
+			expect(mockEmit).toHaveBeenCalledWith('undo:updated');
 		});
 	});
 

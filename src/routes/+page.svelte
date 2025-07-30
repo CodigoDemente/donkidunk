@@ -13,7 +13,7 @@
 	let leftWidth = 50;
 	let isResizing = false;
 
-	const projectStore = ProjectStore.state;
+	const projectStore = ProjectStore.getState();
 
 	function handleCheckTime() {
 		return videoPlayerRef?.getCurrentTime() ?? 0;

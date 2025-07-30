@@ -3,7 +3,7 @@ import type { Action } from './types/Action';
 import type { Category } from './types/Category';
 import type { Tag } from './types/Tag';
 
-const boardStore = BoardStore.state;
+const boardStore = BoardStore.getState();
 
 const eventCategoriesListById = $derived.by(() => {
 	return boardStore.eventCategories.reduce(

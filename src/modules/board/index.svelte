@@ -12,7 +12,7 @@
 	let showAddButtonBox: number | null = null; // holds category id or null
 	let newButtonName = '';
 
-	const boardStore = BoardStore.state;
+	const boardStore = BoardStore.getState();
 
 	function openAddEventCategoryBox() {
 		showAddEventCategory = true;

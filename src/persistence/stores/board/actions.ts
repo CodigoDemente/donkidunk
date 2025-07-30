@@ -1,10 +1,12 @@
 import { emit } from '@tauri-apps/api/event';
 import { BoardRepositoryFactory } from '../../../factories/BoardRepositoryFactory';
 import BoardStore from './store.svelte';
+import { Scope } from '../../undo/types/Scope';
+import { wrapObjectForUndo } from '../../undo/UndoStateWrapper';
 
-const boardStore = BoardStore.state;
+const boardStore = BoardStore.getState();
 
-export const boardActions = {
+export let boardActions = {
 	setEditingMode(value: boolean) {
 		boardStore.isEditing = value;
 	},
@@ -80,3 +82,7 @@ export const boardActions = {
 		await emit('project:dirty');
 	}
 };
+
+export function wrapBoardActionsForUndo() {
+	boardActions = wrapObjectForUndo(boardActions, Scope.Board);
+}

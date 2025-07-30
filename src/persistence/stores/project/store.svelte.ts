@@ -19,11 +19,11 @@ export const InitialProjectData: ProjectData = {
 let projectStore: ProjectData = $state(InitialProjectData);
 
 export default class ProjectStore {
-	static get state(): ProjectData {
+	static getState(): ProjectData {
 		return projectStore;
 	}
 
-	static set state(newState: ProjectData) {
+	static setState(newState: ProjectData) {
 		projectStore = newState;
 	}
 

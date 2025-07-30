@@ -1,7 +1,7 @@
 import TimelineStore from './store.svelte';
 import type { RangeData, RangeDataWithTags } from './types/RangeData';
 
-const timelineStore = TimelineStore.state;
+const timelineStore = TimelineStore.getState();
 
 const timelineEventsByCategory = $derived.by(() => {
 	return timelineStore.eventTimeline.reduce(

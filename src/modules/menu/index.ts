@@ -5,6 +5,8 @@ import { openProject } from './operations/openProject';
 import { saveProjectAs } from './operations/saveProjectAs';
 import { saveProject } from './operations/saveProject';
 import { importVideo } from './operations/importVideo';
+import { undo } from './operations/undo';
+import { redo } from './operations/redo';
 
 type MenuEvent = {
 	id: string;
@@ -28,6 +30,12 @@ export async function bindMenuEvents() {
 				break;
 			case 'import_video':
 				await importVideo();
+				break;
+			case 'undo':
+				undo();
+				break;
+			case 'redo':
+				redo();
 				break;
 			default:
 				debug(`Unknown menu event: ${event.id}`);

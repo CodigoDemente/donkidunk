@@ -120,6 +120,20 @@ fn build_menu<R: tauri::Runtime>(app: &mut App<R>) -> Result<Menu<R>, Error> {
         ])
         .build()?;
 
+    let undo_item = MenuItemBuilder::with_id("undo", "Undo")
+        .accelerator("CmdOrCtrl+Z")
+        .enabled(false)
+        .build(handle)?;
+
+    let redo_item = MenuItemBuilder::with_id("redo", "Redo")
+        .accelerator("CmdOrCtrl+Shift+Z")
+        .enabled(false)
+        .build(handle)?;
+
+    let edit_submenu = SubmenuBuilder::with_id(handle, "edit-menu", "Edit")
+        .items(&[&undo_item, &redo_item])
+        .build()?;
+
     let help_submenu = SubmenuBuilder::with_id(handle, "help-menu", "Help")
         .text("option", "Help")
         .text("about", "About")
@@ -130,6 +144,7 @@ fn build_menu<R: tauri::Runtime>(app: &mut App<R>) -> Result<Menu<R>, Error> {
     menu.append(&about_menu)?;
 
     menu.append(&file_submenu)?;
+    menu.append(&edit_submenu)?;
     menu.append(&help_submenu)?;
 
     #[cfg(not(target_os = "macos"))]

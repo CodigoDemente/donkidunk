@@ -1,7 +1,7 @@
 import { Menu, Submenu } from '@tauri-apps/api/menu';
 import { open } from '@tauri-apps/plugin-dialog';
 import { debug } from '@tauri-apps/plugin-log';
-import ProjectStore from '../../stores/project.svelte';
+import { projectActions } from '../../persistence/stores/project/actions';
 
 export async function buildMenu() {
 	const fileSubmenu = await Submenu.new({
@@ -26,7 +26,7 @@ export async function buildMenu() {
 					}).then((path) => {
 						if (path) {
 							debug(`Selected path: ${path}`);
-							ProjectStore.setVideoPath(path as string);
+							projectActions.setVideoPath(path as string);
 						} else {
 							debug('No path selected');
 						}

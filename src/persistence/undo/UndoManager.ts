@@ -3,45 +3,29 @@ import type { BoardData } from '../stores/board/types/Board';
 import type { TimelineData } from '../stores/timeline/types/Timeline';
 import { Scope } from './types/Scope';
 import type { UndoEditionStack } from './types/UndoEditionStack';
+import { emit } from '@tauri-apps/api/event';
+import type { UndoManagerBoardFunctions } from './types/UndoManagerBoardFunctions';
+import type { UndoManagerTimelineFunctions } from './types/UndoManagerTimelineFunctions';
 
 export class UndoManager {
 	private boardHistory: StateHistory<BoardData>;
 	private timelineHistory: StateHistory<TimelineData>;
 	private editions: UndoEditionStack;
 
-	private constructor(
-		boardStore: {
-			boardStoreGetter: () => BoardData;
-			boardStoreSetter: (newState: BoardData) => void;
-		},
-		timelineStore: {
-			timelineStoreGetter: () => TimelineData;
-			timelineStoreSetter: (newState: TimelineData) => void;
-		}
-	) {
-		this.boardHistory = new StateHistory(boardStore.boardStoreGetter, boardStore.boardStoreSetter);
+	constructor(boardStore: UndoManagerBoardFunctions, timelineStore: UndoManagerTimelineFunctions) {
+		this.boardHistory = new StateHistory(
+			() => boardStore.boardStoreGetter(),
+			(value) => boardStore.boardStoreSetter(value)
+		);
 		this.timelineHistory = new StateHistory(
-			timelineStore.timelineStoreGetter,
-			timelineStore.timelineStoreSetter
+			() => timelineStore.timelineStoreGetter(),
+			(value) => timelineStore.timelineStoreSetter(value)
 		);
 
 		this.editions = {
 			undoStack: [],
 			redoStack: []
 		};
-	}
-
-	public static create(
-		boardStore: {
-			boardStoreGetter: () => BoardData;
-			boardStoreSetter: (newState: BoardData) => void;
-		},
-		timelineStore: {
-			timelineStoreGetter: () => TimelineData;
-			timelineStoreSetter: (newState: TimelineData) => void;
-		}
-	): UndoManager {
-		return new UndoManager(boardStore, timelineStore);
 	}
 
 	public addBoardEdition(): void {
@@ -58,6 +42,9 @@ export class UndoManager {
 		if (this.editions.redoStack.length > 0) {
 			this.editions.redoStack = [];
 		}
+
+		emit('undo:updated');
+		emit('redo:empty');
 	}
 
 	public undo(): void {
@@ -76,6 +63,13 @@ export class UndoManager {
 				this.timelineHistory.undo();
 				break;
 		}
+
+		if (this.editions.undoStack.length === 0) {
+			emit('undo:empty');
+		}
+		if (this.editions.redoStack.length !== 0) {
+			emit('redo:updated');
+		}
 	}
 
 	public redo(): void {
@@ -93,6 +87,13 @@ export class UndoManager {
 			case Scope.Timeline:
 				this.timelineHistory.redo();
 				break;
+		}
+
+		if (this.editions.redoStack.length === 0) {
+			emit('redo:empty');
+		}
+		if (this.editions.undoStack.length !== 0) {
+			emit('undo:updated');
 		}
 	}
 }

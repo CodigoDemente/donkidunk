@@ -3,7 +3,7 @@ import { ProjectRepositoryFactory } from '../../../factories/ProjectRepositoryFa
 import ProjectStore from './store.svelte';
 import { emit } from '@tauri-apps/api/event';
 
-const projectStore = ProjectStore.state;
+const projectStore = ProjectStore.getState();
 
 export const projectActions = {
 	getProjectDirty(): boolean {

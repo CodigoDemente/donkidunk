@@ -145,7 +145,7 @@ export async function loadProjectFromDatabase(repository: ProjectRepository): Pr
 	// Here we don't use the repository nor the actions for setting the values because we know that in the
 	// database the values are already set, so we can directly assign them to the store.
 
-	const projectStore = ProjectStore.state;
+	const projectStore = ProjectStore.getState();
 
 	const videoPath = await repository.getVideoPath();
 	if (videoPath) {
@@ -159,7 +159,7 @@ export async function loadProjectFromDatabase(repository: ProjectRepository): Pr
 }
 
 export async function loadBoardFromDatabase(repository: BoardRepository): Promise<void> {
-	const boardStore = BoardStore.state;
+	const boardStore = BoardStore.getState();
 
 	boardStore.eventCategories = await repository.getSectionCategories('event');
 	boardStore.actionCategories = await repository.getSectionCategories('action');
@@ -167,7 +167,7 @@ export async function loadBoardFromDatabase(repository: BoardRepository): Promis
 }
 
 export async function loadTimelineFromDatabase(repository: TimelineRepository): Promise<void> {
-	const timeLineStore = TimelineStore.state;
+	const timeLineStore = TimelineStore.getState();
 
 	timeLineStore.eventTimeline = await repository.getEvents();
 	timeLineStore.actionTimeline = await repository.getActions();

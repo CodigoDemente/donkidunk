@@ -6,7 +6,7 @@
 
 	let isBoxOpen: boolean = $state(false);
 
-	const timelineStore = TimelineStore.state;
+	const timelineStore = TimelineStore.getState();
 </script>
 
 <!-- Line that toggles the box -->
