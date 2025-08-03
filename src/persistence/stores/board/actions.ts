@@ -20,7 +20,7 @@ export const boardActions = {
 		const cat = boardStore[section].find((c) => c.id === categoryId);
 
 		if (cat) {
-			cat.onGrid = [x, y];
+			cat.position = { x, y };
 		}
 
 		await repository.updateCategoryPosition(categoryId, x, y);
@@ -73,7 +73,7 @@ export const boardActions = {
 			id: res,
 			name: name,
 			color: color,
-			onGrid: [0, 0],
+			position: { x: 0, y: 0 },
 			buttons: []
 		});
 
