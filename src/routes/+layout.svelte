@@ -4,33 +4,19 @@
 	import '../styles/page.css';
 	import Navbar from '../modules/navbar/navbar.svelte';
 	import { destroyEvents, initEvents } from '../events';
-	import { UndoManagerFactory } from '../persistence/undo/UndoManagerFactory';
-	import BoardStore from '../persistence/stores/board/store.svelte';
-	import TimelineStore from '../persistence/stores/timeline/store.svelte';
-	import { wrapBoardActionsForUndo } from '../persistence/stores/board/actions';
+	import { boardContext, Board } from '../modules/board/context.svelte';
+
+	const board = boardContext.set(new Board()).wrapForUndo();
 
 	onMount(async () => {
 		// Initialize the menu
-		await bindMenuEvents();
+		await bindMenuEvents(board);
 		await initEvents();
 	});
 
 	onDestroy(() => {
 		destroyEvents();
 	});
-
-	UndoManagerFactory.createInstance(
-		{
-			boardStoreGetter: BoardStore.getState,
-			boardStoreSetter: BoardStore.setState
-		},
-		{
-			timelineStoreGetter: TimelineStore.getState,
-			timelineStoreSetter: TimelineStore.setState
-		}
-	);
-
-	wrapBoardActionsForUndo();
 
 	document.addEventListener('dragover', (event) => {
 		event.preventDefault();

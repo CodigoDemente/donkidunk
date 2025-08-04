@@ -1,7 +1,8 @@
 <script lang="ts">
-	import BoardStore from '../../persistence/stores/board/store.svelte';
-	import { boardActions } from '../../persistence/stores/board/actions';
 	import { timelineActions } from '../../persistence/stores/timeline/actions';
+	import { boardContext } from './context.svelte';
+
+	const context = boardContext.get();
 
 	export let checkTime: () => number;
 
@@ -11,8 +12,6 @@
 
 	let showAddButtonBox: number | null = null; // holds category id or null
 	let newButtonName = '';
-
-	const boardStore = BoardStore.getState();
 
 	function openAddEventCategoryBox() {
 		showAddEventCategory = true;
@@ -33,16 +32,16 @@
 		<div class="toggle-edit-play">
 			<button
 				id="mode-toggle-play"
-				class="toggle-btn {boardStore.isEditing ? '' : 'active'}"
-				onclick={() => boardActions.setEditingMode(false)}
+				class="toggle-btn {context.getState().isEditing ? '' : 'active'}"
+				onclick={() => context.setEditingMode(false)}
 				aria-label="Play Mode"
 			>
 				▶️ Play
 			</button>
 			<button
 				id="mode-toggle-edit"
-				class="toggle-btn {boardStore.isEditing ? 'active' : ''}"
-				onclick={() => boardActions.setEditingMode(true)}
+				class="toggle-btn {context.getState().isEditing ? 'active' : ''}"
+				onclick={() => context.setEditingMode(true)}
 				aria-label="Edit Mode"
 			>
 				✏️ Edit
@@ -66,7 +65,7 @@
 				<button
 					class="w-full rounded bg-orange-500 px-2 py-1 text-white"
 					onclick={async () => {
-						await boardActions.addCategory(
+						await context.addCategory(
 							'eventCategories',
 							newEventCategoryName,
 							newEventCategoryColor
@@ -85,15 +84,15 @@
 			</div>
 		{/if}
 		<div class="categories-container">
-			{#each boardStore.eventCategories as category (category.id)}
+			{#each context.getState().eventCategories as category (category.id)}
 				<div class="category" style="--color: {category.color}; position: relative;">
 					<input
 						type="text"
 						bind:value={category.name}
-						disabled={!boardStore.isEditing}
+						disabled={!context.getState().isEditing}
 						placeholder="Category Name"
 						class="text-xs"
-						onchange={async () => await boardActions.updateCategoryName(category.id, category.name)}
+						onchange={async () => await context.updateCategoryName(category.id, category.name)}
 					/>
 					<input type="color" bind:value={category.color} class="mt-2" />
 					<button class="plus-button mt-2" onclick={() => openAddButtonBox(category.id)}>+</button>
@@ -108,11 +107,7 @@
 							<button
 								class="w-full rounded bg-orange-500 px-2 py-1 text-white"
 								onclick={async () => {
-									await boardActions.addButtonToCategory(
-										'eventCategories',
-										category.id,
-										newButtonName
-									);
+									await context.addButtonToCategory('eventCategories', category.id, newButtonName);
 									showAddButtonBox = null;
 									newButtonName = '';
 								}}
@@ -146,7 +141,7 @@
 	<!-- Tags Section -->
 	<div class="board">
 		<p class="text-xs text-white">Tags Board</p>
-		{#each boardStore.tagsRelatedToEvents as tag (tag.id)}
+		{#each context.getState().tagsRelatedToEvents as tag (tag.id)}
 			<button
 				onclick={async () => await timelineActions.addRelatedTagToEvent(tag.id)}
 				class="m-1 inline-block rounded px-2 py-1"
@@ -177,7 +172,7 @@
 				<button
 					class="w-full rounded bg-orange-500 px-2 py-1 text-white"
 					onclick={async () => {
-						await boardActions.addCategory(
+						await context.addCategory(
 							'actionCategories',
 							newEventCategoryName,
 							newEventCategoryColor
@@ -196,15 +191,15 @@
 			</div>
 		{/if}
 		<div class="categories-container">
-			{#each boardStore.actionCategories as category (category.id)}
+			{#each context.getState().actionCategories as category (category.id)}
 				<div class="category" style="--color: {category.color}; position: relative;">
 					<input
 						type="text"
 						bind:value={category.name}
 						placeholder="Category Name"
 						class="text-xs"
-						disabled={!boardStore.isEditing}
-						onchange={async () => await boardActions.updateCategoryName(category.id, category.name)}
+						disabled={!context.getState().isEditing}
+						onchange={async () => await context.updateCategoryName(category.id, category.name)}
 					/>
 					<input type="color" bind:value={category.color} class="mt-2" />
 					<button class="plus-button mt-2" onclick={() => openAddButtonBox(category.id)}>+</button>
@@ -219,11 +214,7 @@
 							<button
 								class="w-full rounded bg-orange-500 px-2 py-1 text-white"
 								onclick={async () => {
-									await boardActions.addButtonToCategory(
-										'actionCategories',
-										category.id,
-										newButtonName
-									);
+									await context.addButtonToCategory('actionCategories', category.id, newButtonName);
 									showAddButtonBox = null;
 									newButtonName = '';
 								}}

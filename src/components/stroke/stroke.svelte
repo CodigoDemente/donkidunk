@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { Action } from '../../persistence/stores/board/types/Action';
-	import type { Category } from '../../persistence/stores/board/types/Category';
+	import type { Action } from '../../modules/board/types/Action';
+	import type { Category } from '../../modules/board/types/Category';
 	import type {
 		RangeData,
 		RangeDataWithTags

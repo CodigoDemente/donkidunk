@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { BoardActions } from '../stores/board/types/BoardActions';
+import type { BoardActions } from '../../modules/board/types/BoardActions';
 import { Scope } from './types/Scope';
 import type { UndoManager } from './UndoManager';
 import { UndoManagerFactory } from './UndoManagerFactory';

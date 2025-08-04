@@ -1,26 +1,14 @@
-import { StateHistory } from 'runed';
-import type { BoardData } from '../stores/board/types/Board';
-import type { TimelineData } from '../stores/timeline/types/Timeline';
 import { Scope } from './types/Scope';
 import type { UndoEditionStack } from './types/UndoEditionStack';
 import { emit } from '@tauri-apps/api/event';
-import type { UndoManagerBoardFunctions } from './types/UndoManagerBoardFunctions';
-import type { UndoManagerTimelineFunctions } from './types/UndoManagerTimelineFunctions';
+import { boardContext, type Board } from '../../modules/board/context.svelte';
 
 export class UndoManager {
-	private boardHistory: StateHistory<BoardData>;
-	private timelineHistory: StateHistory<TimelineData>;
+	private boardContext: Board;
 	private editions: UndoEditionStack;
 
-	constructor(boardStore: UndoManagerBoardFunctions, timelineStore: UndoManagerTimelineFunctions) {
-		this.boardHistory = new StateHistory(
-			() => boardStore.boardStoreGetter(),
-			(value) => boardStore.boardStoreSetter(value)
-		);
-		this.timelineHistory = new StateHistory(
-			() => timelineStore.timelineStoreGetter(),
-			(value) => timelineStore.timelineStoreSetter(value)
-		);
+	constructor() {
+		this.boardContext = boardContext.get();
 
 		this.editions = {
 			undoStack: [],
@@ -57,10 +45,9 @@ export class UndoManager {
 
 		switch (scope) {
 			case Scope.Board:
-				this.boardHistory.undo();
+				this.boardContext.undo();
 				break;
 			case Scope.Timeline:
-				this.timelineHistory.undo();
 				break;
 		}
 
@@ -82,10 +69,9 @@ export class UndoManager {
 
 		switch (scope) {
 			case Scope.Board:
-				this.boardHistory.redo();
+				this.boardContext.redo();
 				break;
 			case Scope.Timeline:
-				this.timelineHistory.redo();
 				break;
 		}
 

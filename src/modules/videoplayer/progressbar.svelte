@@ -1,8 +1,8 @@
 <script lang="ts">
 	import Stroke from '../../components/stroke/stroke.svelte';
-	import { BoardSelectors } from '../../persistence/stores/board/selectors.svelte';
 	import { timelineActions } from '../../persistence/stores/timeline/actions';
 	import { TimelineSelectors } from '../../persistence/stores/timeline/selectors.svelte';
+	import { boardContext } from '../board/context.svelte';
 	import Markers from './markers.svelte';
 	import Tagsbox from './tagsbox.svelte';
 
@@ -25,6 +25,8 @@
 		handleProgressClick,
 		progress = $bindable()
 	}: Props = $props();
+
+	const board = boardContext.get();
 </script>
 
 <div class="flex w-full flex-row">
@@ -69,15 +71,15 @@
 				draggable="true"
 				class="relative"
 			>
-				{#if Object.entries(BoardSelectors.getEventCategoriesById()).length > 0}
+				{#if Object.entries(board.eventCategoriesById).length > 0}
 					<div class="mt-2 mb-4 flex flex-col items-start gap-2">
-						{#each Object.keys(BoardSelectors.getEventCategoriesById()) as categoryId (categoryId)}
+						{#each Object.keys(board.eventCategoriesById) as categoryId (categoryId)}
 							<Stroke
 								categoryId={+categoryId}
 								allTagsByCategory={TimelineSelectors.getEventsByCategory()}
 								{duration}
-								boardCategoriesById={BoardSelectors.getEventCategoriesById()}
-								buttonsListById={BoardSelectors.getEventButtonsById()}
+								boardCategoriesById={board.eventCategoriesById}
+								buttonsListById={board.eventButtonsById}
 								onPlayObject={TimelineSelectors.getOnPlay()}
 								{currentTime}
 								onClick={timelineActions.setEventSelected}
@@ -85,15 +87,15 @@
 						{/each}
 					</div>
 				{/if}
-				{#if Object.entries(BoardSelectors.getActionCategoriesById()).length > 0}
+				{#if Object.entries(board.actionCategoriesById).length > 0}
 					<div class="flex w-full flex-col items-start gap-1">
-						{#each Object.keys(BoardSelectors.getActionCategoriesById()) as categoryId (categoryId)}
+						{#each Object.keys(board.actionCategoriesById) as categoryId (categoryId)}
 							<Stroke
 								categoryId={+categoryId}
 								allTagsByCategory={TimelineSelectors.getActionsByCategory()}
 								{duration}
-								boardCategoriesById={BoardSelectors.getActionCategoriesById()}
-								buttonsListById={BoardSelectors.getActionButtonsById()}
+								boardCategoriesById={board.actionCategoriesById}
+								buttonsListById={board.actionButtonsById}
 								{currentTime}
 							/>
 						{/each}
