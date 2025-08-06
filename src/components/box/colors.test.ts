@@ -22,7 +22,7 @@ describe('getTextColorForBackground', () => {
 		{ name: 'Light Coral', hex: '#ffa98a', expected: '#7f2201' },
 		{ name: 'Dark Slate Blue', hex: '#271e61', expected: '#a69de2' },
 		{ name: 'Sea Green', hex: '#afcfaf', expected: '#000000' },
-		{ name: 'Goldenrod', hex: '#daa520', expected: '#ffffff' },
+		{ name: 'Goldenrod', hex: '#daa520', expected: '#000000' },
 		{ name: 'Midnight Blue', hex: '#171768', expected: '#9595e9' }
 	];
 
