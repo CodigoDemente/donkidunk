@@ -129,7 +129,7 @@ export class Board {
 		const cat = this.#state[section].find((c) => c.id === categoryId);
 
 		if (cat) {
-			cat.onGrid = [x, y];
+			cat.position = { x, y };
 		}
 
 		await repository.updateCategoryPosition(categoryId, x, y);
@@ -184,7 +184,7 @@ export class Board {
 			id: res,
 			name: name,
 			color: color,
-			onGrid: [0, 0],
+			position: { x: 0, y: 0 },
 			buttons: []
 		});
 
@@ -210,12 +210,20 @@ export class Board {
 	//#endregion
 
 	//#region Selectors
-	get eventCategoriesById() {
-		return this.#eventCategoriesById;
+	get actionCategories() {
+		return this.#state.actionCategories;
 	}
 
 	get actionCategoriesById() {
 		return this.#actionCategoriesById;
+	}
+
+	get eventCategories() {
+		return this.#state.eventCategories;
+	}
+
+	get eventCategoriesById() {
+		return this.#eventCategoriesById;
 	}
 
 	get tagsById() {

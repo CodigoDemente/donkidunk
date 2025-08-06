@@ -1,9 +1,8 @@
 <script lang="ts">
-	import BoardStore from '../../persistence/stores/board/store.svelte';
 	import Box from '../../components/box/box.svelte';
+	import { boardContext } from './context.svelte';
 
-	const eventCategories = BoardStore.state.eventCategories;
-	const actionCategories = BoardStore.state.actionCategories;
+	const context = boardContext.get();
 
 	let boxHeight = 50; // Default height percentage for boxes
 	let eventsOpen = true;
@@ -13,7 +12,7 @@
 <div id="boards-container" class="flex h-full min-h-0 flex-1 flex-col">
 	<!-- Events Section -->
 	<Box
-		categories={eventCategories}
+		categories={context.eventCategories}
 		title="Events Board"
 		{boxHeight}
 		type="eventCategories"
@@ -22,7 +21,7 @@
 	/>
 	<!-- Actions Section -->
 	<Box
-		categories={actionCategories}
+		categories={context.actionCategories}
 		title="Actions Board"
 		{boxHeight}
 		type="actionCategories"

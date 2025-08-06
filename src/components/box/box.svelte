@@ -1,16 +1,23 @@
 <script lang="ts">
-	import type { Category } from '../../persistence/stores/board/types/Category';
-	import { boardActions } from '../../persistence/stores/board/actions';
+	import { boardContext } from '../../modules/board/context.svelte';
+	import type { Category } from '../../modules/board/types/Category';
+	import { getTextColorForBackground } from './colors';
 
 	let isResizing = false;
 	let frame: number | null = null;
 
-	export let boxHeight: number;
-	export let isOpened: boolean;
-	export let otherIsOpened: boolean;
-	export let title: string;
-	export let type: 'eventCategories' | 'actionCategories';
-	export let categories: Category[];
+	type Props = {
+		boxHeight: number;
+		isOpened: boolean;
+		otherIsOpened: boolean;
+		title: string;
+		type: 'eventCategories' | 'actionCategories';
+		categories: Category[];
+	};
+
+	let { boxHeight, isOpened, otherIsOpened, title, type, categories }: Props = $props();
+
+	const context = boardContext.get();
 
 	function resize(e: MouseEvent) {
 		if (!isResizing) return;
@@ -25,7 +32,7 @@
 		});
 	}
 
-	function startResize(e: MouseEvent) {
+	function startResize() {
 		isResizing = true;
 		document.body.style.cursor = 'row-resize';
 		window.addEventListener('mousemove', resize);
@@ -54,7 +61,7 @@
 		x = Math.max(0, Math.min(x, 100 - boxWidthPercent));
 		y = Math.max(0, Math.min(y, 100 - boxHeightPercent));
 
-		boardActions.updateCategoryPosition(type, categoryId, x, y);
+		context.updateCategoryPosition(type, categoryId, x, y);
 	}
 
 	function handleDragStart(e: DragEvent) {
@@ -74,7 +81,7 @@
 		<p class="text-xs font-semibold text-white">{title}</p>
 		<button
 			class="ml-2 rounded p-1 transition hover:bg-gray-700"
-			on:click={() => (isOpened = !isOpened)}
+			onclick={() => (isOpened = !isOpened)}
 			aria-label={isOpened ? 'Fold Events' : 'Unfold Events'}
 		>
 			<span class="inline-block transition-transform duration-200" class:rotate-180={isOpened}>
@@ -87,21 +94,22 @@
 		{#each categories as category (category.id)}
 			<div
 				class="relative min-h-0 min-w-0 flex-1 overflow-hidden"
-				on:drop={(e) => handleDrop(e, category.id)}
-				on:dragover={allowDrop}
+				ondrop={(e) => handleDrop(e, category.id)}
+				ondragover={allowDrop}
 				id={`drop-area-${category.id}`}
 				role="region"
 				aria-label="Drop area"
 			>
 				<!-- Draggable element absolutely positioned by percentage -->
 				<div
-					class="absolute z-10 h-10 w-10 cursor-move rounded bg-orange-400 shadow select-none"
+					class="absolute z-10 h-10 cursor-move rounded p-2 shadow select-none"
 					style="
-					color: {category.color};
+					background-color: {category.color};
+					color: {getTextColorForBackground(category.color)};
 					left: {category.position.x}%;
 					top: {category.position.y}%;"
 					draggable="true"
-					on:dragstart={handleDragStart}
+					ondragstart={handleDragStart}
 					role="button"
 					aria-grabbed="true"
 					tabindex="0"
@@ -119,9 +127,10 @@
 <div class="h-1"></div>
 
 {#if isOpened}
-	<div
+	<button
 		class="h-1 w-full flex-shrink-0 cursor-row-resize bg-gray-900"
-		on:mousedown={startResize}
+		aria-label="resize"
+		onmousedown={startResize}
 		style="z-index: 20;"
-	></div>
+	></button>
 {/if}
