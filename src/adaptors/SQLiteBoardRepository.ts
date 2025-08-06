@@ -24,7 +24,7 @@ export class SQLiteBoardRepository implements BoardRepository {
 						id: category.id,
 						name: category.name,
 						color: category.color,
-						onGrid: [category.grid_position_x, category.grid_position_y],
+						position: { x: category.grid_position_x, y: category.grid_position_y },
 						buttons: [
 							{
 								id: category.button_id,

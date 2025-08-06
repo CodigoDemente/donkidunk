@@ -4,6 +4,6 @@ export interface Category {
 	id: number;
 	name: string;
 	color: string;
-	onGrid: number[];
+	position: { x: number; y: number };
 	buttons: Action[];
 }
