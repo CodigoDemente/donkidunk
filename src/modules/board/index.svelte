@@ -7,6 +7,10 @@
 	let boxHeight = 50; // Default height percentage for boxes
 	let eventsOpen = true;
 	let actionsOpen = true;
+
+	function addCategory(categoryType: 'eventCategories' | 'actionCategories') {
+		return (name: string, color: string) => context.addCategory(categoryType, name, color);
+	}
 </script>
 
 <div id="boards-container" class="flex h-full min-h-0 flex-1 flex-col">
@@ -18,6 +22,7 @@
 		type="eventCategories"
 		isOpened={eventsOpen}
 		otherIsOpened={actionsOpen}
+		addCategory={addCategory('eventCategories')}
 	/>
 	<!-- Actions Section -->
 	<Box
@@ -27,11 +32,6 @@
 		type="actionCategories"
 		isOpened={actionsOpen}
 		otherIsOpened={eventsOpen}
+		addCategory={addCategory('actionCategories')}
 	/>
 </div>
-
-<style>
-	.rotate-180 {
-		transform: rotate(180deg);
-	}
-</style>

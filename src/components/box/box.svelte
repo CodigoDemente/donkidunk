@@ -1,10 +1,13 @@
 <script lang="ts">
 	import { boardContext } from '../../modules/board/context.svelte';
 	import type { Category } from '../../modules/board/types/Category';
+	import { projectActions } from '../../persistence/stores/project/actions';
 	import { getTextColorForBackground } from './colors';
+	import Form from './form.svelte';
 
 	let isResizing = false;
 	let frame: number | null = null;
+	let showAddCategory = $state(false);
 
 	type Props = {
 		boxHeight: number;
@@ -13,9 +16,11 @@
 		title: string;
 		type: 'eventCategories' | 'actionCategories';
 		categories: Category[];
+		addCategory: (name: string, color: string) => Promise<void>;
 	};
 
-	let { boxHeight, isOpened, otherIsOpened, title, type, categories }: Props = $props();
+	let { boxHeight, isOpened, otherIsOpened, title, type, categories, addCategory }: Props =
+		$props();
 
 	const context = boardContext.get();
 
@@ -90,7 +95,20 @@
 		</button>
 	</div>
 
-	{#if isOpened}
+	{#if isOpened && projectActions.getDatabase()}
+		<div class="absolute top-10 right-0 z-10 bg-gray-700" class:p-2={showAddCategory}>
+			<button
+				class="h-10 w-10 cursor-pointer text-white hover:bg-gray-600 active:bg-gray-500"
+				onclick={() => (showAddCategory = !showAddCategory)}
+			>
+				<div class="transition-rotate duration-300 ease-in" class:rotate-45={showAddCategory}>
+					+
+				</div>
+			</button>
+			{#if showAddCategory}
+				<Form {addCategory} onclose={() => (showAddCategory = false)} />
+			{/if}
+		</div>
 		{#each categories as category (category.id)}
 			<div
 				class="relative min-h-0 min-w-0 flex-1 overflow-hidden"
@@ -134,3 +152,9 @@
 		style="z-index: 20;"
 	></button>
 {/if}
+
+<style>
+	.rotate-180 {
+		transform: rotate(180deg);
+	}
+</style>
