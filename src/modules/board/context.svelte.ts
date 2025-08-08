@@ -9,7 +9,6 @@ import type { Tag } from './types/Tag';
 import type { Action } from './types/Action';
 
 const initialState: BoardData = {
-	isEditing: false,
 	eventCategories: [],
 	tagsRelatedToEvents: [],
 	actionCategories: []
@@ -19,6 +18,7 @@ export const boardContext = new Context<Board>('');
 
 export class Board {
 	#history!: StateHistory<BoardData>;
+	#isEditing = $state(false);
 	#state = $state<BoardData>(initialState);
 	#eventCategoriesById!: Record<string, Category>;
 	#actionCategoriesById!: Record<string, Category>;
@@ -115,7 +115,7 @@ export class Board {
 
 	//#region Actions
 	setEditingMode(value: boolean) {
-		this.#state.isEditing = value;
+		this.#isEditing = value;
 	}
 
 	async updateCategoryPosition(
@@ -196,7 +196,6 @@ export class Board {
 			this,
 			wrapObjectForUndo(
 				{
-					setEditingMode: this.setEditingMode.bind(this),
 					updateCategoryName: this.updateCategoryName.bind(this),
 					addButtonToCategory: this.addButtonToCategory.bind(this),
 					addCategory: this.addCategory.bind(this)
@@ -210,6 +209,10 @@ export class Board {
 	//#endregion
 
 	//#region Selectors
+	get isEditing() {
+		return this.#isEditing;
+	}
+
 	get actionCategories() {
 		return this.#state.actionCategories;
 	}
