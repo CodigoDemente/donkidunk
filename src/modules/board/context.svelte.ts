@@ -180,13 +180,19 @@ export class Board {
 			color
 		);
 
-		this.#state[section].push({
-			id: res,
-			name: name,
-			color: color,
-			position: { x: 0, y: 0 },
-			buttons: []
-		});
+		this.#state = {
+			...this.#state,
+			[section]: [
+				...this.#state[section],
+				{
+					id: res,
+					name: name,
+					color: color,
+					position: { x: 0, y: 0 },
+					buttons: []
+				}
+			]
+		};
 
 		await emit('project:dirty');
 	}
