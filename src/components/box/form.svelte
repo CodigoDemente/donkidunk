@@ -39,14 +39,14 @@
 
 	<button
 		class="h-8 w-10 cursor-pointer rounded bg-blue-600 text-white hover:bg-blue-500 active:bg-blue-400"
-		onclick={() => {
+		onclick={async () => {
 			newCategoryError = !newCategory.name ? 'Category name is required' : '';
 
 			if (newCategoryError) {
 				return;
 			}
 
-			addCategory(newCategory.name, newCategory.color);
+			await addCategory(newCategory.name, newCategory.color);
 			newCategory.name = '';
 			newCategory.color = '#ffffff';
 			onclose();

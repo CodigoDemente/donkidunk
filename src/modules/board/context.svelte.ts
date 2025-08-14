@@ -158,10 +158,24 @@ export class Board {
 		if (cat) {
 			const res = await repository.addButtonToCategory(categoryId, name);
 
-			cat.buttons.push({
-				id: res,
-				name: name
-			});
+			this.#state = {
+				...this.#state,
+				[section]: this.#state[section].map((c) => {
+					if (c.id === categoryId) {
+						return {
+							...c,
+							buttons: [
+								...c.buttons,
+								{
+									id: res,
+									name: name
+								}
+							]
+						};
+					}
+					return c;
+				})
+			};
 		}
 
 		await emit('project:dirty');

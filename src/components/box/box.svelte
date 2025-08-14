@@ -2,12 +2,13 @@
 	import { boardContext } from '../../modules/board/context.svelte';
 	import type { Category } from '../../modules/board/types/Category';
 	import { projectActions } from '../../persistence/stores/project/actions';
-	import { getTextColorForBackground } from './colors';
+	import CategoryComponent from './category.svelte';
 	import Form from './form.svelte';
 
 	let isResizing = false;
 	let frame: number | null = null;
 	let showAddCategory = $state(false);
+	let draggedCategoryId: number | null = null;
 
 	type Props = {
 		boxHeight: number;
@@ -55,7 +56,9 @@
 	const boxWidthPercent = 15; // ancho del draggable en %
 	const boxHeightPercent = 15; // alto del draggable en %
 
-	function handleDrop(e: DragEvent, categoryId: number) {
+	function handleDrop(e: DragEvent) {
+		if (draggedCategoryId === null) return;
+
 		const container = e.currentTarget as HTMLElement;
 
 		const rect = container.getBoundingClientRect();
@@ -66,12 +69,10 @@
 		x = Math.max(0, Math.min(x, 100 - boxWidthPercent));
 		y = Math.max(0, Math.min(y, 100 - boxHeightPercent));
 
-		context.updateCategoryPosition(type, categoryId, x, y);
+		context.updateCategoryPosition(type, draggedCategoryId, x, y);
+		draggedCategoryId = null;
 	}
 
-	function handleDragStart(e: DragEvent) {
-		e.dataTransfer?.setData('text/plain', 'dragged');
-	}
 	function allowDrop(e: DragEvent) {
 		e.preventDefault();
 	}
@@ -109,33 +110,19 @@
 				<Form {addCategory} onclose={() => (showAddCategory = false)} />
 			{/if}
 		</div>
-		{#each categories as category (category.id)}
-			<div
-				class="relative min-h-0 min-w-0 flex-1 overflow-hidden"
-				ondrop={(e) => handleDrop(e, category.id)}
-				ondragover={allowDrop}
-				id={`drop-area-${category.id}`}
-				role="region"
-				aria-label="Drop area"
-			>
-				<!-- Draggable element absolutely positioned by percentage -->
-				<div
-					class="absolute z-10 h-10 cursor-move rounded p-2 shadow select-none"
-					style="
-					background-color: {category.color};
-					color: {getTextColorForBackground(category.color)};
-					left: {category.position.x}%;
-					top: {category.position.y}%;"
-					draggable="true"
-					ondragstart={handleDragStart}
-					role="button"
-					aria-grabbed="true"
-					tabindex="0"
-				>
-					{category.name}
-				</div>
-			</div>
-		{/each}
+		<!-- Drop area -->
+		<div
+			class="relative min-h-0 min-w-0 flex-1 overflow-hidden"
+			ondrop={handleDrop}
+			ondragover={allowDrop}
+			id={`drop-area-${type}`}
+			role="region"
+			aria-label="Drop area"
+		>
+			{#each categories as category (category.id)}
+				<CategoryComponent {type} {category} bind:draggedCategoryId />
+			{/each}
+		</div>
 	{/if}
 </div>
 
