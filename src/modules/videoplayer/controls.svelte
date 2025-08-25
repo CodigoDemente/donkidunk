@@ -5,7 +5,8 @@
 		IconPlayerSkipForward,
 		IconPlayerSkipBack
 	} from '@tabler/icons-svelte';
-	import { SkipDirection, SkipType } from './+types';
+	import { SkipDirection } from './types/SkipDirection';
+	import { SkipType } from './types/SkipType';
 
 	type Props = {
 		skip: (type: SkipType, direction: SkipDirection) => void;

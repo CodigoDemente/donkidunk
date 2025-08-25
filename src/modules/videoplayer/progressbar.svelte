@@ -1,8 +1,7 @@
 <script lang="ts">
 	import Stroke from '../../components/stroke/stroke.svelte';
-	import { timelineActions } from '../../persistence/stores/timeline/actions';
-	import { TimelineSelectors } from '../../persistence/stores/timeline/selectors.svelte';
 	import { boardContext } from '../board/context.svelte';
+	import { timelineContext } from './context.svelte';
 	import Markers from './markers.svelte';
 	import Tagsbox from './tagsbox.svelte';
 
@@ -27,6 +26,9 @@
 	}: Props = $props();
 
 	const board = boardContext.get();
+	const timeline = timelineContext.get();
+
+	$inspect(timeline.onPlay);
 </script>
 
 <div class="flex w-full flex-row">
@@ -76,13 +78,13 @@
 						{#each Object.keys(board.eventCategoriesById) as categoryId (categoryId)}
 							<Stroke
 								categoryId={+categoryId}
-								allTagsByCategory={TimelineSelectors.getEventsByCategory()}
+								allTagsByCategory={timeline.eventsByCategory}
 								{duration}
 								boardCategoriesById={board.eventCategoriesById}
 								buttonsListById={board.eventButtonsById}
-								onPlayObject={TimelineSelectors.getOnPlay()}
+								onPlayObject={timeline.onPlay}
 								{currentTime}
-								onClick={timelineActions.setEventSelected}
+								onClick={timeline.setEventSelected}
 							/>
 						{/each}
 					</div>
@@ -92,7 +94,7 @@
 						{#each Object.keys(board.actionCategoriesById) as categoryId (categoryId)}
 							<Stroke
 								categoryId={+categoryId}
-								allTagsByCategory={TimelineSelectors.getActionsByCategory()}
+								allTagsByCategory={timeline.actionsByCategory}
 								{duration}
 								boardCategoriesById={board.actionCategoriesById}
 								buttonsListById={board.actionButtonsById}

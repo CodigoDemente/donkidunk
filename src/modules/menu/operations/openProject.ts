@@ -17,8 +17,9 @@ import { projectActions } from '../../../persistence/stores/project/actions';
 import { BoardRepositoryFactory } from '../../../factories/BoardRepositoryFactory';
 import { TimelineRepositoryFactory } from '../../../factories/TimelineRepositoryFactory';
 import type { Board } from '../../board/context.svelte';
+import type { Timeline } from '../../videoplayer/context.svelte';
 
-export async function openProject(board: Board) {
+export async function openProject(board: Board, timeline: Timeline) {
 	debug('Open project action triggered');
 
 	const path = await open({
@@ -83,7 +84,7 @@ export async function openProject(board: Board) {
 
 	await loadProjectFromDatabase(ProjectRepositoryFactory.getInstance());
 	await loadBoardFromDatabase(BoardRepositoryFactory.getInstance(), board);
-	await loadTimelineFromDatabase(TimelineRepositoryFactory.getInstance());
+	await loadTimelineFromDatabase(TimelineRepositoryFactory.getInstance(), timeline);
 
 	await enableImportVideo();
 }

@@ -8,7 +8,7 @@
 	let isResizing = false;
 	let frame: number | null = null;
 	let showAddCategory = $state(false);
-	let draggedCategoryId: number | null = null;
+	let draggedCategoryId: number | null = $state(null);
 
 	type Props = {
 		boxHeight: number;
@@ -16,12 +16,21 @@
 		otherIsOpened: boolean;
 		title: string;
 		type: 'eventCategories' | 'actionCategories';
+		currentTime: number;
 		categories: Category[];
 		addCategory: (name: string, color: string) => Promise<void>;
 	};
 
-	let { boxHeight, isOpened, otherIsOpened, title, type, categories, addCategory }: Props =
-		$props();
+	let {
+		boxHeight,
+		isOpened,
+		otherIsOpened,
+		title,
+		type,
+		currentTime,
+		categories,
+		addCategory
+	}: Props = $props();
 
 	const context = boardContext.get();
 
@@ -120,7 +129,7 @@
 			aria-label="Drop area"
 		>
 			{#each categories as category (category.id)}
-				<CategoryComponent {type} {category} bind:draggedCategoryId />
+				<CategoryComponent {type} {category} {currentTime} bind:draggedCategoryId />
 			{/each}
 		</div>
 	{/if}

@@ -3,6 +3,9 @@
 	import { boardContext } from '../../modules/board/context.svelte';
 	import type { Category } from '../../modules/board/types/Category';
 	import { getTextColorForBackground } from './colors';
+	import { timelineContext } from '../../modules/videoplayer/context.svelte';
+
+	const timeline = timelineContext.get();
 
 	let showAddButton = $state(false);
 
@@ -14,17 +17,26 @@
 
 	type Props = {
 		type: 'eventCategories' | 'actionCategories';
+		currentTime: number;
 		category: Category;
 		draggedCategoryId: number | null;
 	};
 
 	const context = boardContext.get();
 
-	let { type, category, draggedCategoryId = $bindable() }: Props = $props();
+	let { type, category, currentTime, draggedCategoryId = $bindable() }: Props = $props();
 
 	function handleDragStart(e: DragEvent, categoryId: number) {
 		e.dataTransfer?.setData('text/plain', 'dragged');
 		draggedCategoryId = categoryId;
+	}
+
+	function addActionOrEvent(categoryId: number, buttonId: number): Promise<void> {
+		if (type === 'actionCategories') {
+			return timeline.addAction(buttonId, categoryId, currentTime);
+		} else {
+			return timeline.addEvent(buttonId, categoryId, currentTime);
+		}
 	}
 </script>
 
@@ -93,7 +105,10 @@
 	<div>{category.name}</div>
 	<div class="mt-2 flex flex-wrap gap-2">
 		{#each category.buttons as button (button.id)}
-			<button class="rounded bg-gray-600 px-2 py-1 text-xs text-white hover:bg-gray-500">
+			<button
+				class="rounded bg-gray-600 px-2 py-1 text-xs text-white hover:bg-gray-500"
+				onclick={() => addActionOrEvent(category.id, button.id)}
+			>
 				{button.name}
 			</button>
 		{/each}

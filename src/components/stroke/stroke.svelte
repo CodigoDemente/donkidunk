@@ -1,10 +1,7 @@
 <script lang="ts">
 	import type { Action } from '../../modules/board/types/Action';
 	import type { Category } from '../../modules/board/types/Category';
-	import type {
-		RangeData,
-		RangeDataWithTags
-	} from '../../persistence/stores/timeline/types/RangeData';
+	import type { RangeData, RangeDataWithTags } from '../../modules/videoplayer/types/RangeData';
 	import Tagtime from '../tagtime/tagtime.svelte';
 
 	let {
@@ -26,6 +23,8 @@
 		currentTime: number;
 		onClick?: (id: number) => void;
 	} = $props();
+
+	$inspect(onPlayObject);
 </script>
 
 <div class="relative h-5 w-full rounded-xs bg-gray-800">

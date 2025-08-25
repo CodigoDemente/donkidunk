@@ -9,15 +9,11 @@
 		getCurrentTime: () => number;
 	};
 
-	let videoPlayerRef: VideoPlayerComponent | null = null;
+	let videoPlayerRef: VideoPlayerComponent;
 	let leftWidth = 50;
 	let isResizing = false;
 
 	const projectStore = ProjectStore.getState();
-
-	function handleCheckTime() {
-		return videoPlayerRef?.getCurrentTime() ?? 0;
-	}
 
 	function startResize() {
 		isResizing = true;
@@ -50,6 +46,6 @@
 		aria-orientation="horizontal"
 	></div>
 	<div class="flex-grow">
-		<Board checkTime={handleCheckTime} />
+		<Board currentTime={videoPlayerRef?.getCurrentTime()} />
 	</div>
 </div>
