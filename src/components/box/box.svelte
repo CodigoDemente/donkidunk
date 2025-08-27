@@ -1,6 +1,8 @@
 <script lang="ts">
 	import type { Category } from '../../persistence/stores/board/types/Category';
 	import { boardActions } from '../../persistence/stores/board/actions';
+	import { projectActions } from '../../persistence/stores/project/actions';
+	import AddButtonsModal from '../../modules/modalContent/addButtonsModal.svelte';
 
 	let isResizing = false;
 	let frame: number | null = null;
@@ -63,6 +65,16 @@
 	function allowDrop(e: DragEvent) {
 		e.preventDefault();
 	}
+
+	function handleModalOpen() {
+		projectActions.setModal({
+			content: AddButtonsModal,
+			title: `Add category to ${title}`,
+			onCancel: () => console.log('Modal cancelled'),
+			onSubmit: () => console.log('Modal submitted'),
+			show: true
+		});
+	}
 </script>
 
 <div
@@ -84,6 +96,7 @@
 	</div>
 
 	{#if isOpened}
+		<button on:click={handleModalOpen}>ADD</button>
 		{#each categories as category (category.id)}
 			<div
 				class="relative min-h-0 min-w-0 flex-1 overflow-hidden"
