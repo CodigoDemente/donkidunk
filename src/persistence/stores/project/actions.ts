@@ -39,6 +39,22 @@ export const projectActions = {
 		projectStore.file.currentPath = path;
 	},
 
+	setModal({
+		content,
+		title,
+		onCancel,
+		onSubmit,
+		show
+	}: {
+		content: unknown;
+		title: string;
+		onCancel: () => void;
+		onSubmit: () => void;
+		show: boolean;
+	}): void {
+		projectStore.modal = { content, title, onCancel, onSubmit, show };
+	},
+
 	setDatabase(db: Database | null): void {
 		projectStore.database = db;
 	},

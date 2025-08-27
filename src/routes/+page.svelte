@@ -4,6 +4,7 @@
 	import VideoPlayer from '../modules/videoplayer/index.svelte';
 	import ProjectStore from '../persistence/stores/project/store.svelte';
 	import '../styles/page.css';
+	import Modal from '../components/modal/modal.svelte';
 
 	type VideoPlayerComponent = SvelteComponent & {
 		getCurrentTime: () => number;
@@ -53,3 +54,4 @@
 		<Board checkTime={handleCheckTime} />
 	</div>
 </div>
+<Modal modalStore={projectStore.modal} />

@@ -13,5 +13,12 @@ export type ProjectData = {
 	video: {
 		path?: string;
 	};
+	modal: {
+		content: unknown;
+		title?: string;
+		onCancel?: () => void;
+		onSubmit?: () => void;
+		show: boolean;
+	};
 	database: Database | null;
 };
