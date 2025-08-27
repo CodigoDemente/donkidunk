@@ -2,6 +2,8 @@
 	import BoardStore from '../../persistence/stores/board/store.svelte';
 	import Box from '../../components/box/box.svelte';
 
+	export let checkTime;
+
 	const eventCategories = BoardStore.state.eventCategories;
 	const actionCategories = BoardStore.state.actionCategories;
 
@@ -14,7 +16,7 @@
 	<!-- Events Section -->
 	<Box
 		categories={eventCategories}
-		title="Events Board"
+		title="Events board"
 		{boxHeight}
 		type="eventCategories"
 		isOpened={eventsOpen}
@@ -23,7 +25,7 @@
 	<!-- Actions Section -->
 	<Box
 		categories={actionCategories}
-		title="Actions Board"
+		title="Actions board"
 		{boxHeight}
 		type="actionCategories"
 		isOpened={actionsOpen}
