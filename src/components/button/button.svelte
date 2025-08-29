@@ -1,10 +1,14 @@
 <script lang="ts">
 	export let onClick: () => void;
 	export let size: 'mini' | 'small' | 'medium' | 'large' | 'extralarge' | 'fluid' = 'medium';
-	export let color: string | null = null;
+	export let style: string | undefined = undefined;
+	export let primary: boolean = false;
+	export let tertiary: boolean = false;
+	export let customClass: string | undefined = undefined;
+	export let disabled: boolean = false;
 
 	const sizeToWidth = {
-		mini: 'w-18',
+		mini: 'w-6',
 		small: 'w-24',
 		medium: 'w-32',
 		large: 'w-40',
@@ -13,28 +17,39 @@
 	};
 
 	const sizeToText = {
-		mini: 'text-xs',
+		mini: 'text-sm',
 		small: 'text-sm',
 		medium: 'text-base',
 		large: 'text-lg',
 		extralarge: 'text-xl',
 		fluid: 'text-base'
 	};
+
+	const bgColor = primary ? 'bg-primary' : tertiary ? 'bg-tertiary' : 'bg-secondary';
+	const hoverBgColor = primary
+		? 'hover:bg-[var(--color-primary-dark)]'
+		: tertiary
+			? 'hover:bg-[var(--color-tertiary-dark)]'
+			: 'hover:bg-[var(--color-secondary-dark)]';
+	const textColor = primary || tertiary ? 'text-supportWhite' : 'text-supportBlack';
 </script>
 
-<!-- NOT WORKING VAR -->
 <button
-	class="flex
-    items-center
+	{style}
+	class={`
+	${bgColor}
+	${hoverBgColor}
+	${customClass}
+    ${textColor}
+    ${sizeToWidth[size]}
+    ${sizeToText[size]}
+	${size !== 'mini' ? 'p-1' : ''}
+	flex
+	items-center
     justify-center
-    rounded-[4px]
-    {sizeToWidth[size]} 
-    bg-blue-600
-    p-1
-	{sizeToText[size]}
-    text-white
-    transition
-    hover:bg-blue-500"
+	rounded-[4px]
+	${disabled ? 'cursor-not-allowed opacity-70' : ''}
+	transition`}
 	on:click={onClick}
 >
 	<slot />

@@ -3,6 +3,8 @@
 	import { boardActions } from '../../persistence/stores/board/actions';
 	import { projectActions } from '../../persistence/stores/project/actions';
 	import AddButtonsModal from '../../modules/modalContent/addButtonsModal.svelte';
+	import Button from '../button/button.svelte';
+	import { IconPlus, IconChevronDown } from '@tabler/icons-svelte';
 
 	let isResizing = false;
 	let frame: number | null = null;
@@ -72,7 +74,8 @@
 			title: `Add category to ${title}`,
 			onCancel: () => console.log('Modal cancelled'),
 			onSubmit: () => console.log('Modal submitted'),
-			show: true
+			show: true,
+			size: 'medium'
 		});
 	}
 </script>
@@ -85,18 +88,20 @@
 	<div class="flex h-10 items-center justify-between border-b border-gray-600 bg-gray-800 px-4">
 		<p class="text-xs font-semibold text-white">{title}</p>
 		<button
-			class="ml-2 rounded p-1 transition hover:bg-gray-700"
+			class="ml-2 rounded p-1 transition hover:text-gray-200"
 			on:click={() => (isOpened = !isOpened)}
 			aria-label={isOpened ? 'Fold Events' : 'Unfold Events'}
 		>
 			<span class="inline-block transition-transform duration-200" class:rotate-180={isOpened}>
-				▼
+				<IconChevronDown />
 			</span>
 		</button>
 	</div>
 
 	{#if isOpened}
-		<button on:click={handleModalOpen}>ADD</button>
+		<Button customClass="absolute right-5 top-14" size="mini" primary onClick={handleModalOpen}>
+			<IconPlus class="text-white" />
+		</Button>
 		{#each categories as category (category.id)}
 			<div
 				class="relative min-h-0 min-w-0 flex-1 overflow-hidden"
