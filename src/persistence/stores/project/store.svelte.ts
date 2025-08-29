@@ -18,7 +18,8 @@ export const InitialProjectData: ProjectData = {
 		title: undefined,
 		onCancel: undefined,
 		onSubmit: undefined,
-		show: false
+		show: false,
+		size: undefined
 	},
 	database: null
 };

@@ -1,5 +1,6 @@
 import type Database from '@tauri-apps/plugin-sql';
 
+export type ModalSize = 'medium' | 'small' | 'large' | 'extralarge';
 export type ProjectData = {
 	metadata: {
 		timestamp: string;
@@ -19,6 +20,7 @@ export type ProjectData = {
 		onCancel?: () => void;
 		onSubmit?: () => void;
 		show: boolean;
+		size?: ModalSize;
 	};
 	database: Database | null;
 };
