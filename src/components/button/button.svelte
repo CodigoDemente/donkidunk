@@ -46,8 +46,9 @@
 	${size !== 'mini' ? 'p-1' : ''}
 	flex
 	items-center
-    justify-center
-	rounded-[4px]
+	justify-center
+    rounded-[4px]
+	hover:cursor-pointer
 	${disabled ? 'cursor-not-allowed opacity-70' : ''}
 	transition`}
 	on:click={onClick}
