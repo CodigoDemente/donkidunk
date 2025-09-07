@@ -4,13 +4,12 @@ use std::{
     path::PathBuf,
     process::Stdio,
     sync::Arc,
-    task,
     time::{SystemTime, UNIX_EPOCH},
 };
 
 use anyhow::anyhow;
 use serde::Serialize;
-use tauri::{ipc::Channel, AppHandle, Manager};
+use tauri::{ipc::Channel, AppHandle, Manager, Runtime};
 use tauri_plugin_shell::ShellExt;
 
 use tokio::{
@@ -29,7 +28,7 @@ fn parse_time_to_ffmpeg_format(time: &f32) -> String {
     let hours = minutes_raw / 60;
     let minutes = minutes_raw % 60;
 
-    format!("{:02}:{:02}:{:05.4}", hours, minutes, seconds)
+    format!("{hours:02}:{minutes:02}:{seconds:05.4}")
 }
 
 fn parse_ffmpeg_format_to_time(time: &str) -> f32 {
@@ -66,17 +65,17 @@ async fn process_progress(
 
                 let progress = (percentage + 1.0) / 2.0;
 
-                log::debug!("Progress {}%", progress);
+                log::debug!("Progress {progress}%");
                 // Adds 100% to the numerator and divide by 2 since this is the second half of the process and has to start at 50%
 
-                let _ = progress_channel.send(ExportEvent { progress: progress });
+                let _ = progress_channel.send(ExportEvent { progress });
             }
         }
 
         Ok::<(), FfmpegError>(())
     })
     .await
-    .map_err(|e| FfmpegError::from(e))?;
+    .map_err(FfmpegError::from)?;
 
     Ok(())
 }
@@ -95,35 +94,31 @@ struct ProgressTracker {
     merge_progress: f32,
 }
 
-pub struct Ffmpeg<R: tauri::Runtime> {
-    app: AppHandle<R>,
+pub struct Ffmpeg {
     on_progress_channel: Arc<Channel<ExportEvent>>,
     ffmpeg_path: OsString,
     temp_dir: PathBuf,
     progress_tracker: Arc<Mutex<ProgressTracker>>,
 }
 
-impl<R: tauri::Runtime> Ffmpeg<R> {
-    pub fn new(
-        app: AppHandle<R>,
+impl Ffmpeg {
+    pub fn new<R: Runtime>(
+        app: &AppHandle<R>,
         progress_channel: Channel<ExportEvent>,
     ) -> Result<Self, AppError> {
         match app.shell().sidecar("donkidunk_ffmpeg") {
             Ok(ffmpeg) => {
                 let ffmpeg_std_command = std::process::Command::from(ffmpeg);
 
-                let command = std::process::Command::from(ffmpeg_std_command);
-
                 let parts_dir = match app.path().temp_dir() {
                     Ok(temp_dir) => {
                         let unique_id = Uuid::new_v4();
-                        let dir = temp_dir.join(format!("donkidunk_video_parts_{}", unique_id));
+                        let dir = temp_dir.join(format!("donkidunk_video_parts_{unique_id}"));
 
                         if !dir.exists() {
                             std::fs::create_dir_all(&dir).map_err(|e| {
                                 FfmpegError::FfmpegSidecarAccess(format!(
-                                    "[ffmpeg-sidecar] Failed to create temp dir: {}",
-                                    e
+                                    "[ffmpeg-sidecar] Failed to create temp dir: {e}"
                                 ))
                             })?;
                         }
@@ -135,8 +130,7 @@ impl<R: tauri::Runtime> Ffmpeg<R> {
                 };
 
                 Ok(Self {
-                    app,
-                    ffmpeg_path: command.get_program().to_owned(),
+                    ffmpeg_path: ffmpeg_std_command.get_program().to_owned(),
                     temp_dir: parts_dir,
                     on_progress_channel: Arc::new(progress_channel),
                     progress_tracker: Arc::new(Mutex::new(ProgressTracker {
@@ -147,11 +141,9 @@ impl<R: tauri::Runtime> Ffmpeg<R> {
                     })),
                 })
             }
-            Err(e) => Err(FfmpegError::FfmpegSidecarAccess(format!(
-                "[ffmpeg-sidecar] Error: {}",
-                e
-            ))
-            .into()),
+            Err(e) => {
+                Err(FfmpegError::FfmpegSidecarAccess(format!("[ffmpeg-sidecar] Error: {e}")).into())
+            }
         }
     }
 
@@ -175,7 +167,7 @@ impl<R: tauri::Runtime> Ffmpeg<R> {
             .arg("copy")
             .arg("-avoid_negative_ts")
             .arg("make_zero")
-            .arg(&output_path)
+            .arg(output_path)
             .stderr(Stdio::piped());
 
         cmd
@@ -184,15 +176,15 @@ impl<R: tauri::Runtime> Ffmpeg<R> {
     fn extract_clips<'a>(
         &'a self,
         source_path: &'a str,
-        ranges: &'a Vec<(f32, f32)>,
+        ranges: &'a [(f32, f32)],
     ) -> Vec<impl Future<Output = Result<PathBuf, FfmpegError>> + 'a> {
         let tasks: Vec<_> = ranges
-            .into_iter()
+            .iter()
             .map(|(start, end)| async move {
                 let start_time = parse_time_to_ffmpeg_format(start);
                 let end_time = parse_time_to_ffmpeg_format(end);
 
-                log::debug!("Starting cut: {} to {}", start_time, end_time);
+                log::debug!("Starting cut: {start_time} to {end_time}");
 
                 let output_name = format!(
                     "part_{}_{}{}",
@@ -206,7 +198,7 @@ impl<R: tauri::Runtime> Ffmpeg<R> {
                 let mut cmd = self.create_default_split_command(
                     &start_time,
                     &end_time,
-                    &source_path,
+                    source_path,
                     &output_path,
                 );
 
@@ -214,8 +206,7 @@ impl<R: tauri::Runtime> Ffmpeg<R> {
 
                 if !status.success() {
                     return Err(FfmpegError::FfmpegExecution(format!(
-                        "FFMPEG command failed with status: {}",
-                        status
+                        "FFMPEG command failed with status: {status}"
                     )));
                 }
 
@@ -230,7 +221,7 @@ impl<R: tauri::Runtime> Ffmpeg<R> {
                     progress: (total_clips_extracted) / (ranges.len() as f32 * 2.0),
                 });
 
-                log::debug!("Cut finished: {} - {}", start_time, end_time);
+                log::debug!("Cut finished: {start_time} - {end_time}");
 
                 Ok::<PathBuf, FfmpegError>(output_path)
             })
@@ -241,7 +232,7 @@ impl<R: tauri::Runtime> Ffmpeg<R> {
 
     async fn merge_clips(
         &self,
-        clips_paths: &Vec<PathBuf>,
+        clips_paths: &[PathBuf],
         out_path: &str,
     ) -> Result<(), FfmpegError> {
         log::debug!("Starting concat...");
@@ -271,7 +262,7 @@ impl<R: tauri::Runtime> Ffmpeg<R> {
             .stderr(Stdio::piped());
 
         log::debug!("Spawning command");
-        let mut child = concat_command.spawn().map_err(|e| FfmpegError::from(e))?;
+        let mut child = concat_command.spawn().map_err(FfmpegError::from)?;
 
         let stderr = child.stderr.take().ok_or(FfmpegError::StderrCapture)?;
 
@@ -315,14 +306,14 @@ impl<R: tauri::Runtime> Ffmpeg<R> {
 
     fn cleanup(&self) -> Result<(), FfmpegError> {
         std::fs::remove_dir_all(&self.temp_dir)
-            .map_err(|e| FfmpegError::FfmpegCleanupFailed(format!("{}", e)))
+            .map_err(|e| FfmpegError::FfmpegCleanupFailed(format!("{e}")))
     }
 
     pub async fn export_video(
         &self,
         source_path: &str,
         out_path: &str,
-        ranges: &Vec<(f32, f32)>,
+        ranges: &[(f32, f32)],
     ) -> Result<(), AppError> {
         let start = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
 

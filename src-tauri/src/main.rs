@@ -11,6 +11,7 @@ use commands::menu::*;
 use commands::video::*;
 #[cfg(debug_assertions)]
 use tauri::Manager;
+use tauri::RunEvent;
 
 fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
     builder
@@ -53,13 +54,8 @@ async fn main() {
     let app = create_app(builder);
 
     app.run(|_, event| {
-        // log::debug!("Tauri event: {event:?}");{}
-
-        match event {
-            tauri::RunEvent::Ready => {
-                log::debug!("Tauri is ready");
-            }
-            _ => {}
+        if matches!(event, RunEvent::Ready) {
+            log::debug!("Tauri is ready");
         }
     });
 }
@@ -78,9 +74,9 @@ mod tests {
         let builder = tauri::test::mock_builder().plugin(tauri_plugin_shell::init());
         let app = create_app(builder);
 
-        let path = path::PathResolver::app_data_dir(&app.path()).unwrap();
+        let path = path::PathResolver::app_data_dir(app.path()).unwrap();
 
-        println!("App data path: {:?}", path);
+        println!("App data path: {path:?}");
 
         let ffmpeg = app.shell().sidecar("donkidunk_ffmpeg").unwrap();
 
