@@ -3,6 +3,11 @@ import type { RangeData, RangeDataWithTags } from '../modules/videoplayer/types/
 export interface TimelineRepository {
 	getEvents(): Promise<RangeDataWithTags[]>;
 	getActions(): Promise<RangeData[]>;
+	getRangesForExport(
+		eventIds: number[],
+		actionIds: number[],
+		tagIds: number[]
+	): Promise<[number, number][]>;
 	addEntry(
 		buttonId: number,
 		categoryId: number,

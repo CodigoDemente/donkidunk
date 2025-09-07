@@ -1,161 +1,141 @@
 <script lang="ts">
-	import { invoke } from '@tauri-apps/api/core';
+	import { Channel, invoke } from '@tauri-apps/api/core';
 	import ProjectStore from '../../persistence/stores/project/store.svelte';
+	import { boardContext } from '../../modules/board/context.svelte';
+	import { getTextColorForBackground } from '../../components/box/colors';
+	import { TimelineRepositoryFactory } from '../../factories/TimelineRepositoryFactory';
+	import { save } from '@tauri-apps/plugin-dialog';
+	import { path } from '@tauri-apps/api';
+	import type { ExportEvent } from '../../events/types/ExportEvent';
+	import { debug } from '@tauri-apps/plugin-log';
+
+	const board = boardContext.get();
+
+	const timelineRepository = TimelineRepositoryFactory.getInstance();
+
+	const selectedEvents: number[] = $state([]);
+	const selectedTags: number[] = $state([]);
 
 	const projectStore = ProjectStore.getState();
-	let exporting = false;
+	let exporting = $state(false);
+	let export_progress = $state(0);
 
 	async function export_video(): Promise<void> {
-		exporting = true;
+		// Fix initial values just in case
+		exporting = false;
+		export_progress = 0;
 
-		const result = await invoke('cut_video', {
-			videoPath: projectStore.video.path,
-			ranges: [
-				[0, 13097],
-				[18894, 35699],
-				[41566, 52228],
-				[54182, 61583],
-				[64369, 72758],
-				[76055, 93792],
-				[101685, 112478],
-				[115157, 132852],
-				[140623, 148162],
-				[157602, 166262],
-				[171269, 181023],
-				[184500, 203252],
-				[205309, 215090],
-				[217205, 222277],
-				[225406, 237434],
-				[245904, 260196],
-				[270059, 283716],
-				[285696, 297749],
-				[300000, 314009],
-				[322831, 339691],
-				[348972, 368087],
-				[370344, 379321],
-				[387611, 406007],
-				[407459, 423008],
-				[430418, 443600],
-				[448746, 456363],
-				[457946, 467903],
-				[471627, 483180],
-				[490928, 507201],
-				[511358, 528946],
-				[529999, 546539],
-				[547874, 552990],
-				[558139, 576651],
-				[582323, 597921],
-				[607509, 625343],
-				[633759, 642708],
-				[646170, 656466],
-				[666321, 682740],
-				[684496, 697404],
-				[699353, 704389],
-				[706709, 713368],
-				[715917, 728630],
-				[732763, 748959],
-				[754468, 769016],
-				[775665, 787745],
-				[788877, 795936],
-				[804062, 811603],
-				[813802, 820618],
-				[828467, 845011],
-				[848293, 868215],
-				[874252, 893124],
-				[896745, 909390],
-				[915186, 932117],
-				[933839, 939290],
-				[943814, 955651],
-				[958452, 970861],
-				[974916, 982671],
-				[989643, 995238],
-				[1002956, 1015169],
-				[1022118, 1029185],
-				[1032040, 1046878],
-				[1048562, 1054385],
-				[1060315, 1073064],
-				[1075873, 1087949],
-				[1092996, 1110710],
-				[1115054, 1132100],
-				[1138730, 1154927],
-				[1157090, 1169769],
-				[1171706, 1184019],
-				[1188928, 1208666],
-				[1211634, 1223590],
-				[1229552, 1247504],
-				[1251271, 1269157],
-				[1279117, 1290698],
-				[1293740, 1302889],
-				[1307327, 1319801],
-				[1326644, 1332685],
-				[1341614, 1354555],
-				[1359708, 1372562],
-				[1374554, 1385692],
-				[1389444, 1405605],
-				[1407805, 1414254],
-				[1422456, 1427659],
-				[1428913, 1440812],
-				[1442420, 1458966],
-				[1460969, 1479886],
-				[1485988, 1493340],
-				[1495890, 1507671],
-				[1511596, 1523724],
-				[1524855, 1532842],
-				[1540483, 1550521],
-				[1551890, 1571599],
-				[1575479, 1588265],
-				[1594732, 1609610],
-				[1613902, 1619642],
-				[1626828, 1635000],
-				[1638928, 1652483],
-				[1659044, 1677288],
-				[1686414, 1703647],
-				[1705969, 1712485],
-				[1719841, 1734663],
-				[1739459, 1748713],
-				[1752717, 1762153],
-				[1769620, 1781157],
-				[1786216, 1794861],
-				[1798278, 1803362],
-				[1811397, 1829245],
-				[1836597, 1847926],
-				[1856385, 1866209],
-				[1873127, 1879273],
-				[1881429, 1895945],
-				[1905617, 1913998],
-				[1920646, 1929702],
-				[1932906, 1939731],
-				[1946275, 1963664],
-				[1968606, 1980163],
-				[1989387, 1999407],
-				[2002115, 2011262],
-				[2015191, 2033816],
-				[2034968, 2051537],
-				[2054387, 2072878],
-				[2074244, 2083047],
-				[2090736, 2102626],
-				[2111322, 2130119],
-				[2139592, 2158770]
-			]
+		const inVideoExtension = projectStore.video.path!.split('.').pop();
+		const inVideoFolder = await path.dirname(projectStore.video.path!);
+
+		const outPath = await save({
+			title: 'Select output video file',
+			defaultPath: inVideoFolder,
+			filters: [{ name: 'Video', extensions: [inVideoExtension!] }]
 		});
 
-		console.log('Export result:', result);
+		if (!outPath) {
+			return;
+		}
+
+		exporting = true;
+
+		const ranges = await timelineRepository.getRangesForExport(selectedEvents, [], selectedTags);
+
+		const onEvent = new Channel<ExportEvent>();
+		onEvent.onmessage = (message) => {
+			const progress = message.progress;
+			debug(`Exporting progress: ${message.progress}`);
+			export_progress = Math.trunc(progress * 100);
+		};
+
+		await invoke('cut_video', {
+			videoPath: projectStore.video.path,
+			outPath,
+			ranges,
+			onEvent
+		});
 
 		exporting = false;
 	}
 </script>
 
-<div class="flex w-full flex-row gap-1">
-	<div class="flex-1">Export Component Placeholder</div>
-	<div class="flex flex-1 flex-col gap-2">
-		<button class="w-full rounded bg-orange-500 px-2 py-1 text-white" onclick={export_video}>
-			Export
-		</button>
+<div class="flex w-full flex-col gap-1 p-4">
+	<h2 class="text-lg font-bold">Export your video</h2>
+	<div class="flex w-full border-b border-gray-300" role="separator"></div>
+	<h3>Events</h3>
+	<div class="flex w-full flex-row gap-2">
+		{#each board.eventCategories as category}
+			{#each category.buttons as button}
+				<button
+					class="cursor-pointer rounded px-4 py-2 disabled:opacity-50"
+					style="background-color: {category.color}; color: {getTextColorForBackground(
+						category.color
+					)}"
+					onclick={() => {
+						if (selectedEvents.includes(button.id)) {
+							const index = selectedEvents.indexOf(button.id);
+							if (index > -1) {
+								selectedEvents.splice(index, 1);
+							}
+						} else {
+							selectedEvents.push(button.id);
+						}
+					}}
+					class:disabled={!selectedEvents.includes(button.id)}
+				>
+					{button.name}
+				</button>
+			{/each}
+		{/each}
 	</div>
-
+	<div class="flex w-full border-b border-gray-300" role="separator"></div>
+	<h3>Tags</h3>
+	<div class="flex w-full flex-row gap-2">
+		{#each Object.entries(board.tagsById) as [id, tag]}
+			<button
+				class="cursor-pointer rounded px-4 py-2 disabled:opacity-50"
+				style="background-color: {tag.color}; color: {getTextColorForBackground(tag.color)}"
+				onclick={() => {
+					if (selectedTags.includes(tag.id)) {
+						const index = selectedTags.indexOf(tag.id);
+						if (index > -1) {
+							selectedTags.splice(index, 1);
+						}
+					} else {
+						selectedTags.push(tag.id);
+					}
+				}}
+				class:disabled={!selectedTags.includes(tag.id)}
+			>
+				{tag.name}
+			</button>
+		{/each}
+	</div>
+	<button
+		class="mt-4 rounded bg-blue-500 px-4 py-2 text-white disabled:opacity-50"
+		onclick={export_video}
+		disabled={exporting}
+	>
+		Export Video
+	</button>
 	{#if exporting}
-		<div class="flex w-full flex-row gap-1">
-			<div class="flex-1">Exporting...</div>
+		<p class="mt-2 text-sm text-gray-600">Exporting video, please wait...</p>
+
+		<div class="w-full rounded-full bg-gray-200 dark:bg-gray-700">
+			<div
+				class="rounded-full bg-blue-600 p-0.5 text-center text-xs leading-none font-medium text-blue-100
+				transition-[width] duration-150 ease-in"
+				style="width: {export_progress}%"
+			>
+				{export_progress}%
+			</div>
 		</div>
 	{/if}
 </div>
+
+<style>
+	.disabled {
+		opacity: 0.5;
+	}
+</style>

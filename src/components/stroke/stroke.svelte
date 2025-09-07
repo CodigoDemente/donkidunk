@@ -23,8 +23,6 @@
 		currentTime: number;
 		onClick?: (id: number) => void;
 	} = $props();
-
-	$inspect(onPlayObject);
 </script>
 
 <div class="relative h-5 w-full rounded-xs bg-gray-800">

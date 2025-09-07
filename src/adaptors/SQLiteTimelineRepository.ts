@@ -55,6 +55,48 @@ export class SQLiteTimelineRepository implements TimelineRepository {
 		}));
 	}
 
+	async getRangesForExport(
+		eventIds: number[],
+		actionIds: number[],
+		tagIds: number[]
+	): Promise<[number, number][]> {
+		let eventsCondition,
+			actionsCondition = '';
+
+		if (eventIds && eventIds.length > 0) {
+			eventsCondition = `t.type = 'event' AND t.button_id IN (${eventIds.join(',')})`;
+
+			if (tagIds && tagIds.length > 0) {
+				eventsCondition += ` AND (tt.tag_id IN (${tagIds.join(',')}) OR tt.tag_id IS NULL)`;
+			}
+
+			eventsCondition = `(${eventsCondition})`;
+		} else {
+			eventsCondition = '1=1';
+		}
+
+		if (actionIds && actionIds.length > 0) {
+			actionsCondition = `t.type = 'action' AND t.button_id IN (${actionIds.join(',')})`;
+			actionsCondition = `(${actionsCondition})`;
+		} else {
+			actionsCondition = '1=1';
+		}
+
+		const baseQuery = `
+			SELECT t.timestamp_start as timestamp_start, t.timestamp_end as timestamp_end
+			FROM timeline_entry as t LEFT JOIN timeline_entry_tag as tt 
+				ON t.id = tt.timeline_entry_id
+			WHERE
+				(${eventsCondition}) AND (${actionsCondition})
+			GROUP BY t.id, t.timestamp_start, t.timestamp_end
+			ORDER BY t.timestamp_start;`;
+
+		const entries =
+			await this.db.select<{ timestamp_start: number; timestamp_end: number }[]>(baseQuery);
+
+		return entries.map((entry) => [entry.timestamp_start, entry.timestamp_end]);
+	}
+
 	async addEntry(
 		buttonId: number,
 		categoryId: number,

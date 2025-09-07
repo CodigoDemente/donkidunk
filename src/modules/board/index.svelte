@@ -17,8 +17,6 @@
 	function addCategory(categoryType: 'eventCategories' | 'actionCategories') {
 		return (name: string, color: string) => context.addCategory(categoryType, name, color);
 	}
-
-	$inspect(currentTime);
 </script>
 
 <div id="boards-container" class="flex h-full min-h-0 flex-1 flex-col">

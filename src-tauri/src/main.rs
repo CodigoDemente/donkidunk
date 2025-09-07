@@ -3,6 +3,7 @@
 
 mod commands;
 mod menu;
+
 #[cfg(target_os = "linux")]
 mod server;
 
@@ -43,7 +44,7 @@ async fn main() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(
             tauri_plugin_log::Builder::new()
-                .level(log::LevelFilter::Info)
+                .level(log::LevelFilter::Debug)
                 .build(),
         )
         .plugin(tauri_plugin_opener::init())
@@ -52,7 +53,7 @@ async fn main() {
     let app = create_app(builder);
 
     app.run(|_, event| {
-        log::debug!("Tauri event: {event:?}");
+        // log::debug!("Tauri event: {event:?}");{}
 
         match event {
             tauri::RunEvent::Ready => {
