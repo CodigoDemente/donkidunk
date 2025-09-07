@@ -1,13 +1,15 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
+	import type { RouteId } from '$app/types';
 
 	let isNavbarOpen = false;
 	function toggleNavbar() {
 		isNavbarOpen = !isNavbarOpen; // Toggle the navbar state
 	}
 
-	function navigateTo(page: string) {
-		goto(page); // Navigate to the specified route
+	function navigateTo(page: RouteId) {
+		goto(resolve(page)); // Navigate to the specified route
 	}
 </script>
 
@@ -22,9 +24,9 @@
 		<li>
 			<button type="button" on:click={() => navigateTo('/export')}>Export</button>
 		</li>
-		<li>
+		<!-- <li>
 			<button type="button" on:click={() => navigateTo('/graphics')}>Graphics</button>
-		</li>
+		</li> -->
 	</ul>
 </navbar>
 
