@@ -9,9 +9,9 @@ export class UndoManager {
 	private timelineContext: Timeline;
 	private editions: UndoEditionStack;
 
-	constructor() {
-		this.boardContext = boardContext.get();
-		this.timelineContext = timelineContext.get();
+	constructor(boardContextInstance?: Board, timelineContextInstance?: Timeline) {
+		this.boardContext = boardContextInstance || boardContext.get();
+		this.timelineContext = timelineContextInstance || timelineContext.get();
 
 		this.editions = {
 			undoStack: [],

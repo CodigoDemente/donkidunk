@@ -65,8 +65,8 @@
 	<div class="flex w-full border-b border-gray-300" role="separator"></div>
 	<h3>Events</h3>
 	<div class="flex w-full flex-row gap-2">
-		{#each board.eventCategories as category}
-			{#each category.buttons as button}
+		{#each board.eventCategories as category (category.id)}
+			{#each category.buttons as button (button.id)}
 				<button
 					class="cursor-pointer rounded px-4 py-2 disabled:opacity-50"
 					style="background-color: {category.color}; color: {getTextColorForBackground(
@@ -92,7 +92,7 @@
 	<div class="flex w-full border-b border-gray-300" role="separator"></div>
 	<h3>Tags</h3>
 	<div class="flex w-full flex-row gap-2">
-		{#each Object.entries(board.tagsById) as [id, tag]}
+		{#each Object.entries(board.tagsById) as [id, tag] (id)}
 			<button
 				class="cursor-pointer rounded px-4 py-2 disabled:opacity-50"
 				style="background-color: {tag.color}; color: {getTextColorForBackground(tag.color)}"
