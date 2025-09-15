@@ -1,6 +1,7 @@
 import { emit } from '@tauri-apps/api/event';
 import { BoardRepositoryFactory } from '../../../factories/BoardRepositoryFactory';
 import BoardStore from './store.svelte';
+import type { Button } from './types/Button';
 
 const boardStore = BoardStore.state;
 
@@ -38,18 +39,18 @@ export const boardActions = {
 	async addButtonToCategory(
 		section: 'eventCategories' | 'actionCategories',
 		categoryId: number,
-		name: string
+		button: Button
 	): Promise<void> {
 		const repository = BoardRepositoryFactory.getInstance();
 
 		const cat = boardStore[section].find((c) => c.id === categoryId);
 
-		const res = await repository.addButtonToCategory(categoryId, name);
+		const resId = await repository.addButtonToCategory(categoryId, button);
 
 		if (cat) {
 			cat.buttons.push({
-				id: res,
-				name: name
+				id: resId,
+				...button
 			});
 		}
 
@@ -58,24 +59,27 @@ export const boardActions = {
 
 	async addCategory(
 		section: 'eventCategories' | 'actionCategories',
-		name: string,
-		color: string
+		form: { categoryName: string; categoryColor: string; buttons: Button[] }
 	): Promise<void> {
 		const repository = BoardRepositoryFactory.getInstance();
+		const { categoryName: name, categoryColor: color, buttons } = form;
 
-		const res = await repository.addCategory(
+		const resId = await repository.addCategory(
 			section === 'eventCategories' ? 'event' : 'action',
 			name,
 			color
 		);
-
 		boardStore[section].push({
-			id: res,
+			id: resId,
 			name: name,
 			color: color,
 			position: { x: 0, y: 0 },
 			buttons: []
 		});
+
+		for (const button of buttons) {
+			await boardActions.addButtonToCategory(section, resId, button);
+		}
 
 		await emit('project:dirty');
 	}
