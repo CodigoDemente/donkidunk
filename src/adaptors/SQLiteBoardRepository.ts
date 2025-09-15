@@ -4,6 +4,7 @@ import type { Category } from '../persistence/stores/board/types/Category';
 import type { DatabaseCategory } from './types/DatabaseCategory';
 import type { Tag } from '../persistence/stores/board/types/Tag';
 import type { DatabaseTag } from './types/DatabaseTag';
+import type { Button } from '../persistence/stores/board/types/Button';
 
 export class SQLiteBoardRepository implements BoardRepository {
 	constructor(private readonly db: Database) {}
@@ -69,11 +70,11 @@ export class SQLiteBoardRepository implements BoardRepository {
 		return result.lastInsertId!;
 	}
 
-	async addButtonToCategory(categoryId: number, name: string): Promise<number> {
+	async addButtonToCategory(categoryId: number, button: Button): Promise<number> {
 		const result = await this.db.execute(
-			`INSERT INTO button (name, category_id)
-             VALUES ($1, $2)`,
-			[name, categoryId]
+			`INSERT INTO button (name, range, duration, before, category_id)
+             VALUES ($1, $2, $3, $4, $5)`,
+			[button.name, button.range, button.duration, button.before, categoryId]
 		);
 		return result.lastInsertId!;
 	}
