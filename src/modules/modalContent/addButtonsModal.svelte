@@ -6,20 +6,19 @@
 	import type { Button } from '../../persistence/stores/board/types/Button';
 	import { inputRawContent } from './utils';
 
-	export let form: { name: string; description: string; buttons: Button[] };
+	export let form: { categoryName: string; categoryColor: string; buttons: Button[] };
 
 	let newButton: Button = {
 		name: '',
 		range: '',
 		duration: '',
-		before: '',
-		id: crypto.randomUUID()
+		before: ''
 	};
 
 	function addButton() {
 		if (newButton.name) {
 			form.buttons = [...form.buttons, { ...newButton }];
-			newButton = { name: '', range: '', duration: '', before: '', id: crypto.randomUUID() };
+			newButton = { name: '', range: '', duration: '', before: '' };
 		}
 	}
 
