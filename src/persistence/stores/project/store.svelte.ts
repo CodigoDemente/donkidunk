@@ -15,6 +15,7 @@ export const InitialProjectData: ProjectData = {
 	},
 	modal: {
 		content: null,
+		contentProps: undefined,
 		title: undefined,
 		onCancel: undefined,
 		onSubmit: undefined,

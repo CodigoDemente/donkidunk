@@ -26,9 +26,9 @@
 		>
 			<!-- Header -->
 			<div class="flex items-center justify-between border-b border-gray-700 px-3 py-1">
-				<span class="text-xs text-gray-400">{modalStore.title}</span>
+				<span class="text-sm text-gray-400">{modalStore.title}</span>
 				<button
-					class="text-gray-400 transition hover:text-white"
+					class="text-2xl text-gray-400 transition hover:cursor-pointer hover:text-white"
 					aria-label="Close"
 					on:click={() => {
 						modalStore.show = false;
@@ -39,7 +39,7 @@
 				</button>
 			</div>
 			<!-- Content -->
-			<svelte:component this={modalStore.content} />
+			<svelte:component this={modalStore.content} {...modalStore.contentProps} />
 			<!-- Footer -->
 			<div class="flex justify-end gap-2 border-t border-gray-700 px-4 py-2">
 				<Button

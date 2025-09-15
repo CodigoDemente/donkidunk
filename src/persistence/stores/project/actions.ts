@@ -42,6 +42,7 @@ export const projectActions = {
 
 	setModal({
 		content,
+		contentProps,
 		title,
 		onCancel,
 		onSubmit,
@@ -49,13 +50,14 @@ export const projectActions = {
 		size
 	}: {
 		content: unknown;
+		contentProps?: Record<string, unknown>;
 		title: string;
 		onCancel: () => void;
 		onSubmit: () => void;
 		show: boolean;
 		size: ModalSize;
 	}): void {
-		projectStore.modal = { content, title, onCancel, onSubmit, show, size };
+		projectStore.modal = { content, title, onCancel, onSubmit, show, size, contentProps };
 	},
 
 	setDatabase(db: Database | null): void {

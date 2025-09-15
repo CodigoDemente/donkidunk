@@ -16,6 +16,7 @@ export type ProjectData = {
 	};
 	modal: {
 		content: unknown;
+		contentProps?: Record<string, unknown>;
 		title?: string;
 		onCancel?: () => void;
 		onSubmit?: () => void;
