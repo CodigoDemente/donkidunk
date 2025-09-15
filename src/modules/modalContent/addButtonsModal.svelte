@@ -1,19 +1,30 @@
 <script lang="ts">
-	type ButtonType = { name: string; type: string; duration: string };
-	let categoryName = '';
-	let categoryColor = '#ff9900';
-	let buttons: ButtonType[] = [];
-	let newButton = { name: '', type: '', duration: '' };
+	import Dropdown from '../../components/dropdown/dropdown.svelte';
+	import Input from '../../components/input/input.svelte';
+	import type { InputSizes } from '../../components/input/types';
+	import Tooltip from '../../components/tooltip/tooltip.svelte';
+	import type { Button } from '../../persistence/stores/board/types/Button';
+	import { inputRawContent } from './utils';
+
+	export let form: { name: string; description: string; buttons: Button[] };
+
+	let newButton: Button = {
+		name: '',
+		range: '',
+		duration: '',
+		before: '',
+		id: crypto.randomUUID()
+	};
 
 	function addButton() {
 		if (newButton.name) {
-			buttons = [...buttons, { ...newButton }];
-			newButton = { name: '', type: '', duration: '' };
+			form.buttons = [...form.buttons, { ...newButton }];
+			newButton = { name: '', range: '', duration: '', before: '', id: crypto.randomUUID() };
 		}
 	}
 
 	function removeButton(idx: number) {
-		buttons = buttons.filter((_, i) => i !== idx);
+		form.buttons = form.buttons.filter((_, i) => i !== idx);
 	}
 </script>
 
@@ -21,45 +32,45 @@
 	<!-- Category Name -->
 	<div>
 		<div class="mb-4 border-b border-gray-700">
-			<span class="text-xs text-gray-100">Category settings</span>
+			<span class="text-xs text-gray-100">{inputRawContent.firstSection.name}</span>
 		</div>
-		<label class="mb-4 flex items-center gap-4 text-sm text-white">
-			<p class="w-[120px]">Name</p>
-			<input
-				class="rounded bg-gray-700 px-2 py-1 text-white"
-				bind:value={categoryName}
-				placeholder="Enter category name"
+		{#each inputRawContent.firstSection.inputs as input}
+			<Input
+				horizontal
+				label={input.name}
+				placeholder={input.placeholder}
+				type={input.type}
+				bind:value={form[input.formValue as keyof typeof form] as string}
+				inputClass={input.inputClass}
 			/>
-		</label>
-		<!-- Color Selector -->
-		<label class="flex items-center gap-4 text-sm text-white">
-			<p class="w-[120px]">Color</p>
-			<div>
-				<input type="color" bind:value={categoryColor} class="h-8 w-8 border-0 bg-transparent" />
-				<span class="ml-2">{categoryColor}</span>
-			</div>
-		</label>
+		{/each}
 	</div>
 	<!-- Buttons Table -->
 	<div>
-		<div class="mb-4 border-b border-gray-700">
-			<span class="text-xs text-gray-100">Button settings</span>
+		<div class="mb-2 border-b border-gray-700">
+			<span class="text-xs text-gray-100">{inputRawContent.secondSection.name}</span>
 		</div>
-		<table class="w-full rounded bg-gray-700 text-xs text-white">
+		<table class="w-full rounded bg-gray-700 text-sm text-white">
 			<thead>
 				<tr>
-					<th class="p-2 text-left">Name</th>
-					<th class="p-2 text-left">Type</th>
-					<th class="p-2 text-left">Duration</th>
-					<th class="p-2"></th>
+					{#each inputRawContent.secondSection.tableHeaders as header}
+						<th class="p-2 text-left">
+							{#if header.tooltip}
+								<Tooltip size="medium" text={header.tooltip} info>{header.text}</Tooltip>
+							{:else}
+								{header.text}
+							{/if}
+						</th>
+					{/each}
 				</tr>
 			</thead>
 			<tbody>
-				{#each buttons as btn, idx}
+				{#each form.buttons as btn, idx}
 					<tr>
 						<td class="p-2">{btn.name}</td>
-						<td class="p-2">{btn.type}</td>
+						<td class="p-2">{btn.range}</td>
 						<td class="p-2">{btn.duration}</td>
+						<td class="p-2">{btn.before}</td>
 						<td class="p-2">
 							<button class="text-red-400 hover:text-red-600" on:click={() => removeButton(idx)}
 								>&times;</button
@@ -68,27 +79,32 @@
 					</tr>
 				{/each}
 				<tr>
-					<td class="p-2">
-						<input
-							class="w-full rounded bg-gray-800 px-1 py-0.5 text-white"
-							bind:value={newButton.name}
-							placeholder="Name"
-						/>
-					</td>
-					<td class="p-2">
-						<input
-							class="w-full rounded bg-gray-800 px-1 py-0.5 text-white"
-							bind:value={newButton.type}
-							placeholder="Type"
-						/>
-					</td>
-					<td class="p-2">
-						<input
-							class="w-full rounded bg-gray-800 px-1 py-0.5 text-white"
-							bind:value={newButton.duration}
-							placeholder="Duration"
-						/>
-					</td>
+					{#each inputRawContent.secondSection.tableInputs as input}
+						<td class="p-2">
+							{#if input.type === 'dropdown'}
+								<!-- ON CHANGE ON DROPDWN AND INPUT -->
+								<Dropdown
+									placeholder={input.placeholder}
+									options={input.options}
+									size={input.size as InputSizes}
+									selectClass="bg-gray-800"
+									noErrors
+									bind:value={newButton[input.formValue as keyof typeof newButton] as string}
+								/>
+							{/if}
+							{#if input.type === 'input'}
+								<Input
+									placeholder={input.placeholder}
+									inputClass="bg-gray-800"
+									type="text"
+									size={input.size as InputSizes}
+									maxlength={15}
+									noErrors
+									bind:value={newButton[input.formValue as keyof typeof newButton] as string}
+								/>
+							{/if}
+						</td>
+					{/each}
 					<td class="p-2">
 						<button class="text-green-400 hover:text-green-600" on:click={addButton}>+</button>
 					</td>

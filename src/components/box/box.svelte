@@ -3,8 +3,9 @@
 	import { boardActions } from '../../persistence/stores/board/actions';
 	import { projectActions } from '../../persistence/stores/project/actions';
 	import AddButtonsModal from '../../modules/modalContent/addButtonsModal.svelte';
-	import Button from '../button/button.svelte';
 	import { IconPlus, IconChevronDown } from '@tabler/icons-svelte';
+	import type { Button as ButtonType } from '../../persistence/stores/board/types/Button';
+	import Button from '../button/button.svelte';
 
 	let isResizing = false;
 	let frame: number | null = null;
@@ -68,12 +69,23 @@
 		e.preventDefault();
 	}
 
+	let form: {
+		categoryName: string;
+		categoryColor: string;
+		buttons: ButtonType[];
+	} = {
+		categoryName: '',
+		categoryColor: '#ff9900',
+		buttons: []
+	};
+
 	function handleModalOpen() {
 		projectActions.setModal({
 			content: AddButtonsModal,
+			contentProps: { form: form },
 			title: `Add category to ${title}`,
 			onCancel: () => console.log('Modal cancelled'),
-			onSubmit: () => console.log('Modal submitted'),
+			onSubmit: () => boardActions.addCategory(type, form),
 			show: true,
 			size: 'medium'
 		});
@@ -130,9 +142,6 @@
 		{/each}
 	{/if}
 </div>
-
-<!-- Add updateCategoryName, addButtonToCategory, timelineactions.addEvent -->
-<!-- <input type="color" bind:value={category.color} class="mt-2" /> -->
 
 <div class="h-1"></div>
 
