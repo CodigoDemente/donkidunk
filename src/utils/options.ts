@@ -1,15 +1,19 @@
-export const typeOptions = [
+export type Option = {
+	value: string | number;
+	label: string;
+};
+export const typeOptions: Option[] = [
 	{
-		value: 'ACTION',
-		label: 'Action'
+		value: 'FIXED',
+		label: 'Fixed'
 	},
 	{
-		value: 'EVENT',
-		label: 'Event'
+		value: 'DYNAMIC',
+		label: 'Dynamic'
 	}
 ];
 
-export const secondsOptions = [1, 2, 3, 4, 5].map((num) => {
+export const secondsOptions: Option[] = [1, 2, 3, 4, 5].map((num) => {
 	return {
 		value: num,
 		label: `${num}s`

@@ -3,10 +3,12 @@
 	import Input from '../../components/input/input.svelte';
 	import type { InputSizes } from '../../components/input/types';
 	import Tooltip from '../../components/tooltip/tooltip.svelte';
+	import BoardStore from '../../persistence/stores/board/store.svelte';
 	import type { Button } from '../../persistence/stores/board/types/Button';
+	import type { Option } from '../../utils/options';
 	import { inputRawContent } from './utils';
 
-	export let form: { categoryName: string; categoryColor: string; buttons: Button[] };
+	const boardStore = BoardStore.state;
 
 	let newButton: Button = {
 		name: '',
@@ -17,13 +19,17 @@
 
 	function addButton() {
 		if (newButton.name) {
-			form.buttons = [...form.buttons, { ...newButton }];
+			boardStore.category.buttons = [...boardStore.category.buttons, { ...newButton }];
 			newButton = { name: '', range: '', duration: '', before: '' };
 		}
 	}
 
 	function removeButton(idx: number) {
-		form.buttons = form.buttons.filter((_, i) => i !== idx);
+		boardStore.category.buttons = boardStore.category.buttons.filter((_, i) => i !== idx);
+	}
+
+	function getLabel(options: Option[], value: string | number) {
+		return options.find((opt) => opt.value === value)?.label ?? value;
 	}
 </script>
 
@@ -39,7 +45,9 @@
 				label={input.name}
 				placeholder={input.placeholder}
 				type={input.type}
-				bind:value={form[input.formValue as keyof typeof form] as string}
+				bind:value={
+					boardStore.category[input.formValue as keyof typeof boardStore.category] as string
+				}
 				inputClass={input.inputClass}
 			/>
 		{/each}
@@ -64,14 +72,22 @@
 				</tr>
 			</thead>
 			<tbody>
-				{#each form.buttons as btn, idx}
+				{#each boardStore.category.buttons as btn, idx}
 					<tr>
-						<td class="p-2">{btn.name}</td>
-						<td class="p-2">{btn.range}</td>
-						<td class="p-2">{btn.duration}</td>
-						<td class="p-2">{btn.before}</td>
+						{#each inputRawContent.secondSection.tableInputs as input}
+							<td class="p-2">
+								{#if input.options}
+									{getLabel(
+										input.options as Option[],
+										btn[input.formValue as keyof typeof btn] as string
+									)}
+								{:else}
+									{btn[input.formValue as keyof typeof btn]}
+								{/if}
+							</td>
+						{/each}
 						<td class="p-2">
-							<button class="text-red-400 hover:text-red-600" on:click={() => removeButton(idx)}
+							<button class="text-red-400 hover:text-red-600" onclick={() => removeButton(idx)}
 								>&times;</button
 							>
 						</td>
@@ -81,7 +97,6 @@
 					{#each inputRawContent.secondSection.tableInputs as input}
 						<td class="p-2">
 							{#if input.type === 'dropdown'}
-								<!-- ON CHANGE ON DROPDWN AND INPUT -->
 								<Dropdown
 									placeholder={input.placeholder}
 									options={input.options}
@@ -105,7 +120,7 @@
 						</td>
 					{/each}
 					<td class="p-2">
-						<button class="text-green-400 hover:text-green-600" on:click={addButton}>+</button>
+						<button class="text-green-400 hover:text-green-600" onclick={addButton}>+</button>
 					</td>
 				</tr>
 			</tbody>

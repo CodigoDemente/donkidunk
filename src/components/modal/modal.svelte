@@ -1,8 +1,9 @@
 <script lang="ts">
+	import BoardStore from '../../persistence/stores/board/store.svelte';
 	import type { ModalSize } from '../../persistence/stores/project/types/Project';
 	import Button from '../button/button.svelte';
 
-	export let modalStore;
+	const { modalStore } = $props();
 
 	const sizesToClass = {
 		small: 'max-w-md',
@@ -10,8 +11,6 @@
 		large: 'max-w-3xl',
 		extralarge: 'max-w-4xl'
 	};
-
-	const modalSize = sizesToClass[modalStore.size as ModalSize];
 </script>
 
 <!-- !DO NOT USE THIS COMPONENT. This modal is called at the root of the application, then it can be reused throughout the app! -->
@@ -30,7 +29,7 @@
 				<button
 					class="text-2xl text-gray-400 transition hover:cursor-pointer hover:text-white"
 					aria-label="Close"
-					on:click={() => {
+					onclick={() => {
 						modalStore.show = false;
 						modalStore.onCancel();
 					}}
@@ -39,7 +38,7 @@
 				</button>
 			</div>
 			<!-- Content -->
-			<svelte:component this={modalStore.content} {...modalStore.contentProps} />
+			<modalStore.content />
 			<!-- Footer -->
 			<div class="flex justify-end gap-2 border-t border-gray-700 px-4 py-2">
 				<Button
@@ -50,7 +49,15 @@
 				>
 					Cancel
 				</Button>
-				<Button primary onClick={modalStore.onSubmit}>Submit</Button>
+				<Button
+					primary
+					onClick={() => {
+						modalStore.onSubmit();
+						modalStore.show = false;
+					}}
+				>
+					Submit
+				</Button>
 			</div>
 		</div>
 	</div>

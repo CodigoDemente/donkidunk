@@ -1,6 +1,6 @@
 import { emit } from '@tauri-apps/api/event';
 import { BoardRepositoryFactory } from '../../../factories/BoardRepositoryFactory';
-import BoardStore from './store.svelte';
+import BoardStore, { categoryState } from './store.svelte';
 import type { Button } from './types/Button';
 
 const boardStore = BoardStore.state;
@@ -8,6 +8,10 @@ const boardStore = BoardStore.state;
 export const boardActions = {
 	setEditingMode(value: boolean) {
 		boardStore.isEditing = value;
+	},
+
+	resetCategoryForm() {
+		boardStore.category = { ...categoryState };
 	},
 
 	async updateCategoryPosition(
@@ -57,30 +61,34 @@ export const boardActions = {
 		await emit('project:dirty');
 	},
 
-	async addCategory(
-		section: 'eventCategories' | 'actionCategories',
-		form: { categoryName: string; categoryColor: string; buttons: Button[] }
-	): Promise<void> {
-		const repository = BoardRepositoryFactory.getInstance();
-		const { categoryName: name, categoryColor: color, buttons } = form;
+	async addCategory(section: 'eventCategories' | 'actionCategories'): Promise<void> {
+		try {
+			const { name, color, buttons } = boardStore.category;
+			const repository = BoardRepositoryFactory.getInstance();
 
-		const resId = await repository.addCategory(
-			section === 'eventCategories' ? 'event' : 'action',
-			name,
-			color
-		);
-		boardStore[section].push({
-			id: resId,
-			name: name,
-			color: color,
-			position: { x: 0, y: 0 },
-			buttons: []
-		});
+			const resId = await repository.addCategory(
+				section === 'eventCategories' ? 'event' : 'action',
+				name,
+				color
+			);
+			boardStore[section].push({
+				id: resId,
+				name: name,
+				color: color,
+				position: { x: 0, y: 0 },
+				buttons: []
+			});
 
-		for (const button of buttons) {
-			await boardActions.addButtonToCategory(section, resId, button);
+			for (const button of buttons) {
+				await boardActions.addButtonToCategory(section, resId, button);
+			}
+
+			await emit('project:dirty');
+
+			boardActions.resetCategoryForm();
+		} catch (error) {
+			//TODO: REUSABLE SNACKBAR ERROR TO CREATE;
+			console.error('Error adding category:', error);
 		}
-
-		await emit('project:dirty');
 	}
 };

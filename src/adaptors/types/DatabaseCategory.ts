@@ -9,4 +9,7 @@ export type DatabaseCategory = {
 	type: 'event' | 'action';
 	button_id: DatabaseButton['id'];
 	button_name: DatabaseButton['name'];
+	button_range: DatabaseButton['range'];
+	button_duration: DatabaseButton['duration'];
+	button_before: DatabaseButton['before'];
 };

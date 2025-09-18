@@ -1,10 +1,19 @@
 import type { BoardData } from './types/Board';
 
+export const categoryState = {
+	id: undefined,
+	name: '',
+	color: '',
+	position: { x: 0, y: 0 },
+	buttons: []
+};
+
 const initialState: BoardData = {
 	isEditing: false,
 	eventCategories: [],
 	tagsRelatedToEvents: [],
-	actionCategories: []
+	actionCategories: [],
+	category: { ...categoryState }
 };
 
 let boardStore = $state<BoardData>(initialState);

@@ -1,14 +1,28 @@
 <script lang="ts">
 	import { IconInfoCircle } from '@tabler/icons-svelte';
+	import type { Snippet } from 'svelte';
 
-	export let text: string = '';
-	export let size: 'small' | 'medium' | 'large' = 'small';
-	export let position: 'top' | 'bottom' | 'left' | 'right' = 'top';
-	export let info: boolean = false;
-	export let tooltipColor: string = 'text-tertiary';
-	export let tooltipSize: string = 'h-4 w-4';
+	interface Props {
+		text?: string;
+		size?: 'small' | 'medium' | 'large';
+		position?: 'top' | 'bottom' | 'left' | 'right';
+		info?: boolean;
+		tooltipColor?: string;
+		tooltipSize?: string;
+		children: Snippet;
+	}
 
-	let show = false;
+	let {
+		text = '',
+		size = 'small',
+		position = 'top',
+		info = false,
+		tooltipColor = 'text-tertiary',
+		tooltipSize = 'h-4 w-4',
+		children
+	}: Props = $props();
+
+	let show = $state(false);
 
 	const sizeToClass = {
 		small: 'text-[10px] font-light p-2',
@@ -27,13 +41,15 @@
 <span class="relative inline-flex">
 	<span
 		class="flex cursor-pointer items-start justify-start"
-		on:mouseenter={() => (show = true)}
-		on:mouseleave={() => (show = false)}
-		on:focus={() => (show = true)}
-		on:blur={() => (show = false)}
+		onmouseenter={() => (show = true)}
+		onmouseleave={() => (show = false)}
+		onfocus={() => (show = true)}
+		onblur={() => (show = false)}
+		role="button"
 		tabindex="0"
+		aria-label="Show tooltip"
 	>
-		<slot />
+		{@render children()}
 		{#if info}
 			<IconInfoCircle class="ml-1 {tooltipSize} {tooltipColor}" />
 		{/if}

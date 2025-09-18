@@ -1,27 +1,26 @@
 <script lang="ts">
-	import type { InputSizes } from './types';
+	import type { InputProps } from './types';
 
-	export let label: string = '';
-	export let value: string = '';
-	export let type: string = 'text';
-	export let placeholder: string = '';
-	export let name: string = '';
-	export let id: string = '';
-	export let required: boolean = false;
-	export let disabled: boolean = false;
-	export let autocomplete: string = 'off';
-	export let readonly: boolean = false;
-	export let minlength: number | undefined = undefined;
-	export let maxlength: number | undefined = undefined;
-	export let step: string | number = '';
-	export let pattern: string = '';
-	export let inputClass: string = '';
-	export let labelClass: string = '';
-	export let error: string = '';
-	export let size: InputSizes = 'medium';
-	export let horizontal: boolean = false;
-	export let onInput: (e: Event) => void = () => {};
-	export let noErrors: boolean = false; // If passed no fixed space for errors will be reserved
+	let {
+		label = '',
+		value = $bindable(),
+		type = 'text',
+		placeholder = '',
+		name = '',
+		id = '',
+		required = false,
+		disabled = false,
+		autocomplete = 'off',
+		readonly = false,
+		minlength = undefined,
+		maxlength = undefined,
+		inputClass = '',
+		labelClass = '',
+		error = '',
+		size = 'medium',
+		horizontal = false,
+		noErrors = false
+	}: InputProps = $props();
 
 	const sizeToClass = {
 		mini: 'w-18',
@@ -52,9 +51,6 @@
 			{readonly}
 			{minlength}
 			{maxlength}
-			{step}
-			{pattern}
-			on:input={onInput}
 		/>
 		{#if error}
 			<p class="mt-1 w-full text-xs text-red-400">{error}</p>

@@ -1,21 +1,22 @@
 <script lang="ts">
 	import { IconChevronDown } from '@tabler/icons-svelte';
-	import type { InputSizes } from '../input/types';
+	import type { Props } from './types';
 
-	export let label: string = '';
-	export let options: { value: string | number; label: string }[] = [];
-	export let value: string = '';
-	export let name: string = '';
-	export let id: string = '';
-	export let required: boolean = false;
-	export let disabled: boolean = false;
-	export let labelClass: string = '';
-	export let selectClass: string = '';
-	export let error: string = '';
-	export let size: InputSizes = 'medium';
-	export let horizontal: boolean = false;
-	export let placeholder: string | undefined = undefined;
-	export let noErrors: boolean = false; // Prop that controls error space
+	let {
+		label = '',
+		options = [],
+		value = $bindable(''),
+		name = '',
+		id = '',
+		disabled = false,
+		labelClass = '',
+		selectClass = '',
+		error = '',
+		size = 'medium',
+		horizontal = false,
+		placeholder = undefined,
+		noErrors = false
+	}: Props = $props();
 
 	const sizeToClass = {
 		mini: 'w-18',
@@ -25,7 +26,7 @@
 		full: 'w-full'
 	};
 
-	let open = false;
+	let open = $state(false);
 
 	const onChange = (val: string | number) => {
 		value = val as string;
@@ -45,7 +46,7 @@
 			class={`h-[26px] rounded border-0 bg-gray-700 px-2 py-1 text-left text-sm text-white ${sizeToClass[size]} ${selectClass} flex items-center justify-between transition-all
               ${open ? 'ring-2 ring-violet-700' : ''} disabled:cursor-not-allowed disabled:opacity-50
             `}
-			on:click={() => (open = !open)}
+			onclick={() => (open = !open)}
 			{disabled}
 			tabindex="0"
 			aria-haspopup="listbox"
@@ -74,7 +75,7 @@
 						class="cursor-pointer px-2 py-1 text-white hover:bg-gray-600"
 						role="option"
 						aria-selected={opt.value === value}
-						on:mousedown|preventDefault={() => onChange(opt.value)}
+						onmousedown={(event) => (event.preventDefault(), onChange(opt.value))}
 					>
 						{opt.label}
 					</li>

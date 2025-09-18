@@ -6,14 +6,15 @@ export const inputRawContent = {
 		inputs: [
 			{
 				name: 'Name',
+				type: 'text',
 				placeholder: 'enter the name of the category',
-				formValue: 'categoryName'
+				formValue: 'name'
 			},
 			{
 				name: 'Color',
 				type: 'color',
 				inputClass: 'h-8! w-8! border-0 bg-transparent p-0!',
-				formValue: 'categoryColor'
+				formValue: 'color'
 			}
 		]
 	},

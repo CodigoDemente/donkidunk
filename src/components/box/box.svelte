@@ -1,21 +1,15 @@
 <script lang="ts">
-	import type { Category } from '../../persistence/stores/board/types/Category';
 	import { boardActions } from '../../persistence/stores/board/actions';
 	import { projectActions } from '../../persistence/stores/project/actions';
-	import AddButtonsModal from '../../modules/modalContent/addButtonsModal.svelte';
+	import addCategoryModal from '../../modules/modalContent/addCategoryModal.svelte';
 	import { IconPlus, IconChevronDown } from '@tabler/icons-svelte';
-	import type { Button as ButtonType } from '../../persistence/stores/board/types/Button';
 	import Button from '../button/button.svelte';
+	import type { Props } from './types';
 
 	let isResizing = false;
 	let frame: number | null = null;
 
-	export let boxHeight: number;
-	export let isOpened: boolean;
-	export let otherIsOpened: boolean;
-	export let title: string;
-	export let type: 'eventCategories' | 'actionCategories';
-	export let categories: Category[];
+	let { boxHeight, isOpened, otherIsOpened, title, type, categories }: Props = $props();
 
 	function resize(e: MouseEvent) {
 		if (!isResizing) return;
@@ -69,23 +63,12 @@
 		e.preventDefault();
 	}
 
-	let form: {
-		categoryName: string;
-		categoryColor: string;
-		buttons: ButtonType[];
-	} = {
-		categoryName: '',
-		categoryColor: '#ff9900',
-		buttons: []
-	};
-
 	function handleModalOpen() {
 		projectActions.setModal({
-			content: AddButtonsModal,
-			contentProps: { form: form },
+			content: addCategoryModal,
 			title: `Add category to ${title}`,
-			onCancel: () => console.log('Modal cancelled'),
-			onSubmit: () => boardActions.addCategory(type, form),
+			onCancel: () => boardActions.resetCategoryForm(),
+			onSubmit: () => boardActions.addCategory(type),
 			show: true,
 			size: 'medium'
 		});
@@ -101,7 +84,7 @@
 		<p class="text-xs font-semibold text-white">{title}</p>
 		<button
 			class="ml-2 rounded p-1 transition hover:text-gray-200"
-			on:click={() => (isOpened = !isOpened)}
+			onclick={() => (isOpened = !isOpened)}
 			aria-label={isOpened ? 'Fold Events' : 'Unfold Events'}
 		>
 			<span class="inline-block transition-transform duration-200" class:rotate-180={isOpened}>
@@ -117,8 +100,8 @@
 		{#each categories as category (category.id)}
 			<div
 				class="relative min-h-0 min-w-0 flex-1 overflow-hidden"
-				on:drop={(e) => handleDrop(e, category.id)}
-				on:dragover={allowDrop}
+				ondrop={(e) => handleDrop(e, category.id as number)}
+				ondragover={allowDrop}
 				id={`drop-area-${category.id}`}
 				role="region"
 				aria-label="Drop area"
@@ -131,7 +114,7 @@
 					left: {category.position.x}%;
 					top: {category.position.y}%;"
 					draggable="true"
-					on:dragstart={handleDragStart}
+					ondragstart={handleDragStart}
 					role="button"
 					aria-grabbed="true"
 					tabindex="0"
@@ -146,9 +129,12 @@
 <div class="h-1"></div>
 
 {#if isOpened}
-	<div
+	<button
+		type="button"
 		class="h-1 w-full flex-shrink-0 cursor-row-resize bg-gray-900"
-		on:mousedown={startResize}
+		onmousedown={startResize}
 		style="z-index: 20;"
-	></div>
+		aria-label="Resize section"
+		tabindex="0"
+	></button>
 {/if}

@@ -2,7 +2,7 @@
 	import BoardStore from '../../persistence/stores/board/store.svelte';
 	import Box from '../../components/box/box.svelte';
 
-	export let checkTime;
+	let { checkTime } = $props();
 
 	const eventCategories = BoardStore.state.eventCategories;
 	const actionCategories = BoardStore.state.actionCategories;

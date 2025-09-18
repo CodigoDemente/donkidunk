@@ -5,6 +5,7 @@
 	import ProjectStore from '../persistence/stores/project/store.svelte';
 	import '../styles/page.css';
 	import Modal from '../components/modal/modal.svelte';
+	import BoardStore from '../persistence/stores/board/store.svelte';
 
 	type VideoPlayerComponent = SvelteComponent & {
 		getCurrentTime: () => number;
@@ -46,7 +47,7 @@
 	</div>
 	<div
 		class="w-1 cursor-col-resize bg-gray-900"
-		on:mousedown={startResize}
+		onmousedown={startResize}
 		role="separator"
 		aria-orientation="horizontal"
 	></div>

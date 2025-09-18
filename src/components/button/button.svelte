@@ -1,11 +1,16 @@
 <script lang="ts">
-	export let onClick: () => void;
-	export let size: 'mini' | 'small' | 'medium' | 'large' | 'extralarge' | 'fluid' = 'medium';
-	export let style: string | undefined = undefined;
-	export let primary: boolean = false;
-	export let tertiary: boolean = false;
-	export let customClass: string | undefined = undefined;
-	export let disabled: boolean = false;
+	import type { Props } from './types';
+
+	let {
+		onClick = () => {},
+		size = 'medium',
+		style = undefined,
+		primary = false,
+		tertiary = false,
+		customClass = undefined,
+		disabled = false,
+		children
+	}: Props = $props();
 
 	const sizeToWidth = {
 		mini: 'w-6',
@@ -51,7 +56,7 @@
 	hover:cursor-pointer
 	${disabled ? 'cursor-not-allowed opacity-70' : ''}
 	transition`}
-	on:click={onClick}
+	onclick={onClick}
 >
-	<slot />
+	{@render children()}
 </button>
