@@ -36,6 +36,9 @@ export const migrations: Migration[] = [
 		CREATE TABLE IF NOT EXISTS button (
 			id INTEGER PRIMARY KEY,
 			name TEXT NOT NULL,
+			range TEXT,
+			duration INTEGER,
+			before INTEGER,
 			category_id INTEGER NOT NULL,
 			FOREIGN KEY (category_id) REFERENCES category(id) ON DELETE CASCADE
 		);`

@@ -4,13 +4,14 @@ import type { Category } from '../persistence/stores/board/types/Category';
 import type { DatabaseCategory } from './types/DatabaseCategory';
 import type { Tag } from '../persistence/stores/board/types/Tag';
 import type { DatabaseTag } from './types/DatabaseTag';
+import type { Button } from '../persistence/stores/board/types/Button';
 
 export class SQLiteBoardRepository implements BoardRepository {
 	constructor(private readonly db: Database) {}
 
 	async getSectionCategories(section: 'event' | 'action'): Promise<Category[]> {
 		const categories = await this.db.select<DatabaseCategory[]>(
-			`SELECT category.id, type, category.name, color, grid_position_x, grid_position_y, button.id AS button_id, button.name AS button_name
+			`SELECT category.id, type, category.name, color, grid_position_x, grid_position_y, button.id AS button_id, button.name AS button_name, button.range as button_range, button.duration as button_duration, button.before as button_before
              FROM category LEFT JOIN button ON category.id = button.category_id
              WHERE type = $1
              ORDER BY grid_position_y, grid_position_x`,
@@ -24,18 +25,24 @@ export class SQLiteBoardRepository implements BoardRepository {
 						id: category.id,
 						name: category.name,
 						color: category.color,
-						onGrid: [category.grid_position_x, category.grid_position_y],
+						position: { x: category.grid_position_x, y: category.grid_position_y },
 						buttons: [
 							{
 								id: category.button_id,
-								name: category.button_name
+								name: category.button_name,
+								range: category.button_range,
+								duration: category.button_duration,
+								before: Boolean(category.button_before)
 							}
 						]
 					};
 				} else {
 					acc[category.id].buttons.push({
 						id: category.button_id,
-						name: category.button_name
+						name: category.button_name,
+						range: category.button_range,
+						duration: category.button_duration,
+						before: Boolean(category.button_before)
 					});
 				}
 				return acc;
@@ -69,11 +76,11 @@ export class SQLiteBoardRepository implements BoardRepository {
 		return result.lastInsertId!;
 	}
 
-	async addButtonToCategory(categoryId: number, name: string): Promise<number> {
+	async addButtonToCategory(categoryId: number, button: Button): Promise<number> {
 		const result = await this.db.execute(
-			`INSERT INTO button (name, category_id)
-             VALUES ($1, $2)`,
-			[name, categoryId]
+			`INSERT INTO button (name, range, duration, before, category_id)
+             VALUES ($1, $2, $3, $4, $5)`,
+			[button.name, button.range, button.duration, Number(button.before), categoryId]
 		);
 		return result.lastInsertId!;
 	}

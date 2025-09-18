@@ -1,9 +1,9 @@
-import type { Action } from './Action';
+import type { Button } from './Button';
 
 export interface Category {
-	id: number;
+	id?: number;
 	name: string;
 	color: string;
-	onGrid: number[];
-	buttons: Action[];
+	position: { x: number; y: number };
+	buttons: Button[];
 }

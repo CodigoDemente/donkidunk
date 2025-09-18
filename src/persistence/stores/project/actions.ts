@@ -2,6 +2,7 @@ import type Database from '@tauri-apps/plugin-sql';
 import { ProjectRepositoryFactory } from '../../../factories/ProjectRepositoryFactory';
 import ProjectStore from './store.svelte';
 import { emit } from '@tauri-apps/api/event';
+import type { ModalSize } from './types/Project';
 
 const projectStore = ProjectStore.state;
 
@@ -37,6 +38,24 @@ export const projectActions = {
 
 	setCurrentFilePath(path: string): void {
 		projectStore.file.currentPath = path;
+	},
+
+	setModal({
+		content,
+		title,
+		onCancel,
+		onSubmit,
+		show,
+		size
+	}: {
+		content: unknown;
+		title: string;
+		onCancel: () => void;
+		onSubmit: () => void;
+		show: boolean;
+		size: ModalSize;
+	}): void {
+		projectStore.modal = { content, title, onCancel, onSubmit, show, size };
 	},
 
 	setDatabase(db: Database | null): void {

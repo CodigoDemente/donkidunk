@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Action } from '../../persistence/stores/board/types/Action';
+	import type { Button } from '../../persistence/stores/board/types/Button';
 	import type { Category } from '../../persistence/stores/board/types/Category';
 	import type {
 		RangeData,
@@ -21,7 +21,7 @@
 		allTagsByCategory: Record<string, RangeDataWithTags[] | RangeData[]>;
 		duration: number;
 		boardCategoriesById: Record<string, Category>;
-		buttonsListById: Record<string, Action>;
+		buttonsListById: Record<string, Button>;
 		onPlayObject?: RangeDataWithTags | null;
 		currentTime: number;
 		onClick?: (id: number) => void;

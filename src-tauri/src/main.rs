@@ -50,11 +50,8 @@ async fn main() {
     app.run(|_, event| {
         log::debug!("Tauri event: {event:?}");
 
-        match event {
-            tauri::RunEvent::Ready => {
-                log::debug!("Tauri is ready");
-            }
-            _ => {}
+        if let tauri::RunEvent::Ready = event {
+            log::debug!("Tauri is ready");
         }
     });
 }

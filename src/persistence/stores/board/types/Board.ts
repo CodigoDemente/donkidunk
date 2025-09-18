@@ -6,4 +6,5 @@ export type BoardData = {
 	eventCategories: Category[];
 	actionCategories: Category[];
 	tagsRelatedToEvents: Tag[];
+	category: Category;
 };

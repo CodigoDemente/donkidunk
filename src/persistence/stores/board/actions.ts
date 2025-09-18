@@ -1,12 +1,17 @@
 import { emit } from '@tauri-apps/api/event';
 import { BoardRepositoryFactory } from '../../../factories/BoardRepositoryFactory';
-import BoardStore from './store.svelte';
+import BoardStore, { categoryState } from './store.svelte';
+import type { Button } from './types/Button';
 
 const boardStore = BoardStore.state;
 
 export const boardActions = {
 	setEditingMode(value: boolean) {
 		boardStore.isEditing = value;
+	},
+
+	resetCategoryForm() {
+		boardStore.category = { ...categoryState };
 	},
 
 	async updateCategoryPosition(
@@ -20,7 +25,7 @@ export const boardActions = {
 		const cat = boardStore[section].find((c) => c.id === categoryId);
 
 		if (cat) {
-			cat.onGrid = [x, y];
+			cat.position = { x, y };
 		}
 
 		await repository.updateCategoryPosition(categoryId, x, y);
@@ -38,45 +43,52 @@ export const boardActions = {
 	async addButtonToCategory(
 		section: 'eventCategories' | 'actionCategories',
 		categoryId: number,
-		name: string
+		button: Button
 	): Promise<void> {
 		const repository = BoardRepositoryFactory.getInstance();
 
 		const cat = boardStore[section].find((c) => c.id === categoryId);
 
-		const res = await repository.addButtonToCategory(categoryId, name);
+		const resId = await repository.addButtonToCategory(categoryId, button);
 
 		if (cat) {
 			cat.buttons.push({
-				id: res,
-				name: name
+				id: resId,
+				...button
 			});
 		}
 
 		await emit('project:dirty');
 	},
 
-	async addCategory(
-		section: 'eventCategories' | 'actionCategories',
-		name: string,
-		color: string
-	): Promise<void> {
-		const repository = BoardRepositoryFactory.getInstance();
+	async addCategory(section: 'eventCategories' | 'actionCategories'): Promise<void> {
+		try {
+			const { name, color, buttons } = boardStore.category;
+			const repository = BoardRepositoryFactory.getInstance();
 
-		const res = await repository.addCategory(
-			section === 'eventCategories' ? 'event' : 'action',
-			name,
-			color
-		);
+			const resId = await repository.addCategory(
+				section === 'eventCategories' ? 'event' : 'action',
+				name,
+				color
+			);
+			boardStore[section].push({
+				id: resId,
+				name: name,
+				color: color,
+				position: { x: 0, y: 0 },
+				buttons: []
+			});
 
-		boardStore[section].push({
-			id: res,
-			name: name,
-			color: color,
-			onGrid: [0, 0],
-			buttons: []
-		});
+			for (const button of buttons) {
+				await boardActions.addButtonToCategory(section, resId, button);
+			}
 
-		await emit('project:dirty');
+			await emit('project:dirty');
+
+			boardActions.resetCategoryForm();
+		} catch (error) {
+			//TODO: REUSABLE SNACKBAR ERROR TO CREATE;
+			console.error('Error adding category:', error);
+		}
 	}
 };
