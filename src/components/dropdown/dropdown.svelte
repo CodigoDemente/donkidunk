@@ -70,7 +70,7 @@
 				class={`absolute top-[26px] left-0 z-10 mt-1 max-h-26 overflow-auto rounded border border-gray-700 bg-gray-800 shadow ${sizeToClass[size]}`}
 				role="listbox"
 			>
-				{#each options as opt}
+				{#each options as opt (opt.value)}
 					<li
 						class="cursor-pointer px-2 py-1 text-white hover:bg-gray-600"
 						role="option"

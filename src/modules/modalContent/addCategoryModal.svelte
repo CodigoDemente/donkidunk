@@ -10,17 +10,19 @@
 
 	const boardStore = BoardStore.state;
 
-	let newButton: Button = {
+	const initialButton: Button = {
 		name: '',
 		range: '',
-		duration: '',
-		before: ''
+		duration: 0,
+		before: false
 	};
+
+	let newButton = initialButton;
 
 	function addButton() {
 		if (newButton.name) {
 			boardStore.category.buttons = [...boardStore.category.buttons, { ...newButton }];
-			newButton = { name: '', range: '', duration: '', before: '' };
+			newButton = initialButton;
 		}
 	}
 
@@ -39,7 +41,7 @@
 		<div class="mb-4 border-b border-gray-700">
 			<span class="text-xs text-gray-100">{inputRawContent.firstSection.name}</span>
 		</div>
-		{#each inputRawContent.firstSection.inputs as input}
+		{#each inputRawContent.firstSection.inputs as input (input.formValue)}
 			<Input
 				horizontal
 				label={input.name}
@@ -60,7 +62,7 @@
 		<table class="w-full rounded bg-gray-700 text-sm text-white">
 			<thead>
 				<tr>
-					{#each inputRawContent.secondSection.tableHeaders as header}
+					{#each inputRawContent.secondSection.tableHeaders as header (header.text)}
 						<th class="p-2 text-left">
 							{#if header.tooltip}
 								<Tooltip size="medium" text={header.tooltip} info>{header.text}</Tooltip>
@@ -72,9 +74,9 @@
 				</tr>
 			</thead>
 			<tbody>
-				{#each boardStore.category.buttons as btn, idx}
+				{#each boardStore.category.buttons as btn, idx (btn.id)}
 					<tr>
-						{#each inputRawContent.secondSection.tableInputs as input}
+						{#each inputRawContent.secondSection.tableInputs as input (input.formValue)}
 							<td class="p-2">
 								{#if input.options}
 									{getLabel(
@@ -94,7 +96,7 @@
 					</tr>
 				{/each}
 				<tr>
-					{#each inputRawContent.secondSection.tableInputs as input}
+					{#each inputRawContent.secondSection.tableInputs as input (input.formValue)}
 						<td class="p-2">
 							{#if input.type === 'dropdown'}
 								<Dropdown

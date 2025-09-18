@@ -2,11 +2,6 @@
 	import BoardStore from '../../persistence/stores/board/store.svelte';
 	import Box from '../../components/box/box.svelte';
 
-	let { checkTime } = $props();
-
-	const eventCategories = BoardStore.state.eventCategories;
-	const actionCategories = BoardStore.state.actionCategories;
-
 	let boxHeight = 50; // Default height percentage for boxes
 	let eventsOpen = true;
 	let actionsOpen = true;
@@ -15,7 +10,7 @@
 <div id="boards-container" class="flex h-full min-h-0 flex-1 flex-col">
 	<!-- Events Section -->
 	<Box
-		categories={eventCategories}
+		categories={BoardStore.state.eventCategories}
 		title="Events board"
 		{boxHeight}
 		type="eventCategories"
@@ -24,7 +19,7 @@
 	/>
 	<!-- Actions Section -->
 	<Box
-		categories={actionCategories}
+		categories={BoardStore.state.actionCategories}
 		title="Actions board"
 		{boxHeight}
 		type="actionCategories"
@@ -32,9 +27,3 @@
 		otherIsOpened={eventsOpen}
 	/>
 </div>
-
-<style>
-	.rotate-180 {
-		transform: rotate(180deg);
-	}
-</style>

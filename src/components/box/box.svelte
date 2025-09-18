@@ -24,7 +24,7 @@
 		});
 	}
 
-	function startResize(e: MouseEvent) {
+	function startResize() {
 		isResizing = true;
 		document.body.style.cursor = 'row-resize';
 		window.addEventListener('mousemove', resize);

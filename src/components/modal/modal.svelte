@@ -1,5 +1,4 @@
 <script lang="ts">
-	import BoardStore from '../../persistence/stores/board/store.svelte';
 	import type { ModalSize } from '../../persistence/stores/project/types/Project';
 	import Button from '../button/button.svelte';
 

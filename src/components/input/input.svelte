@@ -47,7 +47,7 @@
 			{name}
 			{required}
 			{disabled}
-			autocomplete={autocomplete as any}
+			{autocomplete}
 			{readonly}
 			{minlength}
 			{maxlength}

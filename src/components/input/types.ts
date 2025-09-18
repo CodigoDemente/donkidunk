@@ -1,3 +1,5 @@
+import type { FullAutoFill } from 'svelte/elements';
+
 export type InputSizes = 'mini' | 'small' | 'medium' | 'large' | 'full';
 
 export interface InputProps {
@@ -8,7 +10,7 @@ export interface InputProps {
 	name?: string;
 	id?: string;
 	disabled?: boolean;
-	autocomplete?: string;
+	autocomplete?: FullAutoFill;
 	readonly?: boolean;
 	minlength?: number;
 	maxlength?: number;

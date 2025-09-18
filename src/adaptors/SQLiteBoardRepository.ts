@@ -32,7 +32,7 @@ export class SQLiteBoardRepository implements BoardRepository {
 								name: category.button_name,
 								range: category.button_range,
 								duration: category.button_duration,
-								before: category.button_before
+								before: Boolean(category.button_before)
 							}
 						]
 					};
@@ -42,7 +42,7 @@ export class SQLiteBoardRepository implements BoardRepository {
 						name: category.button_name,
 						range: category.button_range,
 						duration: category.button_duration,
-						before: category.button_before
+						before: Boolean(category.button_before)
 					});
 				}
 				return acc;
@@ -80,7 +80,7 @@ export class SQLiteBoardRepository implements BoardRepository {
 		const result = await this.db.execute(
 			`INSERT INTO button (name, range, duration, before, category_id)
              VALUES ($1, $2, $3, $4, $5)`,
-			[button.name, button.range, button.duration, button.before, categoryId]
+			[button.name, button.range, button.duration, Number(button.before), categoryId]
 		);
 		return result.lastInsertId!;
 	}
