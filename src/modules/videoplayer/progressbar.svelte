@@ -27,8 +27,6 @@
 
 	const board = boardContext.get();
 	const timeline = timelineContext.get();
-
-	$inspect(timeline.onPlay);
 </script>
 
 <div class="flex w-full flex-row">

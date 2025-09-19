@@ -6,7 +6,7 @@ import { wrapObjectForUndo } from '../../persistence/undo/UndoStateWrapper';
 import { Scope } from '../../persistence/undo/types/Scope';
 import type { Category } from './types/Category';
 import type { Tag } from './types/Tag';
-import type { Action } from './types/Action';
+import type { Button } from './types/Button';
 
 const initialState: BoardData = {
 	eventCategories: [],
@@ -14,17 +14,29 @@ const initialState: BoardData = {
 	actionCategories: []
 };
 
+const initialCategory: Category = {
+	id: 0,
+	name: '',
+	position: {
+		x: 0,
+		y: 0
+	},
+	buttons: [],
+	color: '#000000'
+};
+
 export const boardContext = new Context<Board>('');
 
 export class Board {
 	#history!: StateHistory<BoardData>;
 	#isEditing = $state(false);
+	#tempCategory = $state<Category>(initialCategory);
 	#state = $state<BoardData>(initialState);
 	#eventCategoriesById!: Record<string, Category>;
 	#actionCategoriesById!: Record<string, Category>;
 	#tagsById!: Record<string, Tag>;
-	#eventButtonsById!: Record<string, Action>;
-	#actionButtonsById!: Record<string, Action>;
+	#eventButtonsById!: Record<string, Button>;
+	#actionButtonsById!: Record<string, Button>;
 
 	constructor() {
 		this.#history = new StateHistory<BoardData>(
@@ -36,7 +48,7 @@ export class Board {
 		this.#eventCategoriesById = $derived.by(() => {
 			return this.#state.eventCategories.reduce(
 				(acc, category) => {
-					acc[category.id] = category;
+					acc[category.id!] = category;
 					return acc;
 				},
 				{} as Record<string, Category>
@@ -46,7 +58,7 @@ export class Board {
 		this.#actionCategoriesById = $derived.by(() => {
 			return this.#state.actionCategories.reduce(
 				(acc, category) => {
-					acc[category.id] = category;
+					acc[category.id!] = category;
 					return acc;
 				},
 				{} as Record<string, Category>
@@ -67,11 +79,11 @@ export class Board {
 			return this.#state.eventCategories.reduce(
 				(acc, category) => {
 					category.buttons.forEach((button) => {
-						acc[button.id] = button;
+						acc[button.id!] = button;
 					});
 					return acc;
 				},
-				{} as Record<string, Action>
+				{} as Record<string, Button>
 			);
 		});
 
@@ -79,11 +91,11 @@ export class Board {
 			return this.#state.actionCategories.reduce(
 				(acc, category) => {
 					category.buttons.forEach((button) => {
-						acc[button.id] = button;
+						acc[button.id!] = button;
 					});
 					return acc;
 				},
-				{} as Record<string, Action>
+				{} as Record<string, Button>
 			);
 		});
 		//#endregion
@@ -91,10 +103,6 @@ export class Board {
 
 	getState() {
 		return this.#state;
-	}
-
-	reset() {
-		this.#state = initialState;
 	}
 
 	canUndo() {
@@ -114,8 +122,16 @@ export class Board {
 	}
 
 	//#region Actions
+	reset() {
+		this.#state = initialState;
+	}
+
 	setEditingMode(value: boolean) {
 		this.#isEditing = value;
+	}
+
+	resetCategoryForm() {
+		this.#tempCategory = initialCategory;
 	}
 
 	async updateCategoryPosition(
@@ -147,7 +163,7 @@ export class Board {
 	async addButtonToCategory(
 		section: 'eventCategories' | 'actionCategories',
 		categoryId: number,
-		name: string
+		button: Button
 	): Promise<void> {
 		const repository = BoardRepositoryFactory.getInstance();
 
@@ -156,7 +172,7 @@ export class Board {
 		const cat = currState[section].find((c) => c.id === categoryId);
 
 		if (cat) {
-			const res = await repository.addButtonToCategory(categoryId, name);
+			const buttonId = await repository.addButtonToCategory(categoryId, button);
 
 			this.#state = {
 				...this.#state,
@@ -167,8 +183,8 @@ export class Board {
 							buttons: [
 								...c.buttons,
 								{
-									id: res,
-									name: name
+									...button,
+									id: buttonId
 								}
 							]
 						};
@@ -181,34 +197,43 @@ export class Board {
 		await emit('project:dirty');
 	}
 
-	async addCategory(
-		section: 'eventCategories' | 'actionCategories',
-		name: string,
-		color: string
-	): Promise<void> {
-		const repository = BoardRepositoryFactory.getInstance();
+	async addCategory(section: 'eventCategories' | 'actionCategories'): Promise<void> {
+		try {
+			const { name, color, buttons } = this.#tempCategory;
 
-		const res = await repository.addCategory(
-			section === 'eventCategories' ? 'event' : 'action',
-			name,
-			color
-		);
+			const repository = BoardRepositoryFactory.getInstance();
 
-		this.#state = {
-			...this.#state,
-			[section]: [
-				...this.#state[section],
-				{
-					id: res,
-					name: name,
-					color: color,
-					position: { x: 0, y: 0 },
-					buttons: []
-				}
-			]
-		};
+			const categoryId = await repository.addCategory(
+				section === 'eventCategories' ? 'event' : 'action',
+				name,
+				color
+			);
 
-		await emit('project:dirty');
+			this.#state = {
+				...this.#state,
+				[section]: [
+					...this.#state[section],
+					{
+						id: categoryId,
+						name: name,
+						color: color,
+						position: { x: 0, y: 0 },
+						buttons: []
+					}
+				]
+			};
+
+			for (const button of buttons) {
+				await this.addButtonToCategory(section, categoryId, button);
+			}
+
+			await emit('project:dirty');
+
+			this.resetCategoryForm();
+		} catch (error) {
+			//TODO: REUSABLE SNACKBAR ERROR TO CREATE;
+			console.error('Error adding category:', error);
+		}
 	}
 
 	wrapForUndo() {
@@ -218,7 +243,8 @@ export class Board {
 				{
 					updateCategoryName: this.updateCategoryName.bind(this),
 					addButtonToCategory: this.addButtonToCategory.bind(this),
-					addCategory: this.addCategory.bind(this)
+					addCategory: this.addCategory.bind(this),
+					updateCategoryPosition: this.updateCategoryPosition.bind(this)
 				},
 				Scope.Board
 			)
@@ -231,6 +257,10 @@ export class Board {
 	//#region Selectors
 	get isEditing() {
 		return this.#isEditing;
+	}
+
+	get categoryToCreate() {
+		return this.#tempCategory;
 	}
 
 	get actionCategories() {

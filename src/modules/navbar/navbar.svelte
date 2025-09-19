@@ -1,30 +1,35 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
+	import type { RouteId } from '$app/types';
 
 	let isNavbarOpen = false;
 	function toggleNavbar() {
 		isNavbarOpen = !isNavbarOpen; // Toggle the navbar state
 	}
 
-	function navigateTo(page: string) {
-		goto(page); // Navigate to the specified route
+	function navigateTo(page: RouteId) {
+		goto(resolve(page)); // Navigate to the specified route
 	}
 </script>
 
 <navbar class="navbarEffects overflow-hidden {isNavbarOpen ? 'w-16' : 'w-4'}">
-	<button on:click={toggleNavbar} aria-label="Toggle Navbar">
+	<button onclick={toggleNavbar} aria-label="Toggle Navbar">
 		{isNavbarOpen ? '<' : '>'}
 	</button>
 	<ul class="contentEffects {isNavbarOpen ? 'visible opacity-100' : 'invisible opacity-0'}">
 		<li>
-			<button type="button" on:click={() => navigateTo('/')}>Board</button>
+			<button type="button" onclick={() => navigateTo('/')}>Board</button>
 		</li>
 		<li>
-			<button type="button" on:click={() => navigateTo('/export')}>Export</button>
+			<button type="button" onclick={() => navigateTo('/export')}>Export</button>
 		</li>
+		<!-- 
+		This is commented out because this route doesn't exists yet and eslint complains about it
 		<li>
-			<button type="button" on:click={() => navigateTo('/graphics')}>Graphics</button>
-		</li>
+			<button type="button" onclick={() => navigateTo('/graphics')}>Graphics</button>
+		</li> 
+		-->
 	</ul>
 </navbar>
 

@@ -1,10 +1,14 @@
 <script lang="ts">
-	export let start: number;
-	export let end: number | null;
-	export let total: number;
-	export let color: string;
-	export let name: string;
-	export let onClick: () => void = () => {};
+	interface Props {
+		start: number;
+		end: number | null;
+		total: number;
+		color: string;
+		name: string;
+		onClick: () => void;
+	}
+
+	let { start, end, total, color, name, onClick }: Props = $props();
 </script>
 
 <div
@@ -17,8 +21,8 @@
 	title={name}
 	role="button"
 	tabindex="0"
-	on:click={() => onClick()}
-	on:keydown={(e) => {
+	onclick={() => onClick()}
+	onkeydown={(e) => {
 		if (e.key === 'Enter' || e.key === ' ') {
 			onClick();
 			e.preventDefault();
