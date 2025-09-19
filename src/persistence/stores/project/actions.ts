@@ -4,7 +4,7 @@ import ProjectStore from './store.svelte';
 import { emit } from '@tauri-apps/api/event';
 import type { ModalSize } from './types/Project';
 
-const projectStore = ProjectStore.state;
+const projectStore = ProjectStore.getState();
 
 export const projectActions = {
 	getProjectDirty(): boolean {

@@ -1,10 +1,13 @@
 <script lang="ts">
-	import { boardActions } from '../../persistence/stores/board/actions';
 	import { projectActions } from '../../persistence/stores/project/actions';
 	import addCategoryModal from '../../modules/modalContent/addCategoryModal.svelte';
 	import { IconPlus, IconChevronDown } from '@tabler/icons-svelte';
 	import Button from '../button/button.svelte';
 	import type { Props } from './types';
+	import { boardContext } from '../../modules/board/context.svelte';
+	import { getTextColorForBackground } from './colors';
+
+	const context = boardContext.get();
 
 	let isResizing = false;
 	let frame: number | null = null;
@@ -53,7 +56,7 @@
 		x = Math.max(0, Math.min(x, 100 - boxWidthPercent));
 		y = Math.max(0, Math.min(y, 100 - boxHeightPercent));
 
-		boardActions.updateCategoryPosition(type, categoryId, x, y);
+		context.updateCategoryPosition(type, categoryId, x, y);
 	}
 
 	function handleDragStart(e: DragEvent) {
@@ -67,8 +70,8 @@
 		projectActions.setModal({
 			content: addCategoryModal,
 			title: `Add category to ${title}`,
-			onCancel: () => boardActions.resetCategoryForm(),
-			onSubmit: () => boardActions.addCategory(type),
+			onCancel: () => context.resetCategoryForm(),
+			onSubmit: () => context.addCategory(type),
 			show: true,
 			size: 'medium'
 		});
@@ -94,7 +97,12 @@
 	</div>
 
 	{#if isOpened}
-		<Button customClass="absolute right-5 top-14" size="mini" primary onClick={handleModalOpen}>
+		<Button
+			customClass="absolute right-5 top-14 z-10"
+			size="mini"
+			primary
+			onClick={handleModalOpen}
+		>
 			<IconPlus class="text-white" />
 		</Button>
 		{#each categories as category (category.id)}
@@ -108,9 +116,10 @@
 			>
 				<!-- Draggable element absolutely positioned by percentage -->
 				<div
-					class="absolute z-10 h-10 w-10 cursor-move rounded bg-orange-400 shadow select-none"
+					class="absolute z-10 h-10 w-10 cursor-move rounded shadow select-none"
 					style="
-					color: {category.color};
+					color: {getTextColorForBackground(category.color)};
+					background-color: {category.color};
 					left: {category.position.x}%;
 					top: {category.position.y}%;"
 					draggable="true"

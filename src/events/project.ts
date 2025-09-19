@@ -1,20 +1,26 @@
 import { listen } from '@tauri-apps/api/event';
 import { disableSaveProject, enableSaveProject } from '../modules/menu/operations/enableItems';
 import { projectActions } from '../persistence/stores/project/actions';
+import type { ProjectEnablingState } from './types/ProjectEnablingState';
 
 export class ProjectEventHandler {
-	private unliseners: (() => void)[] = [];
+	private unlisteners: (() => void)[] = [];
+	private projectEnablingState: ProjectEnablingState;
 
-	constructor() {}
+	constructor() {
+		this.projectEnablingState = {
+			save: false
+		};
+	}
 
 	async init(): Promise<void> {
-		this.unliseners.push(
+		this.unlisteners.push(
 			await listen('project:dirty', () => {
 				return this.projectDirty();
 			})
 		);
 
-		this.unliseners.push(
+		this.unlisteners.push(
 			await listen('project:saved', () => {
 				return this.projectSaved();
 			})
@@ -22,19 +28,25 @@ export class ProjectEventHandler {
 	}
 
 	private async projectDirty(): Promise<void> {
-		await enableSaveProject();
+		if (!this.projectEnablingState.save) {
+			this.projectEnablingState.save = true;
+			await enableSaveProject();
+		}
 		projectActions.setProjectDirty(true);
 	}
 
 	private async projectSaved(): Promise<void> {
-		await disableSaveProject();
+		if (this.projectEnablingState.save) {
+			this.projectEnablingState.save = false;
+			await disableSaveProject();
+		}
 		projectActions.setProjectDirty(false);
 	}
 
 	destroy(): void {
-		for (const unlisten of this.unliseners) {
+		for (const unlisten of this.unlisteners) {
 			unlisten();
 		}
-		this.unliseners = [];
+		this.unlisteners = [];
 	}
 }

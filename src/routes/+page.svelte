@@ -8,7 +8,7 @@
 	let leftWidth = 50;
 	let isResizing = false;
 
-	const projectStore = ProjectStore.state;
+	const projectStore = ProjectStore.getState();
 
 	function startResize() {
 		isResizing = true;

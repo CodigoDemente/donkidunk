@@ -1,8 +1,8 @@
 import type Database from '@tauri-apps/plugin-sql';
 import type { BoardRepository } from '../ports/BoardRepository';
-import type { Category } from '../persistence/stores/board/types/Category';
+import type { Category } from '../modules/board/types/Category';
 import type { DatabaseCategory } from './types/DatabaseCategory';
-import type { Tag } from '../persistence/stores/board/types/Tag';
+import type { Tag } from '../modules/board/types/Tag';
 import type { DatabaseTag } from './types/DatabaseTag';
 import type { Button } from '../persistence/stores/board/types/Button';
 

@@ -3,12 +3,12 @@
 	import Input from '../../components/input/input.svelte';
 	import type { InputSizes } from '../../components/input/types';
 	import Tooltip from '../../components/tooltip/tooltip.svelte';
-	import BoardStore from '../../persistence/stores/board/store.svelte';
-	import type { Button } from '../../persistence/stores/board/types/Button';
 	import type { Option } from '../../utils/options';
+	import { boardContext } from '../board/context.svelte';
+	import type { Button } from '../board/types/Button';
 	import { inputRawContent } from './utils';
 
-	const boardStore = BoardStore.state;
+	const context = boardContext.get();
 
 	const initialButton: Button = {
 		name: '',
@@ -21,13 +21,13 @@
 
 	function addButton() {
 		if (newButton.name) {
-			boardStore.category.buttons = [...boardStore.category.buttons, { ...newButton }];
+			context.categoryToCreate.buttons = [...context.categoryToCreate.buttons, { ...newButton }];
 			newButton = initialButton;
 		}
 	}
 
 	function removeButton(idx: number) {
-		boardStore.category.buttons = boardStore.category.buttons.filter((_, i) => i !== idx);
+		context.categoryToCreate.buttons = context.categoryToCreate.buttons.filter((_, i) => i !== idx);
 	}
 
 	function getLabel(options: Option[], value: string | number) {
@@ -48,7 +48,9 @@
 				placeholder={input.placeholder}
 				type={input.type}
 				bind:value={
-					boardStore.category[input.formValue as keyof typeof boardStore.category] as string
+					context.categoryToCreate[
+						input.formValue as keyof typeof context.categoryToCreate
+					] as string
 				}
 				inputClass={input.inputClass}
 			/>
@@ -74,7 +76,7 @@
 				</tr>
 			</thead>
 			<tbody>
-				{#each boardStore.category.buttons as btn, idx (btn.id)}
+				{#each context.categoryToCreate.buttons as btn, idx (btn.id)}
 					<tr>
 						{#each inputRawContent.secondSection.tableInputs as input (input.formValue)}
 							<td class="p-2">

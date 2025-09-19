@@ -2,11 +2,12 @@
 	import { IconChevronDown } from '@tabler/icons-svelte';
 	import TimelineStore from '../../persistence/stores/timeline/store.svelte';
 	import { TimelineSelectors } from '../../persistence/stores/timeline/selectors.svelte';
-	import { BoardSelectors } from '../../persistence/stores/board/selectors.svelte';
+	import { boardContext } from '../board/context.svelte';
 
+	const board = boardContext.get();
 	let isBoxOpen: boolean = $state(false);
 
-	const timelineStore = TimelineStore.state;
+	const timelineStore = TimelineStore.getState();
 </script>
 
 <!-- Line that toggles the box -->
@@ -33,7 +34,7 @@
 						<button
 							class="rounded bg-sky-500 px-3 py-1 text-sm font-medium text-white hover:bg-sky-600"
 						>
-							{BoardSelectors.getTagsById()[tag]?.name}
+							{board.tagsById[tag]?.name}
 						</button>
 					{/each}
 				{/if}
@@ -42,7 +43,7 @@
 					<button
 						class="rounded bg-sky-500 px-3 py-1 text-sm font-medium text-white hover:bg-sky-600"
 					>
-						{BoardSelectors.getTagsById()[tag]?.name}
+						{board.tagsById[tag]?.name}
 					</button>
 				{/each}
 			{:else}

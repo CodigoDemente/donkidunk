@@ -2,7 +2,6 @@ import Database from '@tauri-apps/plugin-sql';
 import { debug } from '@tauri-apps/plugin-log';
 import { v4 as uuidv4 } from 'uuid';
 import ProjectStore from '../stores/project/store.svelte';
-import BoardStore from '../stores/board/store.svelte';
 import { migrations } from './migrations';
 import { appLocalDataDir, BaseDirectory, join } from '@tauri-apps/api/path';
 import { exists, truncate } from '@tauri-apps/plugin-fs';
@@ -15,6 +14,7 @@ import type { BoardRepository } from '../../ports/BoardRepository';
 import { TimelineRepositoryFactory } from '../../factories/TimelineRepositoryFactory';
 import TimelineStore from '../stores/timeline/store.svelte';
 import type { TimelineRepository } from '../../ports/TimelineRepository';
+import { Board } from '../../modules/board/context.svelte';
 
 const DB_BACKUP_EXTENSION = 'dnk';
 
@@ -145,7 +145,7 @@ export async function loadProjectFromDatabase(repository: ProjectRepository): Pr
 	// Here we don't use the repository nor the actions for setting the values because we know that in the
 	// database the values are already set, so we can directly assign them to the store.
 
-	const projectStore = ProjectStore.state;
+	const projectStore = ProjectStore.getState();
 
 	const videoPath = await repository.getVideoPath();
 	if (videoPath) {
@@ -158,16 +158,17 @@ export async function loadProjectFromDatabase(repository: ProjectRepository): Pr
 	}
 }
 
-export async function loadBoardFromDatabase(repository: BoardRepository): Promise<void> {
-	const boardStore = BoardStore.state;
-
-	boardStore.eventCategories = await repository.getSectionCategories('event');
-	boardStore.actionCategories = await repository.getSectionCategories('action');
-	boardStore.tagsRelatedToEvents = await repository.getTagsRelatedToEvents();
+export async function loadBoardFromDatabase(
+	repository: BoardRepository,
+	board: Board
+): Promise<void> {
+	board.getState().eventCategories = await repository.getSectionCategories('event');
+	board.getState().actionCategories = await repository.getSectionCategories('action');
+	board.getState().tagsRelatedToEvents = await repository.getTagsRelatedToEvents();
 }
 
 export async function loadTimelineFromDatabase(repository: TimelineRepository): Promise<void> {
-	const timeLineStore = TimelineStore.state;
+	const timeLineStore = TimelineStore.getState();
 
 	timeLineStore.eventTimeline = await repository.getEvents();
 	timeLineStore.actionTimeline = await repository.getActions();

@@ -41,7 +41,11 @@ async fn main() {
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_log::Builder::new().build())
+        .plugin(
+            tauri_plugin_log::Builder::new()
+                .level(log::LevelFilter::Info)
+                .build(),
+        )
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_sql::Builder::default().build());
 
@@ -70,9 +74,9 @@ mod tests {
         let builder = tauri::test::mock_builder().plugin(tauri_plugin_shell::init());
         let app = create_app(builder);
 
-        let path = path::PathResolver::app_data_dir(&app.path()).unwrap();
+        let path = path::PathResolver::app_data_dir(app.path()).unwrap();
 
-        println!("App data path: {:?}", path);
+        println!("App data path: {path:?}");
 
         let ffmpeg = app.shell().sidecar("donkidunk_ffmpeg").unwrap();
 

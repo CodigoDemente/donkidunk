@@ -20,3 +20,17 @@ export async function disableSaveProject() {
 		enabled: false
 	});
 }
+
+export async function setUndoEnablingStatus(enabled: boolean) {
+	return await invoke('set_menu_item_enabling_status', {
+		menuId: 'undo',
+		enabled
+	});
+}
+
+export async function setRedoEnablingStatus(enabled: boolean) {
+	return await invoke('set_menu_item_enabling_status', {
+		menuId: 'redo',
+		enabled
+	});
+}

@@ -5,12 +5,15 @@ import { openProject } from './operations/openProject';
 import { saveProjectAs } from './operations/saveProjectAs';
 import { saveProject } from './operations/saveProject';
 import { importVideo } from './operations/importVideo';
+import { undo } from './operations/undo';
+import { redo } from './operations/redo';
+import type { Board } from '../board/context.svelte';
 
 type MenuEvent = {
 	id: string;
 };
 
-export async function bindMenuEvents() {
+export async function bindMenuEvents(board: Board) {
 	listen<MenuEvent>('menu_event', async (event) => {
 		debug(`Menu event triggered: ${event.id}`);
 		switch (event.payload.id) {
@@ -18,7 +21,7 @@ export async function bindMenuEvents() {
 				await createNewProject();
 				break;
 			case 'open_project':
-				await openProject();
+				await openProject(board);
 				break;
 			case 'save_project_as':
 				await saveProjectAs();
@@ -28,6 +31,12 @@ export async function bindMenuEvents() {
 				break;
 			case 'import_video':
 				await importVideo();
+				break;
+			case 'undo':
+				undo();
+				break;
+			case 'redo':
+				redo();
 				break;
 			default:
 				debug(`Unknown menu event: ${event.id}`);

@@ -4,10 +4,13 @@
 	import '../styles/page.css';
 	import Navbar from '../modules/navbar/navbar.svelte';
 	import { destroyEvents, initEvents } from '../events';
+	import { boardContext, Board } from '../modules/board/context.svelte';
+
+	const board = boardContext.set(new Board()).wrapForUndo();
 
 	onMount(async () => {
 		// Initialize the menu
-		await bindMenuEvents();
+		await bindMenuEvents(board);
 		await initEvents();
 	});
 

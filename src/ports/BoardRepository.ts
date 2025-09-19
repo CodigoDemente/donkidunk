@@ -1,6 +1,6 @@
-import type { Button } from '../persistence/stores/board/types/Button';
-import type { Category } from '../persistence/stores/board/types/Category';
-import type { Tag } from '../persistence/stores/board/types/Tag';
+import type { Button } from '../modules/board/types/Button';
+import type { Category } from '../modules/board/types/Category';
+import type { Tag } from '../modules/board/types/Tag';
 
 export interface BoardRepository {
 	getSectionCategories(section: 'event' | 'action'): Promise<Category[]>;

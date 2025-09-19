@@ -50,7 +50,7 @@ jobs:
     runs-on: ${{ matrix.platform }}
 
     env:
-      PKG_CONFIG_PATH: "${{ matrix.platform == 'ubuntu-latest' && /usr/local/lib:/usr/lib/x86_64-linux-gnu:/usr/share || ''}}"
+      PKG_CONFIG_PATH: "${{ matrix.platform == 'ubuntu-latest' && '/usr/local/lib:/usr/lib/x86_64-linux-gnu:/usr/share' || ''}}"
 
     needs: capture-release-notes
 
