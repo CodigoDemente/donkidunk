@@ -1,23 +1,14 @@
 <script lang="ts">
-	import type { SvelteComponent } from 'svelte';
 	import Board from '../modules/board/index.svelte';
 	import VideoPlayer from '../modules/videoplayer/index.svelte';
 	import ProjectStore from '../persistence/stores/project/store.svelte';
 	import '../styles/page.css';
+	import Modal from '../components/modal/modal.svelte';
 
-	type VideoPlayerComponent = SvelteComponent & {
-		getCurrentTime: () => number;
-	};
-
-	let videoPlayerRef: VideoPlayerComponent | null = null;
 	let leftWidth = 50;
 	let isResizing = false;
 
 	const projectStore = ProjectStore.getState();
-
-	function handleCheckTime() {
-		return videoPlayerRef?.getCurrentTime() ?? 0;
-	}
 
 	function startResize() {
 		isResizing = true;
@@ -41,15 +32,16 @@
 
 <div class="flex w-full flex-row gap-1">
 	<div class="flex-shrink-0" style="width: {leftWidth}%">
-		<VideoPlayer video={projectStore.video?.path} bind:this={videoPlayerRef} />
+		<VideoPlayer video={projectStore.video?.path} />
 	</div>
 	<div
 		class="w-1 cursor-col-resize bg-gray-900"
-		on:mousedown={startResize}
+		onmousedown={startResize}
 		role="separator"
 		aria-orientation="horizontal"
 	></div>
 	<div class="flex-grow">
-		<Board checkTime={handleCheckTime} />
+		<Board />
 	</div>
 </div>
+<Modal modalStore={projectStore.modal} />
