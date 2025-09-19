@@ -44,4 +44,4 @@
 		<Board />
 	</div>
 </div>
-<Modal modalStore={projectStore.modal} />
+<Modal bind:modalStore={projectStore.modal} />

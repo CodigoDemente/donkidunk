@@ -1,7 +1,7 @@
 import type Database from '@tauri-apps/plugin-sql';
 import type { TimelineRepository } from '../ports/TimelineRepository';
 import type { DatabaseEntryWithTag } from './types/DatabaseEntryWithTags';
-import type { RangeData, RangeDataWithTags } from '../persistence/stores/timeline/types/RangeData';
+import type { RangeData, RangeDataWithTags } from '../modules/videoplayer/types/RangeData';
 
 export class SQLiteTimelineRepository implements TimelineRepository {
 	constructor(private readonly db: Database) {}

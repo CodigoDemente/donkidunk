@@ -15,13 +15,14 @@ const initialState: BoardData = {
 };
 
 const initialCategory: Category = {
+	id: 0,
 	name: '',
 	position: {
 		x: 0,
 		y: 0
 	},
 	buttons: [],
-	color: ''
+	color: '#000000'
 };
 
 export const boardContext = new Context<Board>('');
@@ -182,8 +183,8 @@ export class Board {
 							buttons: [
 								...c.buttons,
 								{
-									id: buttonId,
-									...button
+									...button,
+									id: buttonId
 								}
 							]
 						};

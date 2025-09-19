@@ -15,6 +15,19 @@ vi.mock('../../modules/board/context.svelte', () => ({
 	}
 }));
 
+// Mock timeline context
+const mockTimelineContext = {
+	undo: vi.fn(),
+	redo: vi.fn()
+};
+
+// Mock the timeline context module
+vi.mock('../../modules/videoplayer/context.svelte', () => ({
+	timelineContext: {
+		get: vi.fn(() => mockTimelineContext)
+	}
+}));
+
 vi.mock('@tauri-apps/api/event', () => ({
 	emit: vi.fn()
 }));

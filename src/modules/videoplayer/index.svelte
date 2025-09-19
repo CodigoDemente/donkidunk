@@ -3,8 +3,9 @@
 	import { platform } from '@tauri-apps/plugin-os';
 
 	import Progressbar from './progressbar.svelte';
-	import { SkipDirection, SkipType } from './+types';
 	import Controls from './controls.svelte';
+	import { SkipType } from './types/SkipType';
+	import { SkipDirection } from './types/SkipDirection';
 
 	type Props = {
 		video: string | undefined;

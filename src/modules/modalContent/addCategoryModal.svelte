@@ -11,6 +11,7 @@
 	const context = boardContext.get();
 
 	const initialButton: Button = {
+		id: 0,
 		name: '',
 		range: '',
 		duration: 0,

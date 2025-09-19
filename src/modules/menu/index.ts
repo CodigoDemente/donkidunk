@@ -8,12 +8,13 @@ import { importVideo } from './operations/importVideo';
 import { undo } from './operations/undo';
 import { redo } from './operations/redo';
 import type { Board } from '../board/context.svelte';
+import type { Timeline } from '../videoplayer/context.svelte';
 
 type MenuEvent = {
 	id: string;
 };
 
-export async function bindMenuEvents(board: Board) {
+export async function bindMenuEvents(board: Board, timeline: Timeline) {
 	listen<MenuEvent>('menu_event', async (event) => {
 		debug(`Menu event triggered: ${event.id}`);
 		switch (event.payload.id) {
@@ -21,7 +22,7 @@ export async function bindMenuEvents(board: Board) {
 				await createNewProject();
 				break;
 			case 'open_project':
-				await openProject(board);
+				await openProject(board, timeline);
 				break;
 			case 'save_project_as':
 				await saveProjectAs();

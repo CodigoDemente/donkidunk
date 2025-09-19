@@ -2,13 +2,16 @@ import { Scope } from './types/Scope';
 import type { UndoEditionStack } from './types/UndoEditionStack';
 import { emit } from '@tauri-apps/api/event';
 import { boardContext, type Board } from '../../modules/board/context.svelte';
+import { timelineContext, type Timeline } from '../../modules/videoplayer/context.svelte';
 
 export class UndoManager {
 	private boardContext: Board;
+	private timelineContext: Timeline;
 	private editions: UndoEditionStack;
 
 	constructor() {
 		this.boardContext = boardContext.get();
+		this.timelineContext = timelineContext.get();
 
 		this.editions = {
 			undoStack: [],
@@ -48,6 +51,7 @@ export class UndoManager {
 				this.boardContext.undo();
 				break;
 			case Scope.Timeline:
+				this.timelineContext.undo();
 				break;
 		}
 
@@ -72,6 +76,7 @@ export class UndoManager {
 				this.boardContext.redo();
 				break;
 			case Scope.Timeline:
+				this.timelineContext.redo();
 				break;
 		}
 

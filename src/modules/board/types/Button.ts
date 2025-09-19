@@ -1,5 +1,5 @@
 export interface Button {
-	id?: number;
+	id: number;
 	name: string;
 	range?: string;
 	duration?: number;

@@ -1,4 +1,4 @@
-import type { RangeData, RangeDataWithTags } from '../persistence/stores/timeline/types/RangeData';
+import type { RangeData, RangeDataWithTags } from '../modules/videoplayer/types/RangeData';
 
 export interface TimelineRepository {
 	getEvents(): Promise<RangeDataWithTags[]>;

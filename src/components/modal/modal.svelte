@@ -2,7 +2,7 @@
 	import type { ModalSize } from '../../persistence/stores/project/types/Project';
 	import Button from '../button/button.svelte';
 
-	const { modalStore } = $props();
+	const { modalStore = $bindable() } = $props();
 
 	const sizesToClass = {
 		small: 'max-w-md',
