@@ -1,8 +1,6 @@
 <script lang="ts">
-	import type { Action } from '../../modules/board/types/Action';
-	import type { Category } from '../../modules/board/types/Category';
-	import type { RangeData, RangeDataWithTags } from '../../modules/videoplayer/types/RangeData';
 	import Tagtime from '../tagtime/tagtime.svelte';
+	import type { Props } from './types';
 
 	let {
 		categoryId,
@@ -13,16 +11,7 @@
 		onPlayObject,
 		currentTime,
 		onClick
-	}: {
-		categoryId: number;
-		allTagsByCategory: Record<string, RangeDataWithTags[] | RangeData[]>;
-		duration: number;
-		boardCategoriesById: Record<string, Category>;
-		buttonsListById: Record<string, Action>;
-		onPlayObject?: RangeDataWithTags | null;
-		currentTime: number;
-		onClick?: (id: number) => void;
-	} = $props();
+	}: Props = $props();
 </script>
 
 <div class="relative h-5 w-full rounded-xs bg-gray-800">
@@ -45,6 +34,7 @@
 			total={duration}
 			color={boardCategoriesById[categoryId]?.color}
 			name={buttonsListById[onPlayObject.buttonId]?.name}
+			onClick={() => {}}
 		/>
 	{/if}
 </div>

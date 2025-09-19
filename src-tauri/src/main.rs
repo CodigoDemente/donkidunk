@@ -11,7 +11,6 @@ use commands::menu::*;
 use commands::video::*;
 #[cfg(debug_assertions)]
 use tauri::Manager;
-use tauri::RunEvent;
 
 fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
     builder
@@ -45,7 +44,7 @@ async fn main() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(
             tauri_plugin_log::Builder::new()
-                .level(log::LevelFilter::Debug)
+                .level(log::LevelFilter::Info)
                 .build(),
         )
         .plugin(tauri_plugin_opener::init())
@@ -54,7 +53,9 @@ async fn main() {
     let app = create_app(builder);
 
     app.run(|_, event| {
-        if matches!(event, RunEvent::Ready) {
+        log::debug!("Tauri event: {event:?}");
+
+        if let tauri::RunEvent::Ready = event {
             log::debug!("Tauri is ready");
         }
     });

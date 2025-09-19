@@ -13,6 +13,14 @@ export const InitialProjectData: ProjectData = {
 	video: {
 		path: ''
 	},
+	modal: {
+		content: null,
+		title: undefined,
+		onCancel: undefined,
+		onSubmit: undefined,
+		show: false,
+		size: undefined
+	},
 	database: null
 };
 
