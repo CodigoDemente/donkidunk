@@ -6,44 +6,18 @@
 	import type { Props } from './types';
 	import { boardContext } from '../../modules/board/context.svelte';
 	import { getTextColorForBackground } from './colors';
+	import { startResize } from './utils';
 
 	const context = boardContext.get();
 
-	let isResizing = false;
-	let frame: number | null = null;
-
 	let { boxHeight, isOpened, otherIsOpened, title, type, categories }: Props = $props();
-
-	function resize(e: MouseEvent) {
-		if (!isResizing) return;
-		if (frame) cancelAnimationFrame(frame);
-		frame = requestAnimationFrame(() => {
-			const container = document.getElementById('boards-container');
-			if (!container) return;
-			const rect = container.getBoundingClientRect();
-			const y = e.clientY - rect.top;
-			const percent = Math.max(10, Math.min(90, (y / rect.height) * 100));
-			boxHeight = percent;
-		});
-	}
-
-	function startResize() {
-		isResizing = true;
-		document.body.style.cursor = 'row-resize';
-		window.addEventListener('mousemove', resize);
-		window.addEventListener('mouseup', stopResize);
-		window.addEventListener('mouseleave', stopResize);
-	}
-	function stopResize() {
-		isResizing = false;
-		document.body.style.cursor = '';
-		window.removeEventListener('mousemove', resize);
-		window.removeEventListener('mouseup', stopResize);
-		window.removeEventListener('mouseleave', stopResize);
-	}
 
 	const boxWidthPercent = 15; // ancho del draggable en %
 	const boxHeightPercent = 15; // alto del draggable en %
+
+	function setBoxHeight(newHeight: number) {
+		boxHeight = newHeight;
+	}
 
 	function handleDrop(e: DragEvent, categoryId: number) {
 		const container = e.currentTarget as HTMLElement;
@@ -137,11 +111,12 @@
 
 <div class="h-1"></div>
 
+<!-- Resize bar -->
 {#if isOpened}
 	<button
 		type="button"
 		class="h-1 w-full flex-shrink-0 cursor-row-resize bg-gray-900"
-		onmousedown={startResize}
+		onmousedown={() => startResize(setBoxHeight)}
 		style="z-index: 20;"
 		aria-label="Resize section"
 		tabindex="0"
