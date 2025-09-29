@@ -6,6 +6,7 @@ export interface BoardRepository {
 	getSectionCategories(section: 'event' | 'action'): Promise<Category[]>;
 	getTagsRelatedToEvents(): Promise<Tag[]>;
 	addCategory(section: 'event' | 'action', name: string, color: string): Promise<number>;
+	addTagsList(list: Tag[]): Promise<void>;
 	addButtonToCategory(categoryId: number, button: Button): Promise<number>;
 	updateCategoryPosition(categoryId: number, x: number, y: number): Promise<void>;
 	updateCategoryName(categoryId: number, categoryName: string): Promise<void>;

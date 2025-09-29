@@ -37,7 +37,7 @@
 	{#if label}
 		<p class={`text-sm ${horizontal ? ' w-[130px]' : ''}`}>{label}</p>
 	{/if}
-	<div class="flex {!noErrors && `h-[48px]`} w-full flex-col">
+	<div class="flex {!noErrors && `h-[48px]`} flex-col">
 		<input
 			{id}
 			class={`rounded bg-gray-700 px-2 py-1 text-sm text-white placeholder:text-xs placeholder:text-gray-400 ${sizeToClass[size]} ${inputClass}`}

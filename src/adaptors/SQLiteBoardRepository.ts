@@ -4,7 +4,7 @@ import type { Category } from '../modules/board/types/Category';
 import type { DatabaseCategory } from './types/DatabaseCategory';
 import type { Tag } from '../modules/board/types/Tag';
 import type { DatabaseTag } from './types/DatabaseTag';
-import type { Button } from '../persistence/stores/board/types/Button';
+import type { Button } from '../modules/board/types/Button';
 
 export class SQLiteBoardRepository implements BoardRepository {
 	constructor(private readonly db: Database) {}
@@ -74,6 +74,23 @@ export class SQLiteBoardRepository implements BoardRepository {
 		);
 
 		return result.lastInsertId!;
+	}
+
+	async addTagsList(list: Tag[]): Promise<void> {
+		for (const tag of list) {
+			if (tag.id) {
+				await this.db.execute(`UPDATE tag SET name = $1, color = $2 WHERE id = $3`, [
+					tag.name,
+					tag.color,
+					tag.id
+				]);
+			} else {
+				await this.db.execute(`INSERT INTO tag (name, color) VALUES ($1, $2)`, [
+					tag.name,
+					tag.color
+				]);
+			}
+		}
 	}
 
 	async addButtonToCategory(categoryId: number, button: Button): Promise<number> {

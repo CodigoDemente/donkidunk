@@ -3,7 +3,7 @@ import type { Snippet } from 'svelte';
 export type ButtonSizes = 'mini' | 'small' | 'medium' | 'large' | 'extralarge' | 'fluid';
 
 export interface Props {
-	onClick?: () => void;
+	onClick?: (e?: Event) => void;
 	size?: ButtonSizes;
 	style?: string;
 	primary?: boolean;

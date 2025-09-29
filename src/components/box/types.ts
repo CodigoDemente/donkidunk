@@ -1,4 +1,5 @@
 import type { Category } from '../../modules/board/types/Category';
+import type { Tag } from '../../modules/board/types/Tag';
 
 export type Props = {
 	boxHeight: number;
@@ -7,4 +8,5 @@ export type Props = {
 	title: string;
 	type: 'eventCategories' | 'actionCategories';
 	categories: Category[];
+	tags?: Tag[];
 };

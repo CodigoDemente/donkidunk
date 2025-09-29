@@ -31,6 +31,7 @@ export class Board {
 	#history!: StateHistory<BoardData>;
 	#isEditing = $state(false);
 	#tempCategory = $state<Category>(initialCategory);
+	#tempTagsList = $state<Tag[]>([]);
 	#state = $state<BoardData>(initialState);
 	#eventCategoriesById!: Record<string, Category>;
 	#actionCategoriesById!: Record<string, Category>;
@@ -65,15 +66,15 @@ export class Board {
 			);
 		});
 
-		this.#tagsById = $derived.by(() => {
-			return this.#state.tagsRelatedToEvents.reduce(
-				(acc, tag) => {
-					acc[tag.id] = tag;
-					return acc;
-				},
-				{} as Record<string, Tag>
-			);
-		});
+		// this.#tagsById = $derived.by(() => {
+		// 	return this.#state.tagsRelatedToEvents.reduce(
+		// 		(acc, tag) => {
+		// 			acc[tag.id] = tag;
+		// 			return acc;
+		// 		},
+		// 		{} as Record<string, Tag>
+		// 	);
+		// });
 
 		this.#eventButtonsById = $derived.by(() => {
 			return this.#state.eventCategories.reduce(
@@ -132,6 +133,10 @@ export class Board {
 
 	resetCategoryForm() {
 		this.#tempCategory = initialCategory;
+	}
+
+	resetTagsListForm() {
+		this.#tempTagsList = [];
 	}
 
 	async updateCategoryPosition(
@@ -236,6 +241,29 @@ export class Board {
 		}
 	}
 
+	async addTagsList(): Promise<void> {
+		try {
+			const section = 'tagsRelatedToEvents';
+			const tags = this.#tempTagsList;
+
+			const repository = BoardRepositoryFactory.getInstance();
+
+			await repository.addTagsList(tags);
+
+			this.#state = {
+				...this.#state,
+				[section]: [...tags]
+			};
+
+			await emit('project:dirty');
+
+			this.resetTagsListForm();
+		} catch (error) {
+			//TODO: REUSABLE SNACKBAR ERROR TO CREATE;
+			console.error('Error adding tag list:', error);
+		}
+	}
+
 	wrapForUndo() {
 		Object.assign(
 			this,
@@ -263,6 +291,10 @@ export class Board {
 		return this.#tempCategory;
 	}
 
+	get tagsListToCreate() {
+		return this.#tempTagsList;
+	}
+
 	get actionCategories() {
 		return this.#state.actionCategories;
 	}
@@ -277,6 +309,10 @@ export class Board {
 
 	get eventCategoriesById() {
 		return this.#eventCategoriesById;
+	}
+
+	get tagsRelatedToEvents() {
+		return this.#state.tagsRelatedToEvents;
 	}
 
 	get tagsById() {
