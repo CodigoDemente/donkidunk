@@ -1,7 +1,13 @@
+export enum ButtonRange {
+	FIXED = 'FIXED',
+	DYNAMIC = 'DYNAMIC'
+}
+
 export interface Button {
 	id: number;
 	name: string;
-	range?: string;
-	duration?: number;
-	before?: boolean;
+	range?: ButtonRange;
+	duration: number | null;
+	before: number | null;
+	temp: boolean;
 }

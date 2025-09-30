@@ -5,6 +5,7 @@ import { TimelineRepositoryFactory } from '../../factories/TimelineRepositoryFac
 import { emit } from '@tauri-apps/api/event';
 import { wrapObjectForUndo } from '../../persistence/undo/UndoStateWrapper';
 import { Scope } from '../../persistence/undo/types/Scope';
+import { CategoryType } from '../../components/box/types';
 
 const initialState: TimelineData = {
 	eventTimeline: [],
@@ -103,7 +104,7 @@ export class Timeline {
 		const newEventId = await repository.addEntry(
 			event.buttonId,
 			event.categoryId,
-			'event',
+			CategoryType.Event,
 			event.timestamp.start,
 			event.timestamp.end
 		);
@@ -172,7 +173,7 @@ export class Timeline {
 			const newActionId = await repository.addEntry(
 				newAction.buttonId,
 				newAction.categoryId,
-				'action',
+				CategoryType.Action,
 				newAction.timestamp.start,
 				undefined
 			);

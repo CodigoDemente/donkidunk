@@ -1,6 +1,8 @@
 import type Database from '@tauri-apps/plugin-sql';
+import type { Component } from 'svelte';
 
 export type ModalSize = 'medium' | 'small' | 'large' | 'extralarge';
+
 export type ProjectData = {
 	metadata: {
 		timestamp: string;
@@ -15,10 +17,12 @@ export type ProjectData = {
 		path?: string;
 	};
 	modal: {
-		content: unknown;
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		content: Component<any> | null;
+		props?: Record<string, unknown>;
 		title?: string;
-		onCancel?: () => void;
-		onSubmit?: () => void;
+		onCancel?: () => void | Promise<void>;
+		onSubmit?: () => void | Promise<void>;
 		show: boolean;
 		size?: ModalSize;
 	};

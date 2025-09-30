@@ -2,11 +2,12 @@
 	import type { Category } from '../../modules/board/types/Category';
 	import { getTextColorForBackground } from './colors';
 	import { timelineContext } from '../../modules/videoplayer/context.svelte';
+	import { CategoryType } from './types';
 
 	const timeline = timelineContext.get();
 
 	type Props = {
-		type: 'eventCategories' | 'actionCategories';
+		type: CategoryType;
 		currentTime: number;
 		category: Category;
 		draggedCategoryId: number | null;
@@ -20,7 +21,7 @@
 	}
 
 	function addActionOrEvent(categoryId: number, buttonId: number): Promise<void> {
-		if (type === 'actionCategories') {
+		if (type === CategoryType.Action) {
 			return timeline.addAction(buttonId, categoryId, currentTime);
 		} else {
 			return timeline.addEvent(buttonId, categoryId, currentTime);
