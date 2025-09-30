@@ -1,3 +1,4 @@
+import type { CategoryType } from '../components/box/types';
 import type { RangeData, RangeDataWithTags } from '../modules/videoplayer/types/RangeData';
 
 export interface TimelineRepository {
@@ -6,7 +7,7 @@ export interface TimelineRepository {
 	addEntry(
 		buttonId: number,
 		categoryId: number,
-		type: 'event' | 'action',
+		type: CategoryType,
 		startTime: number,
 		endTime?: number
 	): Promise<number>;

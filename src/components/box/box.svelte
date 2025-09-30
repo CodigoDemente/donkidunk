@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { projectActions } from '../../persistence/stores/project/actions';
-	import addCategoryModal from '../../modules/modalContent/addCategoryModal.svelte';
+	import addCategoryModal from '../../modules/modalContent/addCategoryModal/index.svelte';
 	import { IconPlus, IconChevronDown } from '@tabler/icons-svelte';
 	import Button from '../button/button.svelte';
 	import type { Props } from './types';
@@ -66,12 +66,13 @@
 		e.preventDefault();
 	}
 
-	function handleModalOpen() {
+	function handleModalOpen(categoryId?: number) {
 		projectActions.setModal({
 			content: addCategoryModal,
+			props: { type, categoryId },
 			title: `Add category to ${title}`,
 			onCancel: () => context.resetCategoryForm(),
-			onSubmit: () => context.addCategory(type),
+			onSubmit: () => context.addOrUpdateCategory(type),
 			show: true,
 			size: 'medium'
 		});

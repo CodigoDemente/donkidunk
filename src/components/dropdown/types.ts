@@ -2,8 +2,8 @@ import type { InputSizes } from '../input/types';
 
 export interface Props {
 	label?: string;
-	options?: { value: string | number; label: string }[];
-	value?: string;
+	options?: { value: string | number | null; label: string }[];
+	value?: string | number | null;
 	name?: string;
 	id?: string;
 	disabled?: boolean;
