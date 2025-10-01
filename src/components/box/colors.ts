@@ -43,6 +43,29 @@ export function getTextColorForBackground(backgroundColor: string): string {
 	);
 }
 
+export function getHoverBackgroundColor(backgroundColor: string): string {
+	const rgb: RGB = hexStringToRgb(backgroundColor);
+
+	const hsl = rgbToHsl(rgb);
+
+	const newL = Math.max(0, hsl.l - 0.1);
+
+	const hslAdjusted = {
+		h: hsl.h,
+		s: hsl.s,
+		l: newL
+	};
+
+	const rgbAdjusted = hslToRgb(hslAdjusted);
+
+	return (
+		'#' +
+		rgbAdjusted.r.toString(16).padStart(2, '0') +
+		rgbAdjusted.g.toString(16).padStart(2, '0') +
+		rgbAdjusted.b.toString(16).padStart(2, '0')
+	);
+}
+
 function hslToRgb(hsl: HSL): RGB {
 	const { h, s, l } = hsl;
 
