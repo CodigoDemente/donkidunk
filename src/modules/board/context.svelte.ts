@@ -245,6 +245,9 @@ export class Board {
 
 			await emit('project:dirty');
 
+			projectActions.closeAndResetModal();
+			// TODO: Show success snackbar
+			console.log('Category added successfully');
 			this.resetCategoryForm();
 		} catch (error) {
 			//TODO: REUSABLE SNACKBAR ERROR TO CREATE;
@@ -283,7 +286,6 @@ export class Board {
 
 		if (Object.keys(errorObject).length > 0) {
 			this.#errorsForm = errorObject;
-			console.log('Validation errors:', this.#errorsForm);
 			throw 'validation-failed';
 		}
 
