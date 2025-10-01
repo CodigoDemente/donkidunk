@@ -18,6 +18,8 @@ export class Timeline {
 	#history!: StateHistory<TimelineData>;
 	#state = $state<TimelineData>(initialState);
 	#onPlay = $state<RangeDataWithTags | null>(null);
+	#currentTime: number = $state(0);
+	#duration: number = $state(0);
 	#eventSelected = $state<number | null>(null);
 	#timelineEventsByCategory!: Record<string, RangeDataWithTags[]>;
 	#timelineActionsByCategory!: Record<string, RangeData[]>;
@@ -308,6 +310,22 @@ export class Timeline {
 
 	get actionsByCategory() {
 		return this.#timelineActionsByCategory;
+	}
+
+	get currentTime() {
+		return this.#currentTime;
+	}
+
+	set currentTime(value: number) {
+		this.#currentTime = value;
+	}
+
+	get duration() {
+		return this.#duration;
+	}
+
+	set duration(value: number) {
+		this.#duration = value;
 	}
 	//#endregion
 }
