@@ -76,12 +76,10 @@
 			customClass="absolute right-5 top-14 z-10"
 			size="mini"
 			primary
-			onClick={() => handleModalOpen(true)}
+			onClick={() => handleModalOpen()}
 		>
 			<IconPlus class="text-white" />
 		</Button>
-
-		<!-- Subbox for Tags (only for eventCategories) -->
 
 		{#each categories as category (category.id)}
 			<div
@@ -110,6 +108,8 @@
 				</div>
 			</div>
 		{/each}
+
+		<!-- Subbox for Tags (only for eventCategories) -->
 
 		{#if type === 'eventCategories'}
 			<div
