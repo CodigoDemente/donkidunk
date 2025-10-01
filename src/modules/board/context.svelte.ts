@@ -7,6 +7,7 @@ import { Scope } from '../../persistence/undo/types/Scope';
 import type { Category } from './types/Category';
 import type { Tag } from './types/Tag';
 import type { Button } from './types/Button';
+import { projectActions } from '../../persistence/stores/project/actions';
 
 const initialState: BoardData = {
 	eventCategories: [],
@@ -36,6 +37,7 @@ export class Board {
 	#eventCategoriesById!: Record<string, Category>;
 	#actionCategoriesById!: Record<string, Category>;
 	#tagsById!: Record<string, Tag>;
+	#errorsForm = $state<Record<number, { message: string }>>({});
 	#eventButtonsById!: Record<string, Button>;
 	#actionButtonsById!: Record<string, Button>;
 
@@ -135,8 +137,17 @@ export class Board {
 		this.#tempCategory = initialCategory;
 	}
 
+	getTagsListForm() {
+		return (this.#tempTagsList = this.#state.tagsRelatedToEvents);
+	}
+
+	resetErrorsForm() {
+		this.#errorsForm = {};
+	}
+
 	resetTagsListForm() {
 		this.#tempTagsList = [];
+		this.resetErrorsForm();
 	}
 
 	async updateCategoryPosition(
@@ -241,22 +252,65 @@ export class Board {
 		}
 	}
 
+	onValidateTagsList(): Record<number, { message: string }> | void {
+		const errorObject: Record<number, { message: string }> = {};
+
+		const validationSchema = [
+			{
+				validate: (tag: Tag) => tag.name.trim() === '',
+				message: 'Tag name cannot be empty'
+			},
+			{
+				validate: (tag: Tag, idx: number, tags: Tag[]) => {
+					const name = tag.name.trim().toLowerCase();
+					return (
+						name &&
+						tags.filter((t, i) => t.name.trim().toLowerCase() === name && i !== idx).length > 0
+					);
+				},
+				message: 'Tag names must be unique'
+			}
+		];
+
+		this.#tempTagsList.forEach((tag, idx, tags) => {
+			for (const rule of validationSchema) {
+				if (rule.validate(tag, idx, tags)) {
+					errorObject[idx] = { message: rule.message };
+					break;
+				}
+			}
+		});
+
+		if (Object.keys(errorObject).length > 0) {
+			this.#errorsForm = errorObject;
+			console.log('Validation errors:', this.#errorsForm);
+			throw 'validation-failed';
+		}
+
+		return this.resetErrorsForm();
+	}
+
 	async addTagsList(): Promise<void> {
 		try {
 			const section = 'tagsRelatedToEvents';
 			const tags = this.#tempTagsList;
 
+			await this.onValidateTagsList();
+
 			const repository = BoardRepositoryFactory.getInstance();
 
-			await repository.addTagsList(tags);
+			const result = await repository.addTagsList(tags);
 
 			this.#state = {
 				...this.#state,
-				[section]: [...tags]
+				[section]: [...result]
 			};
 
 			await emit('project:dirty');
 
+			projectActions.closeAndResetModal();
+			// TODO: Show success snackbar
+			console.log('Tags added successfully');
 			this.resetTagsListForm();
 		} catch (error) {
 			//TODO: REUSABLE SNACKBAR ERROR TO CREATE;
@@ -293,6 +347,10 @@ export class Board {
 
 	get tagsListToCreate() {
 		return this.#tempTagsList;
+	}
+
+	get errorsForm() {
+		return this.#errorsForm;
 	}
 
 	get actionCategories() {

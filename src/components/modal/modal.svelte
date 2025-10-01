@@ -52,7 +52,6 @@
 					primary
 					onClick={() => {
 						modalStore.onSubmit();
-						modalStore.show = false;
 					}}
 				>
 					Submit

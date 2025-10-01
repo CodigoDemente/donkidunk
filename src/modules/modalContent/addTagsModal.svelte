@@ -4,20 +4,26 @@
 	import Input from '../../components/input/input.svelte';
 	import type { Tag } from '../board/types/Tag';
 	import { boardContext } from '../board/context.svelte';
+	import { onMount } from 'svelte';
 
-	const context = boardContext.get();
+	const { tagsListToCreate, getTagsListForm, errorsForm, resetErrorsForm } = boardContext.get();
 
 	const initialTag: Tag = { name: '', color: '#8888ff' };
 	let newTag: Tag = initialTag;
 
 	function addTag() {
-		context.tagsListToCreate.push({ ...newTag });
+		tagsListToCreate.push({ ...newTag });
 		newTag = initialTag;
 	}
 
 	function removeTag(idx: number) {
-		context.tagsListToCreate.splice(idx, 1);
+		tagsListToCreate.splice(idx, 1);
+		resetErrorsForm();
 	}
+
+	onMount(() => {
+		getTagsListForm();
+	});
 </script>
 
 <div class="flex max-h-[600px] min-h-[600px] flex-col gap-4 overflow-y-auto p-4">
@@ -33,7 +39,7 @@
 			</tr>
 		</thead>
 		<tbody>
-			{#if context.tagsListToCreate.length === 0}
+			{#if tagsListToCreate.length === 0}
 				<tr>
 					<td colspan="3" class="px-4 py-12 text-center text-gray-400">
 						No tags yet. Click <span class="text-tertiary font-semibold">ADD TAG</span> to create your
@@ -41,7 +47,7 @@
 					</td>
 				</tr>
 			{:else}
-				{#each context.tagsListToCreate as tag, idx}
+				{#each tagsListToCreate as tag, idx (idx)}
 					<tr class="border-b border-gray-600 last:border-b-0">
 						<td class="w-2/3 min-w-[180px] p-2">
 							<Input
@@ -50,6 +56,7 @@
 								maxlength={15}
 								bind:value={tag.name}
 								inputClass="bg-gray-800 mt-2"
+								error={errorsForm[idx]?.message}
 							/>
 						</td>
 						<td class="w-1/4 min-w-[80px] p-2">

@@ -53,9 +53,20 @@ export const projectActions = {
 		onCancel: () => void;
 		onSubmit: () => void;
 		show: boolean;
-		size: ModalSize;
+		size?: ModalSize;
 	}): void {
 		projectStore.modal = { content, title, onCancel, onSubmit, show, size };
+	},
+
+	closeAndResetModal(): void {
+		projectStore.modal = {
+			content: null,
+			title: undefined,
+			onCancel: undefined,
+			onSubmit: undefined,
+			show: false,
+			size: undefined
+		};
 	},
 
 	setDatabase(db: Database | null): void {
