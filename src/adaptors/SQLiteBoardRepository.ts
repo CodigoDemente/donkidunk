@@ -76,7 +76,9 @@ export class SQLiteBoardRepository implements BoardRepository {
 		return result.lastInsertId!;
 	}
 
-	async addTagsList(list: Tag[]): Promise<void> {
+	async addTagsList(list: Tag[]): Promise<Tag[]> {
+		const resultList: Tag[] = [];
+
 		for (const tag of list) {
 			if (tag.id) {
 				await this.db.execute(`UPDATE tag SET name = $1, color = $2 WHERE id = $3`, [
@@ -84,13 +86,20 @@ export class SQLiteBoardRepository implements BoardRepository {
 					tag.color,
 					tag.id
 				]);
+				resultList.push(tag);
 			} else {
-				await this.db.execute(`INSERT INTO tag (name, color) VALUES ($1, $2)`, [
+				const result = await this.db.execute(`INSERT INTO tag (name, color) VALUES ($1, $2)`, [
 					tag.name,
 					tag.color
 				]);
+				resultList.push({
+					...tag,
+					id: result.lastInsertId
+				});
 			}
 		}
+
+		return resultList;
 	}
 
 	async addButtonToCategory(categoryId: number, button: Button): Promise<number> {
