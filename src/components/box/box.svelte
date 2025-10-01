@@ -6,7 +6,6 @@
 	import type { Props } from './types';
 	import { boardContext } from '../../modules/board/context.svelte';
 	import Category from './category.svelte';
-	import { timelineContext } from '../../modules/videoplayer/context.svelte';
 
 	const context = boardContext.get();
 
