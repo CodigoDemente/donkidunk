@@ -9,7 +9,6 @@
 	import { timelineContext } from '../../modules/videoplayer/context.svelte';
 
 	const context = boardContext.get();
-	const timeline = timelineContext.get();
 
 	let isResizing = false;
 	let frame: number | null = null;
