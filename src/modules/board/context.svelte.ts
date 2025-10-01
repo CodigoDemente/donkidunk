@@ -137,10 +137,6 @@ export class Board {
 		this.#tempCategory = initialCategory;
 	}
 
-	getTagsListForm() {
-		return (this.#tempTagsList = this.#state.tagsRelatedToEvents);
-	}
-
 	resetErrorsForm() {
 		this.#errorsForm = {};
 	}

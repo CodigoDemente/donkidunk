@@ -22,7 +22,7 @@
 	}
 
 	onMount(() => {
-		context.getTagsListForm();
+		context.tagsListToCreate.push(...context.tagsRelatedToEvents);
 	});
 </script>
 
