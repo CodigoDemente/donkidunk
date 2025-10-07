@@ -4,12 +4,13 @@ import type { Category } from '../modules/board/types/Category';
 import type { DatabaseCategory } from './types/DatabaseCategory';
 import type { Tag } from '../modules/board/types/Tag';
 import type { DatabaseTag } from './types/DatabaseTag';
-import type { Button } from '../modules/board/types/Button';
+import { ButtonRange, type Button } from '../modules/board/types/Button';
+import type { CategoryType } from '../components/box/types';
 
 export class SQLiteBoardRepository implements BoardRepository {
 	constructor(private readonly db: Database) {}
 
-	async getSectionCategories(section: 'event' | 'action'): Promise<Category[]> {
+	async getSectionCategories(section: CategoryType): Promise<Category[]> {
 		const categories = await this.db.select<DatabaseCategory[]>(
 			`SELECT category.id, type, category.name, color, grid_position_x, grid_position_y, button.id AS button_id, button.name AS button_name, button.range as button_range, button.duration as button_duration, button.before as button_before
              FROM category LEFT JOIN button ON category.id = button.category_id
@@ -30,9 +31,10 @@ export class SQLiteBoardRepository implements BoardRepository {
 							{
 								id: category.button_id,
 								name: category.button_name,
-								range: category.button_range,
+								range: ButtonRange[category.button_range as keyof typeof ButtonRange],
 								duration: category.button_duration,
-								before: Boolean(category.button_before)
+								before: category.button_before,
+								temp: false
 							}
 						]
 					};
@@ -40,9 +42,10 @@ export class SQLiteBoardRepository implements BoardRepository {
 					acc[category.id].buttons.push({
 						id: category.button_id,
 						name: category.button_name,
-						range: category.button_range,
+						range: ButtonRange[category.button_range as keyof typeof ButtonRange],
 						duration: category.button_duration,
-						before: Boolean(category.button_before)
+						before: category.button_before,
+						temp: false
 					});
 				}
 				return acc;
@@ -66,7 +69,7 @@ export class SQLiteBoardRepository implements BoardRepository {
 		}));
 	}
 
-	async addCategory(section: 'event' | 'action', name: string, color: string): Promise<number> {
+	async addCategory(section: CategoryType, name: string, color: string): Promise<number> {
 		const result = await this.db.execute(
 			`INSERT INTO category (type, name, color, grid_position_x, grid_position_y)
              VALUES ($1, $2, $3, 0, 0)`,
@@ -106,7 +109,7 @@ export class SQLiteBoardRepository implements BoardRepository {
 		const result = await this.db.execute(
 			`INSERT INTO button (name, range, duration, before, category_id)
              VALUES ($1, $2, $3, $4, $5)`,
-			[button.name, button.range, button.duration, Number(button.before), categoryId]
+			[button.name, button.range, button.duration, button.before, categoryId]
 		);
 		return result.lastInsertId!;
 	}
@@ -127,5 +130,54 @@ export class SQLiteBoardRepository implements BoardRepository {
              WHERE id = $2`,
 			[categoryName, categoryId]
 		);
+	}
+
+	async updateCategory(categoryId: number, categoryName: string, color: string): Promise<void> {
+		await this.db.execute(
+			`UPDATE category
+			 SET name = $1, color = $2
+			 WHERE id = $3`,
+			[categoryName, color, categoryId]
+		);
+	}
+
+	async updateCategoryButtons(categoryId: number, buttons: Button[]): Promise<void> {
+		// Start a transaction to ensure data integrity
+		await this.db.execute('BEGIN TRANSACTION');
+
+		try {
+			// Delete existing buttons for the category
+			await this.db.execute('DELETE FROM button WHERE category_id = $1', [categoryId]);
+
+			const fullQuery = `INSERT INTO button (name, range, duration, before, category_id) VALUES `;
+			const values: string[] = [];
+			const params: (string | number | null)[] = [];
+
+			buttons.forEach((button, index) => {
+				const paramIndex = index * 5;
+				values.push(
+					`($${paramIndex + 1}, $${paramIndex + 2}, $${paramIndex + 3}, $${paramIndex + 4}, $${paramIndex + 5})`
+				);
+				params.push(
+					button.name,
+					button.range!.valueOf(),
+					button.duration,
+					button.before,
+					categoryId
+				);
+			});
+
+			if (values.length > 0) {
+				const query = fullQuery + values.join(', ');
+				await this.db.execute(query, params);
+			}
+		} catch (error) {
+			// If an error occurs, rollback the transaction
+			await this.db.execute('ROLLBACK');
+			throw error;
+		}
+
+		// If everything is successful, commit the transaction
+		await this.db.execute('COMMIT');
 	}
 }

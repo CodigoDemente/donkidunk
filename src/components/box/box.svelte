@@ -1,17 +1,20 @@
 <script lang="ts">
 	import { projectActions } from '../../persistence/stores/project/actions';
-	import addCategoryModal from '../../modules/modalContent/addCategoryModal.svelte';
+	import addCategoryModal from '../../modules/modalContent/addCategoryModal/index.svelte';
 	import addTagsModal from '../../modules/modalContent/addTagsModal.svelte';
 	import { IconPlus, IconChevronDown } from '@tabler/icons-svelte';
 	import Button from '../button/button.svelte';
-	import type { Props } from './types';
+	import { CategoryType, type Props } from './types';
 	import { boardContext } from '../../modules/board/context.svelte';
 	import { getTextColorForBackground } from './colors';
 	import { startResize } from './utils';
+	import Category from './category.svelte';
 
 	const context = boardContext.get();
 
 	let { boxHeight, isOpened, otherIsOpened, title, type, categories, tags }: Props = $props();
+
+	let draggedCategoryId: number = $state(-1);
 
 	const boxWidthPercent = 15; // ancho del draggable en %
 	const boxHeightPercent = 15; // alto del draggable en %
@@ -20,7 +23,7 @@
 		boxHeight = newHeight;
 	}
 
-	function handleDrop(e: DragEvent, categoryId: number) {
+	function handleDrop(e: DragEvent) {
 		const container = e.currentTarget as HTMLElement;
 
 		const rect = container.getBoundingClientRect();
@@ -31,26 +34,27 @@
 		x = Math.max(0, Math.min(x, 100 - boxWidthPercent));
 		y = Math.max(0, Math.min(y, 100 - boxHeightPercent));
 
-		context.updateCategoryPosition(type, categoryId, x, y);
+		context.updateCategoryPosition(type, draggedCategoryId, x, y);
 	}
 
-	function handleDragStart(e: DragEvent) {
-		e.dataTransfer?.setData('text/plain', 'dragged');
-	}
 	function allowDrop(e: DragEvent) {
 		e.preventDefault();
 	}
 
-	const handleModalOpen = (tagCreation: boolean = false) => {
+	function handleModalOpen(type: CategoryType | 'tag', categoryId?: number) {
+		const tagCreation = type === 'tag';
+		if (type === CategoryType.Event || type === CategoryType.Action) {
+			context.loadCategoryToAddOrEdit(type, categoryId);
+		}
 		projectActions.setModal({
 			content: tagCreation ? addTagsModal : addCategoryModal,
 			title: tagCreation ? `Create tags` : `Add category to ${title}`,
-			onCancel: () => (tagCreation ? context.resetTagsListForm() : context.resetCategoryForm()),
-			onSubmit: () => (tagCreation ? context.addTagsList() : context.addCategory(type)),
+			onCancel: () => (tagCreation ? context.resetTagsListForm() : context.resetCategoryForm(type)),
+			onSubmit: () => (tagCreation ? context.addTagsList() : context.addOrUpdateCategory(type)),
 			show: true,
 			size: 'medium'
 		});
-	};
+	}
 </script>
 
 <div
@@ -76,42 +80,23 @@
 			customClass="absolute right-5 top-14 z-10"
 			size="mini"
 			primary
-			onClick={() => handleModalOpen()}
+			onClick={() => handleModalOpen(type)}
 		>
 			<IconPlus class="text-white" />
 		</Button>
-
-		{#each categories as category (category.id)}
-			<div
-				class="relative min-h-0 min-w-0 flex-1 overflow-hidden"
-				ondrop={(e) => handleDrop(e, category.id as number)}
-				ondragover={allowDrop}
-				id={`drop-area-${category.id}`}
-				role="region"
-				aria-label="Drop area"
-			>
-				<!-- Draggable element absolutely positioned by percentage -->
-				<div
-					class="absolute z-10 h-10 w-10 cursor-move rounded shadow select-none"
-					style="
-					color: {getTextColorForBackground(category.color)};
-					background-color: {category.color};
-					left: {category.position.x}%;
-					top: {category.position.y}%;"
-					draggable="true"
-					ondragstart={handleDragStart}
-					role="button"
-					aria-grabbed="true"
-					tabindex="0"
-				>
-					{category.name}
-				</div>
-			</div>
-		{/each}
-
-		<!-- Subbox for Tags (only for eventCategories) -->
-
-		{#if type === 'eventCategories'}
+		<div
+			class="relative min-h-0 min-w-0 flex-1 overflow-hidden"
+			ondrop={(e) => handleDrop(e)}
+			ondragover={allowDrop}
+			id={`drop-area-categories-${type}`}
+			role="region"
+			aria-label="Drop area"
+		>
+			{#each categories as category (category.id)}
+				<Category {type} {category} bind:draggedCategoryId />
+			{/each}
+		</div>
+		{#if type === CategoryType.Event}
 			<div
 				class="absolute bottom-2 mx-1 mt-4 flex max-h-1/2 w-[calc(100%-0.5rem)] flex-col self-end rounded-sm border border-gray-500 bg-gray-700 shadow-inner transition-all duration-200"
 			>
@@ -123,7 +108,7 @@
 						customClass="!h-5 !w-5 p-0 flex items-center justify-center"
 						size="mini"
 						primary
-						onClick={() => handleModalOpen(true)}
+						onClick={() => handleModalOpen('tag')}
 					>
 						<IconPlus class="h-4 w-4 text-white" />
 					</Button>

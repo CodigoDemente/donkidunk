@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Box from '../../components/box/box.svelte';
+	import { CategoryType } from '../../components/box/types';
 	import { boardContext } from './context.svelte';
 
 	const context = boardContext.get();
@@ -16,7 +17,7 @@
 		tags={context.tagsRelatedToEvents}
 		title="Events Board"
 		{boxHeight}
-		type="eventCategories"
+		type={CategoryType.Event}
 		isOpened={eventsOpen}
 		otherIsOpened={actionsOpen}
 	/>
@@ -25,7 +26,7 @@
 		categories={context.actionCategories}
 		title="Actions Board"
 		{boxHeight}
-		type="actionCategories"
+		type={CategoryType.Action}
 		isOpened={actionsOpen}
 		otherIsOpened={eventsOpen}
 	/>
