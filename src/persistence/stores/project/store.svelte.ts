@@ -21,6 +21,13 @@ export const InitialProjectData: ProjectData = {
 		show: false,
 		size: undefined
 	},
+	snackbar: {
+		title: '',
+		message: '',
+		type: 'info',
+		show: false,
+		mode: 'auto'
+	},
 	database: null
 };
 
