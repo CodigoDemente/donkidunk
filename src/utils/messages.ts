@@ -6,18 +6,6 @@ export type FeedbackType = {
 };
 export const feedbackMessages: { [key: string]: FeedbackType } = {
 	// ERROR MESSAGES
-	NETWORK_ERROR: {
-		title: 'Network Error',
-		message: 'Could not connect to the server.',
-		type: 'error',
-		mode: 'manual'
-	},
-	UNAUTHORIZED: {
-		title: 'Unauthorized',
-		message: 'You do not have permission to perform this action.',
-		type: 'error',
-		mode: 'manual'
-	},
 	UNKNOWN_ERROR: {
 		title: 'Unknown Error',
 		message: 'An unexpected error has occurred.',
