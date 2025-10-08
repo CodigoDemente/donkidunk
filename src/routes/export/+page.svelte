@@ -97,16 +97,16 @@
 				class="cursor-pointer rounded px-4 py-2 disabled:opacity-50"
 				style="background-color: {tag.color}; color: {getTextColorForBackground(tag.color)}"
 				onclick={() => {
-					if (selectedTags.includes(tag.id)) {
-						const index = selectedTags.indexOf(tag.id);
+					if (selectedTags.includes(tag.id!)) {
+						const index = selectedTags.indexOf(tag.id!);
 						if (index > -1) {
 							selectedTags.splice(index, 1);
 						}
 					} else {
-						selectedTags.push(tag.id);
+						selectedTags.push(tag.id!);
 					}
 				}}
-				class:disabled={!selectedTags.includes(tag.id)}
+				class:disabled={!selectedTags.includes(tag.id!)}
 			>
 				{tag.name}
 			</button>
