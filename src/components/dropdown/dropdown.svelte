@@ -28,7 +28,7 @@
 
 	let open = $state(false);
 
-	const onChange = (val: string | number) => {
+	const onChange = (val: string | number | null) => {
 		value = val as string;
 		open = false;
 	};

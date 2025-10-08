@@ -15,6 +15,7 @@ import { TimelineRepositoryFactory } from '../../factories/TimelineRepositoryFac
 import type { TimelineRepository } from '../../ports/TimelineRepository';
 import { Board } from '../../modules/board/context.svelte';
 import type { Timeline } from '../../modules/videoplayer/context.svelte';
+import { CategoryType } from '../../components/box/types';
 
 const DB_BACKUP_EXTENSION = 'dnk';
 
@@ -162,8 +163,10 @@ export async function loadBoardFromDatabase(
 	repository: BoardRepository,
 	board: Board
 ): Promise<void> {
-	board.getState().eventCategories = await repository.getSectionCategories('event');
-	board.getState().actionCategories = await repository.getSectionCategories('action');
+	board.getState()[CategoryType.Event] = await repository.getSectionCategories(CategoryType.Event);
+	board.getState()[CategoryType.Action] = await repository.getSectionCategories(
+		CategoryType.Action
+	);
 	board.getState().tagsRelatedToEvents = await repository.getTagsRelatedToEvents();
 }
 

@@ -2,6 +2,7 @@ import type Database from '@tauri-apps/plugin-sql';
 import type { TimelineRepository } from '../ports/TimelineRepository';
 import type { DatabaseEntryWithTag } from './types/DatabaseEntryWithTags';
 import type { RangeData, RangeDataWithTags } from '../modules/videoplayer/types/RangeData';
+import { CategoryType } from '../components/box/types';
 
 export class SQLiteTimelineRepository implements TimelineRepository {
 	constructor(private readonly db: Database) {}
@@ -41,7 +42,7 @@ export class SQLiteTimelineRepository implements TimelineRepository {
 		const entries = await this.db.select<DatabaseEntryWithTag[]>(
 			`SELECT id, button_id, category_id, type, timestamp_start, timestamp_end
 			 FROM timeline_entry
-			 WHERE type = 'action'`
+			 WHERE type = '${CategoryType.Action}'`
 		);
 
 		return entries.map((entry) => ({
@@ -100,7 +101,7 @@ export class SQLiteTimelineRepository implements TimelineRepository {
 	async addEntry(
 		buttonId: number,
 		categoryId: number,
-		type: 'event' | 'action',
+		type: CategoryType,
 		startTime: number,
 		endTime: number
 	): Promise<number> {

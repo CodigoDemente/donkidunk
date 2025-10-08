@@ -6,23 +6,20 @@
 	import Controls from './controls.svelte';
 	import { SkipType } from './types/SkipType';
 	import { SkipDirection } from './types/SkipDirection';
+	import { timelineContext } from './context.svelte';
 
 	type Props = {
 		video: string | undefined;
 	};
 
-	export function getCurrentTime() {
-		return currentTime;
-	}
+	const timeline = timelineContext.get();
 
 	const { video }: Props = $props();
 
 	let videoPlayer: HTMLVideoElement | null = $state(null);
 	let videoIsPlaying: boolean = $state(false);
 
-	let duration: number = $state(0);
-	let currentTime: number = $state(0);
-	let progress: number = $derived((currentTime / duration) * 100);
+	let progress: number = $derived((timeline.currentTime / timeline.duration) * 100);
 
 	// Effects
 
@@ -85,7 +82,7 @@
 
 		const percentage = horizontalPosition / fullWidth;
 
-		currentTime = percentage * duration;
+		timeline.currentTime = percentage * timeline.duration;
 	}
 
 	function handleDragStart(event: DragEvent) {
@@ -131,19 +128,24 @@
 			skipAmount *= -1;
 		}
 
-		currentTime += skipAmount;
+		timeline.currentTime += skipAmount;
 	}
 </script>
 
 <div class="flex h-screen flex-col bg-gray-900 p-2">
 	<p class="mb-2 inline-block py-1 text-xs">Video / Timeline</p>
-	<video id="video-player" class="w-100% h-100%" bind:currentTime bind:duration></video>
+	<video
+		id="video-player"
+		class="w-100% h-100%"
+		bind:currentTime={timeline.currentTime}
+		bind:duration={timeline.duration}
+	></video>
 	{#if videoPlayer}
 		<Controls isPlaying={videoIsPlaying} {skip} {play} />
 	{/if}
 	<Progressbar
-		bind:currentTime
-		{duration}
+		bind:currentTime={timeline.currentTime}
+		duration={timeline.duration}
 		{toTimeString}
 		{handleDragStart}
 		{handleDragEnd}

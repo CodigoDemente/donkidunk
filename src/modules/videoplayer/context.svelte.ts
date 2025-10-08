@@ -5,6 +5,7 @@ import { TimelineRepositoryFactory } from '../../factories/TimelineRepositoryFac
 import { emit } from '@tauri-apps/api/event';
 import { wrapObjectForUndo } from '../../persistence/undo/UndoStateWrapper';
 import { Scope } from '../../persistence/undo/types/Scope';
+import { CategoryType } from '../../components/box/types';
 
 const initialState: TimelineData = {
 	eventTimeline: [],
@@ -17,6 +18,8 @@ export class Timeline {
 	#history!: StateHistory<TimelineData>;
 	#state = $state<TimelineData>(initialState);
 	#onPlay = $state<RangeDataWithTags | null>(null);
+	#currentTime: number = $state(0);
+	#duration: number = $state(0);
 	#eventSelected = $state<number | null>(null);
 	#timelineEventsByCategory!: Record<string, RangeDataWithTags[]>;
 	#timelineActionsByCategory!: Record<string, RangeData[]>;
@@ -103,7 +106,7 @@ export class Timeline {
 		const newEventId = await repository.addEntry(
 			event.buttonId,
 			event.categoryId,
-			'event',
+			CategoryType.Event,
 			event.timestamp.start,
 			event.timestamp.end
 		);
@@ -172,7 +175,7 @@ export class Timeline {
 			const newActionId = await repository.addEntry(
 				newAction.buttonId,
 				newAction.categoryId,
-				'action',
+				CategoryType.Action,
 				newAction.timestamp.start,
 				undefined
 			);
@@ -307,6 +310,22 @@ export class Timeline {
 
 	get actionsByCategory() {
 		return this.#timelineActionsByCategory;
+	}
+
+	get currentTime() {
+		return this.#currentTime;
+	}
+
+	set currentTime(value: number) {
+		this.#currentTime = value;
+	}
+
+	get duration() {
+		return this.#duration;
+	}
+
+	set duration(value: number) {
+		this.#duration = value;
 	}
 	//#endregion
 }

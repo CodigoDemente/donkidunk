@@ -79,6 +79,11 @@ jobs:
           # Those targets are only used on macos runners so it's in an `if` to slightly speed up windows and linux builds.
           targets: ${{ (matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin') || (matrix.platform == 'windows-latest' && 'x86_64-pc-windows-msvc') || '' }}
 
+      - name: Install Rust format and lints
+        working-directory: ./src-tauri
+        run: |
+          rustup component add rustfmt clippy
+
       - uses: Swatinem/rust-cache@v2
         with:
           shared-key: ${{ matrix.platform }}

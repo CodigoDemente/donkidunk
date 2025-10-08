@@ -1,8 +1,12 @@
 <script lang="ts">
-	import type { ModalSize } from '../../persistence/stores/project/types/Project';
+	import type { ModalSize, ProjectData } from '../../persistence/stores/project/types/Project';
 	import Button from '../button/button.svelte';
 
-	const { modalStore = $bindable() } = $props();
+	type Props = {
+		modalStore: ProjectData['modal'];
+	};
+
+	const { modalStore = $bindable() }: Props = $props();
 
 	const sizesToClass = {
 		small: 'max-w-md',
@@ -28,9 +32,8 @@
 				<button
 					class="text-2xl text-gray-400 transition hover:cursor-pointer hover:text-white"
 					aria-label="Close"
-					onclick={() => {
+					onclick={async () => {
 						modalStore.show = false;
-						modalStore.onCancel();
 					}}
 				>
 					&times;
@@ -41,9 +44,11 @@
 			<!-- Footer -->
 			<div class="flex justify-end gap-2 border-t border-gray-700 px-4 py-2">
 				<Button
-					onClick={() => {
+					onClick={async () => {
+						if (modalStore?.onCancel) {
+							modalStore.onCancel();
+						}
 						modalStore.show = false;
-						modalStore.onCancel();
 					}}
 				>
 					Cancel
@@ -51,8 +56,9 @@
 				<Button
 					primary
 					onClick={() => {
-						modalStore.onSubmit();
-						modalStore.show = false;
+						if (modalStore?.onSubmit) {
+							modalStore.onSubmit();
+						}
 					}}
 				>
 					Submit

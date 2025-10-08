@@ -7,34 +7,39 @@ import { Scope } from '../../persistence/undo/types/Scope';
 import type { Category } from './types/Category';
 import type { Tag } from './types/Tag';
 import type { Button } from './types/Button';
+import { projectActions } from '../../persistence/stores/project/actions';
+import { CategoryType } from '../../components/box/types';
 
 const initialState: BoardData = {
-	eventCategories: [],
-	tagsRelatedToEvents: [],
-	actionCategories: []
+	[CategoryType.Event]: [],
+	[CategoryType.Action]: [],
+	tagsRelatedToEvents: []
 };
 
-const initialCategory: Category = {
-	id: 0,
+const initialCategory = (section: CategoryType): Category => ({
+	id: -1,
 	name: '',
+	type: section,
 	position: {
 		x: 0,
 		y: 0
 	},
 	buttons: [],
 	color: '#000000'
-};
+});
 
 export const boardContext = new Context<Board>('');
 
 export class Board {
 	#history!: StateHistory<BoardData>;
 	#isEditing = $state(false);
-	#tempCategory = $state<Category>(initialCategory);
+	#tempCategory = $state<Category>(initialCategory(CategoryType.Event));
+	#tempTagsList = $state<Tag[]>([]);
 	#state = $state<BoardData>(initialState);
 	#eventCategoriesById!: Record<string, Category>;
 	#actionCategoriesById!: Record<string, Category>;
 	#tagsById!: Record<string, Tag>;
+	#errorsForm = $state<Record<number, { message: string }>>({});
 	#eventButtonsById!: Record<string, Button>;
 	#actionButtonsById!: Record<string, Button>;
 
@@ -46,7 +51,7 @@ export class Board {
 
 		//#region Selector derived states
 		this.#eventCategoriesById = $derived.by(() => {
-			return this.#state.eventCategories.reduce(
+			return this.#state[CategoryType.Event].reduce(
 				(acc, category) => {
 					acc[category.id] = category;
 					return acc;
@@ -56,7 +61,7 @@ export class Board {
 		});
 
 		this.#actionCategoriesById = $derived.by(() => {
-			return this.#state.actionCategories.reduce(
+			return this.#state[CategoryType.Action].reduce(
 				(acc, category) => {
 					acc[category.id] = category;
 					return acc;
@@ -65,18 +70,18 @@ export class Board {
 			);
 		});
 
-		this.#tagsById = $derived.by(() => {
-			return this.#state.tagsRelatedToEvents.reduce(
-				(acc, tag) => {
-					acc[tag.id] = tag;
-					return acc;
-				},
-				{} as Record<string, Tag>
-			);
-		});
+		// this.#tagsById = $derived.by(() => {
+		// 	return this.#state.tagsRelatedToEvents.reduce(
+		// 		(acc, tag) => {
+		// 			acc[tag.id] = tag;
+		// 			return acc;
+		// 		},
+		// 		{} as Record<string, Tag>
+		// 	);
+		// });
 
 		this.#eventButtonsById = $derived.by(() => {
-			return this.#state.eventCategories.reduce(
+			return this.#state[CategoryType.Event].reduce(
 				(acc, category) => {
 					category.buttons.forEach((button) => {
 						acc[button.id] = button;
@@ -88,7 +93,7 @@ export class Board {
 		});
 
 		this.#actionButtonsById = $derived.by(() => {
-			return this.#state.actionCategories.reduce(
+			return this.#state[CategoryType.Action].reduce(
 				(acc, category) => {
 					category.buttons.forEach((button) => {
 						acc[button.id] = button;
@@ -130,12 +135,21 @@ export class Board {
 		this.#isEditing = value;
 	}
 
-	resetCategoryForm() {
-		this.#tempCategory = initialCategory;
+	resetCategoryForm(section: CategoryType) {
+		this.#tempCategory = initialCategory(section);
+	}
+
+	resetErrorsForm() {
+		this.#errorsForm = {};
+	}
+
+	resetTagsListForm() {
+		this.#tempTagsList = [];
+		this.resetErrorsForm();
 	}
 
 	async updateCategoryPosition(
-		section: 'eventCategories' | 'actionCategories',
+		section: CategoryType,
 		categoryId: number,
 		x: number,
 		y: number
@@ -156,12 +170,29 @@ export class Board {
 		const repository = BoardRepositoryFactory.getInstance();
 
 		await repository.updateCategoryName(categoryId, categoryName);
+	}
 
-		await emit('project:dirty');
+	async updateCategory(section: CategoryType, category: Category): Promise<void> {
+		const repository = BoardRepositoryFactory.getInstance();
+
+		await repository.updateCategory(category.id!, category.name, category.color);
+		await repository.updateCategoryButtons(category.id!, category.buttons);
+
+		this.#state = {
+			...this.#state,
+			[section]: this.#state[section].map((c) =>
+				c.id === category.id
+					? {
+							...category,
+							buttons: category.buttons.map((b) => ({ ...b, temp: false }))
+						}
+					: c
+			)
+		};
 	}
 
 	async addButtonToCategory(
-		section: 'eventCategories' | 'actionCategories',
+		section: CategoryType,
 		categoryId: number,
 		button: Button
 	): Promise<void> {
@@ -184,7 +215,8 @@ export class Board {
 								...c.buttons,
 								{
 									...button,
-									id: buttonId
+									id: buttonId,
+									temp: false
 								}
 							]
 						};
@@ -197,17 +229,38 @@ export class Board {
 		await emit('project:dirty');
 	}
 
-	async addCategory(section: 'eventCategories' | 'actionCategories'): Promise<void> {
+	async loadCategoryToAddOrEdit(section: CategoryType, categoryId?: number): Promise<void> {
+		if (categoryId) {
+			if (section === CategoryType.Event) {
+				this.#tempCategory = this.eventCategoriesById[categoryId];
+			} else {
+				this.#tempCategory = this.actionCategoriesById[categoryId];
+			}
+		} else {
+			this.resetCategoryForm(section);
+		}
+	}
+
+	async addOrUpdateCategory(section: CategoryType): Promise<void> {
+		if (this.#tempCategory.id && this.#tempCategory.id > 0) {
+			// Update existing category
+			await this.updateCategory(section, this.#tempCategory);
+		} else {
+			// Add new category
+			await this.addCategory(section);
+		}
+
+		this.resetCategoryForm(section);
+		await emit('project:dirty');
+	}
+
+	async addCategory(section: CategoryType): Promise<void> {
 		try {
 			const { name, color, buttons } = this.#tempCategory;
 
 			const repository = BoardRepositoryFactory.getInstance();
 
-			const categoryId = await repository.addCategory(
-				section === 'eventCategories' ? 'event' : 'action',
-				name,
-				color
-			);
+			const categoryId = await repository.addCategory(section, name, color);
 
 			this.#state = {
 				...this.#state,
@@ -229,10 +282,78 @@ export class Board {
 
 			await emit('project:dirty');
 
-			this.resetCategoryForm();
+			projectActions.closeAndResetModal();
+			// TODO: Show success snackbar
+			console.log('Category added successfully');
+			this.resetCategoryForm(section);
 		} catch (error) {
 			//TODO: REUSABLE SNACKBAR ERROR TO CREATE;
 			console.error('Error adding category:', error);
+		}
+	}
+
+	onValidateTagsList(): Record<number, { message: string }> | void {
+		const errorObject: Record<number, { message: string }> = {};
+
+		const validationSchema = [
+			{
+				validate: (tag: Tag) => tag.name.trim() === '',
+				message: 'Tag name cannot be empty'
+			},
+			{
+				validate: (tag: Tag, idx: number, tags: Tag[]) => {
+					const name = tag.name.trim().toLowerCase();
+					return (
+						name &&
+						tags.filter((t, i) => t.name.trim().toLowerCase() === name && i !== idx).length > 0
+					);
+				},
+				message: 'Tag names must be unique'
+			}
+		];
+
+		this.#tempTagsList.forEach((tag, idx, tags) => {
+			for (const rule of validationSchema) {
+				if (rule.validate(tag, idx, tags)) {
+					errorObject[idx] = { message: rule.message };
+					break;
+				}
+			}
+		});
+
+		if (Object.keys(errorObject).length > 0) {
+			this.#errorsForm = errorObject;
+			throw 'validation-failed';
+		}
+
+		return this.resetErrorsForm();
+	}
+
+	async addTagsList(): Promise<void> {
+		try {
+			const section = 'tagsRelatedToEvents';
+			const tags = this.#tempTagsList;
+
+			await this.onValidateTagsList();
+
+			const repository = BoardRepositoryFactory.getInstance();
+
+			const result = await repository.addTagsList(tags);
+
+			this.#state = {
+				...this.#state,
+				[section]: [...result]
+			};
+
+			await emit('project:dirty');
+
+			projectActions.closeAndResetModal();
+			// TODO: Show success snackbar
+			console.log('Tags added successfully');
+			this.resetTagsListForm();
+		} catch (error) {
+			//TODO: REUSABLE SNACKBAR ERROR TO CREATE;
+			console.error('Error adding tag list:', error);
 		}
 	}
 
@@ -242,6 +363,7 @@ export class Board {
 			wrapObjectForUndo(
 				{
 					updateCategoryName: this.updateCategoryName.bind(this),
+					updateCategory: this.updateCategory.bind(this),
 					addButtonToCategory: this.addButtonToCategory.bind(this),
 					addCategory: this.addCategory.bind(this),
 					updateCategoryPosition: this.updateCategoryPosition.bind(this)
@@ -263,8 +385,20 @@ export class Board {
 		return this.#tempCategory;
 	}
 
+	get tagsListToCreate() {
+		return this.#tempTagsList;
+	}
+
+	get errorsForm() {
+		return this.#errorsForm;
+	}
+
+	set categoryToCreate(value: Category) {
+		this.#tempCategory = value;
+	}
+
 	get actionCategories() {
-		return this.#state.actionCategories;
+		return this.#state[CategoryType.Action];
 	}
 
 	get actionCategoriesById() {
@@ -272,11 +406,15 @@ export class Board {
 	}
 
 	get eventCategories() {
-		return this.#state.eventCategories;
+		return this.#state[CategoryType.Event];
 	}
 
 	get eventCategoriesById() {
 		return this.#eventCategoriesById;
+	}
+
+	get tagsRelatedToEvents() {
+		return this.#state.tagsRelatedToEvents;
 	}
 
 	get tagsById() {
