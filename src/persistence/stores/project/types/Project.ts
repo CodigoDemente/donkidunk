@@ -17,12 +17,11 @@ export type ProjectData = {
 		path?: string;
 	};
 	modal: {
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		content: Component<any> | null;
+		content: Component | null;
 		props?: Record<string, unknown>;
 		title?: string;
-		onCancel?: () => void | Promise<void>;
-		onSubmit?: () => void | Promise<void>;
+		onCancel?: () => void;
+		onSubmit?: () => void;
 		show: boolean;
 		size?: ModalSize;
 	};

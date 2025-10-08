@@ -7,6 +7,7 @@ import { Scope } from '../../persistence/undo/types/Scope';
 import type { Category } from './types/Category';
 import type { Tag } from './types/Tag';
 import type { Button } from './types/Button';
+import { projectActions } from '../../persistence/stores/project/actions';
 import { CategoryType } from '../../components/box/types';
 
 const initialState: BoardData = {
@@ -15,27 +16,30 @@ const initialState: BoardData = {
 	tagsRelatedToEvents: []
 };
 
-const initialCategory: Category = {
+const initialCategory = (section: CategoryType): Category => ({
 	id: -1,
 	name: '',
+	type: section,
 	position: {
 		x: 0,
 		y: 0
 	},
 	buttons: [],
 	color: '#000000'
-};
+});
 
 export const boardContext = new Context<Board>('');
 
 export class Board {
 	#history!: StateHistory<BoardData>;
 	#isEditing = $state(false);
-	#tempCategory = $state<Category>(initialCategory);
+	#tempCategory = $state<Category>(initialCategory(CategoryType.Event));
+	#tempTagsList = $state<Tag[]>([]);
 	#state = $state<BoardData>(initialState);
 	#eventCategoriesById!: Record<string, Category>;
 	#actionCategoriesById!: Record<string, Category>;
 	#tagsById!: Record<string, Tag>;
+	#errorsForm = $state<Record<number, { message: string }>>({});
 	#eventButtonsById!: Record<string, Button>;
 	#actionButtonsById!: Record<string, Button>;
 
@@ -66,15 +70,15 @@ export class Board {
 			);
 		});
 
-		this.#tagsById = $derived.by(() => {
-			return this.#state.tagsRelatedToEvents.reduce(
-				(acc, tag) => {
-					acc[tag.id] = tag;
-					return acc;
-				},
-				{} as Record<string, Tag>
-			);
-		});
+		// this.#tagsById = $derived.by(() => {
+		// 	return this.#state.tagsRelatedToEvents.reduce(
+		// 		(acc, tag) => {
+		// 			acc[tag.id] = tag;
+		// 			return acc;
+		// 		},
+		// 		{} as Record<string, Tag>
+		// 	);
+		// });
 
 		this.#eventButtonsById = $derived.by(() => {
 			return this.#state[CategoryType.Event].reduce(
@@ -131,8 +135,17 @@ export class Board {
 		this.#isEditing = value;
 	}
 
-	resetCategoryForm() {
-		this.#tempCategory = initialCategory;
+	resetCategoryForm(section: CategoryType) {
+		this.#tempCategory = initialCategory(section);
+	}
+
+	resetErrorsForm() {
+		this.#errorsForm = {};
+	}
+
+	resetTagsListForm() {
+		this.#tempTagsList = [];
+		this.resetErrorsForm();
 	}
 
 	async updateCategoryPosition(
@@ -216,6 +229,18 @@ export class Board {
 		await emit('project:dirty');
 	}
 
+	async loadCategoryToAddOrEdit(section: CategoryType, categoryId?: number): Promise<void> {
+		if (categoryId) {
+			if (section === CategoryType.Event) {
+				this.#tempCategory = this.eventCategoriesById[categoryId];
+			} else {
+				this.#tempCategory = this.actionCategoriesById[categoryId];
+			}
+		} else {
+			this.resetCategoryForm(section);
+		}
+	}
+
 	async addOrUpdateCategory(section: CategoryType): Promise<void> {
 		if (this.#tempCategory.id && this.#tempCategory.id > 0) {
 			// Update existing category
@@ -225,7 +250,7 @@ export class Board {
 			await this.addCategory(section);
 		}
 
-		this.resetCategoryForm();
+		this.resetCategoryForm(section);
 		await emit('project:dirty');
 	}
 
@@ -254,9 +279,81 @@ export class Board {
 			for (const button of buttons) {
 				await this.addButtonToCategory(section, categoryId, button);
 			}
+
+			await emit('project:dirty');
+
+			projectActions.closeAndResetModal();
+			// TODO: Show success snackbar
+			console.log('Category added successfully');
+			this.resetCategoryForm(section);
 		} catch (error) {
 			//TODO: REUSABLE SNACKBAR ERROR TO CREATE;
 			console.error('Error adding category:', error);
+		}
+	}
+
+	onValidateTagsList(): Record<number, { message: string }> | void {
+		const errorObject: Record<number, { message: string }> = {};
+
+		const validationSchema = [
+			{
+				validate: (tag: Tag) => tag.name.trim() === '',
+				message: 'Tag name cannot be empty'
+			},
+			{
+				validate: (tag: Tag, idx: number, tags: Tag[]) => {
+					const name = tag.name.trim().toLowerCase();
+					return (
+						name &&
+						tags.filter((t, i) => t.name.trim().toLowerCase() === name && i !== idx).length > 0
+					);
+				},
+				message: 'Tag names must be unique'
+			}
+		];
+
+		this.#tempTagsList.forEach((tag, idx, tags) => {
+			for (const rule of validationSchema) {
+				if (rule.validate(tag, idx, tags)) {
+					errorObject[idx] = { message: rule.message };
+					break;
+				}
+			}
+		});
+
+		if (Object.keys(errorObject).length > 0) {
+			this.#errorsForm = errorObject;
+			throw 'validation-failed';
+		}
+
+		return this.resetErrorsForm();
+	}
+
+	async addTagsList(): Promise<void> {
+		try {
+			const section = 'tagsRelatedToEvents';
+			const tags = this.#tempTagsList;
+
+			await this.onValidateTagsList();
+
+			const repository = BoardRepositoryFactory.getInstance();
+
+			const result = await repository.addTagsList(tags);
+
+			this.#state = {
+				...this.#state,
+				[section]: [...result]
+			};
+
+			await emit('project:dirty');
+
+			projectActions.closeAndResetModal();
+			// TODO: Show success snackbar
+			console.log('Tags added successfully');
+			this.resetTagsListForm();
+		} catch (error) {
+			//TODO: REUSABLE SNACKBAR ERROR TO CREATE;
+			console.error('Error adding tag list:', error);
 		}
 	}
 
@@ -288,6 +385,14 @@ export class Board {
 		return this.#tempCategory;
 	}
 
+	get tagsListToCreate() {
+		return this.#tempTagsList;
+	}
+
+	get errorsForm() {
+		return this.#errorsForm;
+	}
+
 	set categoryToCreate(value: Category) {
 		this.#tempCategory = value;
 	}
@@ -306,6 +411,10 @@ export class Board {
 
 	get eventCategoriesById() {
 		return this.#eventCategoriesById;
+	}
+
+	get tagsRelatedToEvents() {
+		return this.#state.tagsRelatedToEvents;
 	}
 
 	get tagsById() {

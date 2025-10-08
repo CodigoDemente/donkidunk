@@ -1,4 +1,5 @@
 import type { Category } from '../../modules/board/types/Category';
+import type { Tag } from '../../modules/board/types/Tag';
 
 export enum CategoryType {
 	Event = 'event',
@@ -12,4 +13,5 @@ export type Props = {
 	title: string;
 	type: CategoryType;
 	categories: Category[];
+	tags?: Tag[];
 };

@@ -14,6 +14,7 @@
 	<!-- Events Section -->
 	<Box
 		categories={context.eventCategories}
+		tags={context.tagsRelatedToEvents}
 		title="Events Board"
 		{boxHeight}
 		type={CategoryType.Event}

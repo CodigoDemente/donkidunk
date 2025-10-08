@@ -40,8 +40,19 @@ export const projectActions = {
 		projectStore.file.currentPath = path;
 	},
 
-	setModal({ content, props, title, onCancel, onSubmit, show, size }: ProjectData['modal']): void {
-		projectStore.modal = { content, props, title, onCancel, onSubmit, show, size };
+	setModal({ content, title, onCancel, onSubmit, show, size }: ProjectData['modal']): void {
+		projectStore.modal = { content, title, onCancel, onSubmit, show, size };
+	},
+
+	closeAndResetModal(): void {
+		projectStore.modal = {
+			content: null,
+			title: undefined,
+			onCancel: undefined,
+			onSubmit: undefined,
+			show: false,
+			size: undefined
+		};
 	},
 
 	setDatabase(db: Database | null): void {

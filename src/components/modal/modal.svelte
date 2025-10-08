@@ -34,38 +34,31 @@
 					aria-label="Close"
 					onclick={async () => {
 						modalStore.show = false;
-						const res = modalStore.onCancel?.();
-						if (res instanceof Promise) {
-							await res;
-						}
 					}}
 				>
 					&times;
 				</button>
 			</div>
 			<!-- Content -->
-			<modalStore.content {...modalStore.props} />
+			<modalStore.content />
 			<!-- Footer -->
 			<div class="flex justify-end gap-2 border-t border-gray-700 px-4 py-2">
 				<Button
 					onClick={async () => {
-						modalStore.show = false;
-						const res = modalStore.onCancel?.();
-						if (res instanceof Promise) {
-							await res;
+						if (modalStore?.onCancel) {
+							modalStore.onCancel();
 						}
+						modalStore.show = false;
 					}}
 				>
 					Cancel
 				</Button>
 				<Button
 					primary
-					onClick={async () => {
-						const res = modalStore.onSubmit?.();
-						if (res instanceof Promise) {
-							await res;
+					onClick={() => {
+						if (modalStore?.onSubmit) {
+							modalStore.onSubmit();
 						}
-						modalStore.show = false;
 					}}
 				>
 					Submit

@@ -14,7 +14,7 @@
 
 	const sizeToWidth = {
 		mini: 'w-6',
-		small: 'w-24',
+		small: 'w-18 h-auto',
 		medium: 'w-32',
 		large: 'w-40',
 		extralarge: 'w-48',
@@ -53,6 +53,7 @@
 	items-center
 	justify-center
     rounded-[4px]
+	leading-none
 	hover:cursor-pointer
 	${disabled ? 'cursor-not-allowed opacity-70' : ''}
 	transition`}

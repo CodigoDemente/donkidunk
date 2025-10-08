@@ -1,51 +1,27 @@
 <script lang="ts">
 	import { projectActions } from '../../persistence/stores/project/actions';
 	import addCategoryModal from '../../modules/modalContent/addCategoryModal/index.svelte';
+	import addTagsModal from '../../modules/modalContent/addTagsModal.svelte';
 	import { IconPlus, IconChevronDown } from '@tabler/icons-svelte';
 	import Button from '../button/button.svelte';
-	import type { Props } from './types';
+	import { CategoryType, type Props } from './types';
 	import { boardContext } from '../../modules/board/context.svelte';
+	import { getTextColorForBackground } from './colors';
+	import { startResize } from './utils';
 	import Category from './category.svelte';
 
 	const context = boardContext.get();
 
-	let isResizing = false;
-	let frame: number | null = null;
-
-	let { boxHeight, isOpened, otherIsOpened, title, type, categories }: Props = $props();
+	let { boxHeight, isOpened, otherIsOpened, title, type, categories, tags }: Props = $props();
 
 	let draggedCategoryId: number = $state(-1);
 
-	function resize(e: MouseEvent) {
-		if (!isResizing) return;
-		if (frame) cancelAnimationFrame(frame);
-		frame = requestAnimationFrame(() => {
-			const container = document.getElementById('boards-container');
-			if (!container) return;
-			const rect = container.getBoundingClientRect();
-			const y = e.clientY - rect.top;
-			const percent = Math.max(10, Math.min(90, (y / rect.height) * 100));
-			boxHeight = percent;
-		});
-	}
-
-	function startResize() {
-		isResizing = true;
-		document.body.style.cursor = 'row-resize';
-		window.addEventListener('mousemove', resize);
-		window.addEventListener('mouseup', stopResize);
-		window.addEventListener('mouseleave', stopResize);
-	}
-	function stopResize() {
-		isResizing = false;
-		document.body.style.cursor = '';
-		window.removeEventListener('mousemove', resize);
-		window.removeEventListener('mouseup', stopResize);
-		window.removeEventListener('mouseleave', stopResize);
-	}
-
 	const boxWidthPercent = 15; // ancho del draggable en %
 	const boxHeightPercent = 15; // alto del draggable en %
+
+	function setBoxHeight(newHeight: number) {
+		boxHeight = newHeight;
+	}
 
 	function handleDrop(e: DragEvent) {
 		const container = e.currentTarget as HTMLElement;
@@ -65,13 +41,16 @@
 		e.preventDefault();
 	}
 
-	function handleModalOpen(categoryId?: number) {
+	function handleModalOpen(type: CategoryType | 'tag', categoryId?: number) {
+		const tagCreation = type === 'tag';
+		if (type === CategoryType.Event || type === CategoryType.Action) {
+			context.loadCategoryToAddOrEdit(type, categoryId);
+		}
 		projectActions.setModal({
-			content: addCategoryModal,
-			props: { type, categoryId },
-			title: `Add category to ${title}`,
-			onCancel: () => context.resetCategoryForm(),
-			onSubmit: () => context.addOrUpdateCategory(type),
+			content: tagCreation ? addTagsModal : addCategoryModal,
+			title: tagCreation ? `Create tags` : `Add category to ${title}`,
+			onCancel: () => (tagCreation ? context.resetTagsListForm() : context.resetCategoryForm(type)),
+			onSubmit: () => (tagCreation ? context.addTagsList() : context.addOrUpdateCategory(type)),
 			show: true,
 			size: 'medium'
 		});
@@ -101,7 +80,7 @@
 			customClass="absolute right-5 top-14 z-10"
 			size="mini"
 			primary
-			onClick={handleModalOpen}
+			onClick={() => handleModalOpen(type)}
 		>
 			<IconPlus class="text-white" />
 		</Button>
@@ -117,16 +96,53 @@
 				<Category {type} {category} bind:draggedCategoryId />
 			{/each}
 		</div>
+		{#if type === CategoryType.Event}
+			<div
+				class="absolute bottom-2 mx-1 mt-4 flex max-h-1/2 w-[calc(100%-0.5rem)] flex-col self-end rounded-sm border border-gray-500 bg-gray-700 shadow-inner transition-all duration-200"
+			>
+				<div
+					class="flex h-8 items-center justify-between border-b border-gray-500 bg-gray-700 px-4"
+				>
+					<p class="text-xs font-semibold text-white">Tags</p>
+					<Button
+						customClass="!h-5 !w-5 p-0 flex items-center justify-center"
+						size="mini"
+						primary
+						onClick={() => handleModalOpen('tag')}
+					>
+						<IconPlus class="h-4 w-4 text-white" />
+					</Button>
+				</div>
+				{#if !tags || tags.length === 0}
+					<p class=" p-6 text-center text-gray-400">
+						No tags yet. Click in the <span class="text-primary font-semibold">+ button</span> to create
+						your first tag.
+					</p>
+				{:else}
+					<div class="flex flex-wrap gap-2 overflow-y-auto p-3">
+						{#each tags as tag, idx (tag.id ?? idx)}
+							<div
+								class="rounded-xs px-3 py-1 text-xs font-medium"
+								style="background-color: {tag.color}; color: {getTextColorForBackground(tag.color)}"
+							>
+								{tag.name}
+							</div>
+						{/each}
+					</div>
+				{/if}
+			</div>
+		{/if}
 	{/if}
 </div>
 
 <div class="h-1"></div>
 
+<!-- Resize bar -->
 {#if isOpened}
 	<button
 		type="button"
 		class="h-1 w-full flex-shrink-0 cursor-row-resize bg-gray-900"
-		onmousedown={startResize}
+		onmousedown={() => startResize(setBoxHeight)}
 		style="z-index: 20;"
 		aria-label="Resize section"
 		tabindex="0"

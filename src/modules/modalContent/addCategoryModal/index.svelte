@@ -6,34 +6,9 @@
 	import type { Option } from '../../../utils/options';
 	import { boardContext } from '../../board/context.svelte';
 	import { ButtonRange, type Button } from '../../board/types/Button';
-	import type { Category } from '../../board/types/Category';
 	import { secondsOptions, typeOptions } from './utils';
 
-	type Props = {
-		type: CategoryType;
-		categoryId?: number; // If editing an existing category
-	};
-
-	const { type, categoryId }: Props = $props();
-
 	const context = boardContext.get();
-
-	if (categoryId) {
-		let category: Category;
-
-		if (type === CategoryType.Event) {
-			category = context.eventCategoriesById[categoryId];
-		} else {
-			category = context.actionCategoriesById[categoryId];
-		}
-
-		if (category) {
-			// Clone to avoid mutating the original until submission
-			context.categoryToCreate = JSON.parse(JSON.stringify(category));
-		}
-	} else {
-		context.resetCategoryForm();
-	}
 
 	const initialButton: Button = {
 		id: -1,
@@ -98,7 +73,7 @@
 				<tr>
 					<th class="p-2 text-left">Name</th>
 					<th class="p-2 text-left">Range</th>
-					{#if type === CategoryType.Action}
+					{#if context.categoryToCreate.type === CategoryType.Action}
 						<th class="p-2 text-left">
 							<Tooltip
 								size="medium"
@@ -121,7 +96,7 @@
 					<tr>
 						<td class="p-2">{btn.name}</td>
 						<td class="p-2">{getLabel(typeOptions, btn.range as string)}</td>
-						{#if type === CategoryType.Action}
+						{#if context.categoryToCreate.type === CategoryType.Action}
 							<td class="p-2">{getLabel(secondsOptions, btn.duration as number)}</td>
 							<td class="p-2">{getLabel(secondsOptions, btn.before as number)}</td>
 						{/if}
@@ -151,12 +126,12 @@
 								options={typeOptions}
 								size="small"
 								selectClass="bg-gray-800"
-								disabled={type === CategoryType.Event}
+								disabled={context.categoryToCreate.type === CategoryType.Event}
 								noErrors
 								bind:value={newButton.range}
 							/>
 						</td>
-						{#if type === CategoryType.Action && newButton.range === ButtonRange.FIXED}
+						{#if context.categoryToCreate.type === CategoryType.Action && newButton.range === ButtonRange.FIXED}
 							<td class="p-2">
 								<Dropdown
 									placeholder="Select duration"
@@ -181,7 +156,10 @@
 					</tr>
 				{/if}
 				<tr>
-					<td colspan={type === CategoryType.Action ? 4 : 2} class="p-2 text-center text-gray-300">
+					<td
+						colspan={context.categoryToCreate.type === CategoryType.Action ? 4 : 2}
+						class="p-2 text-center text-gray-300"
+					>
 						<button class="text-green-400 hover:text-green-600" onclick={addButton}>+</button>
 					</td>
 				</tr>
