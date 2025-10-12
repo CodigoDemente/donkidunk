@@ -24,11 +24,11 @@
 {#if isBoxOpen}
 	<div class="rounded-md bg-gray-800 p-2 shadow-md">
 		<div class="flex flex-wrap gap-2">
-			{#if timeline.onPlay}
-				{#if timeline.onPlay?.tagsRelated.length === 0}
+			{#if timeline.eventPlaying}
+				{#if timeline.eventPlaying?.tagsRelated.length === 0}
 					<p class="text-sm text-gray-400">No tags related to the current play.</p>
 				{:else}
-					{#each timeline.onPlay?.tagsRelated || [] as tag (tag)}
+					{#each timeline.eventPlaying?.tagsRelated || [] as tag (tag)}
 						<!-- TODO: replace and create Button component for all buttons -->
 						<button
 							class="rounded bg-sky-500 px-3 py-1 text-sm font-medium text-white hover:bg-sky-600"

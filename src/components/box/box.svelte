@@ -9,8 +9,10 @@
 	import { getTextColorForBackground } from './colors';
 	import { startResize } from './utils';
 	import Category from './category.svelte';
+	import { timelineContext } from '../../modules/videoplayer/context.svelte';
 
-	const context = boardContext.get();
+	const board = boardContext.get();
+	const timeline = timelineContext.get();
 
 	let { boxHeight, isOpened, otherIsOpened, title, type, categories, tags }: Props = $props();
 
@@ -34,7 +36,7 @@
 		x = Math.max(0, Math.min(x, 100 - boxWidthPercent));
 		y = Math.max(0, Math.min(y, 100 - boxHeightPercent));
 
-		context.updateCategoryPosition(type, draggedCategoryId, x, y);
+		board.updateCategoryPosition(type, draggedCategoryId, x, y);
 	}
 
 	function allowDrop(e: DragEvent) {
@@ -44,13 +46,13 @@
 	function handleModalOpen(type: CategoryType | 'tag', categoryId?: number) {
 		const tagCreation = type === 'tag';
 		if (type === CategoryType.Event || type === CategoryType.Action) {
-			context.loadCategoryToAddOrEdit(type, categoryId);
+			board.loadCategoryToAddOrEdit(type, categoryId);
 		}
 		projectActions.setModal({
 			content: tagCreation ? addTagsModal : addCategoryModal,
 			title: tagCreation ? `Create tags` : `Add category to ${title}`,
-			onCancel: () => (tagCreation ? context.resetTagsListForm() : context.resetCategoryForm(type)),
-			onSubmit: () => (tagCreation ? context.addTagsList() : context.addOrUpdateCategory(type)),
+			onCancel: () => (tagCreation ? board.resetTagsListForm() : board.resetCategoryForm(type)),
+			onSubmit: () => (tagCreation ? board.addTagsList() : board.addOrUpdateCategory(type)),
 			show: true,
 			size: 'medium'
 		});
@@ -124,6 +126,7 @@
 							<div
 								class="rounded-xs px-3 py-1 text-xs font-medium"
 								style="background-color: {tag.color}; color: {getTextColorForBackground(tag.color)}"
+								onclick={() => timeline.addRelatedTagToEvent(tag.id!)}
 							>
 								{tag.name}
 							</div>
