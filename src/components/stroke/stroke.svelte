@@ -8,7 +8,7 @@
 		duration,
 		boardCategoriesById,
 		buttonsListById,
-		onPlayObject,
+		playingObject,
 		currentTime,
 		onClick
 	}: Props = $props();
@@ -23,17 +23,17 @@
 				total={duration}
 				color={boardCategoriesById[categoryId]?.color}
 				name={buttonsListById[event.buttonId]?.name}
-				onClick={() => onClick && onPlayObject === null && onClick(event.id)}
+				onClick={() => onClick && playingObject === null && onClick(event.id)}
 			/>
 		{/each}
 	{/if}
-	{#if onPlayObject && categoryId === onPlayObject.categoryId}
+	{#if playingObject && categoryId === playingObject.categoryId}
 		<Tagtime
-			start={onPlayObject.timestamp.start}
+			start={playingObject.timestamp.start}
 			end={currentTime}
 			total={duration}
 			color={boardCategoriesById[categoryId]?.color}
-			name={buttonsListById[onPlayObject.buttonId]?.name}
+			name={buttonsListById[playingObject.buttonId]?.name}
 			onClick={() => {}}
 		/>
 	{/if}

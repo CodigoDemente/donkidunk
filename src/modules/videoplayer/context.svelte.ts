@@ -6,6 +6,7 @@ import { emit } from '@tauri-apps/api/event';
 import { wrapObjectForUndo } from '../../persistence/undo/UndoStateWrapper';
 import { Scope } from '../../persistence/undo/types/Scope';
 import { CategoryType } from '../../components/box/types';
+import { ButtonRange, type Button } from '../board/types/Button';
 
 const initialState: TimelineData = {
 	eventTimeline: [],
@@ -17,7 +18,8 @@ export const timelineContext = new Context<Timeline>('');
 export class Timeline {
 	#history!: StateHistory<TimelineData>;
 	#state = $state<TimelineData>(initialState);
-	#onPlay = $state<RangeDataWithTags | null>(null);
+	#eventPlaying = $state<RangeDataWithTags | null>(null);
+	#actionPlaying = $state<RangeData | null>(null);
 	#currentTime: number = $state(0);
 	#duration: number = $state(0);
 	#eventSelected = $state<number | null>(null);
@@ -100,6 +102,18 @@ export class Timeline {
 		};
 	}
 
+	private createNewAction(buttonId: number, categoryId: number, timeCursor: number): RangeData {
+		return {
+			id: Math.floor(Math.random() * 1000),
+			buttonId: buttonId,
+			categoryId: categoryId,
+			timestamp: {
+				start: timeCursor,
+				end: undefined // Assuming end is undefined for new actions
+			}
+		};
+	}
+
 	private async persistEvent(event: RangeDataWithTags) {
 		const repository = TimelineRepositoryFactory.getInstance();
 
@@ -112,7 +126,7 @@ export class Timeline {
 		);
 
 		event.id = newEventId;
-		this.#onPlay!.id = newEventId;
+		this.#eventPlaying!.id = newEventId;
 
 		this.#state = {
 			...this.#state,
@@ -120,75 +134,79 @@ export class Timeline {
 		};
 
 		this.#eventSelected = newEventId;
-		this.#onPlay = null;
+		this.#eventPlaying = null;
 
 		await emit('project:dirty');
+	}
 
-		return;
+	private async persistAction(action: RangeData) {
+		const repository = TimelineRepositoryFactory.getInstance();
+
+		const actionId = await repository.addEntry(
+			action.buttonId,
+			action.categoryId,
+			CategoryType.Action,
+			action.timestamp.start,
+			action.timestamp.end
+		);
+
+		action.id = actionId;
+
+		this.#state = {
+			...this.#state,
+			actionTimeline: [...this.#state.actionTimeline, action]
+		};
+
+		this.#actionPlaying = null;
+
+		await emit('project:dirty');
 	}
 
 	//#region Actions
 	async addEvent(buttonId: number, categoryId: number, timeCursor: number) {
 		const newEvent = this.createNewEvent(buttonId, categoryId, timeCursor);
 
-		if (this.#onPlay === null) {
-			this.#onPlay = newEvent;
+		if (this.#eventPlaying === null) {
+			this.#eventPlaying = newEvent;
 			this.#eventSelected = null; // Clear any selected event
 			return;
 		}
 		if (
-			this.#onPlay &&
-			this.#onPlay.buttonId === buttonId &&
-			this.#onPlay.categoryId === categoryId
+			this.#eventPlaying &&
+			this.#eventPlaying.buttonId === buttonId &&
+			this.#eventPlaying.categoryId === categoryId
 		) {
-			this.#onPlay.timestamp.end = timeCursor;
+			this.#eventPlaying.timestamp.end = timeCursor;
 
-			this.persistEvent(this.#onPlay);
+			this.persistEvent(this.#eventPlaying);
 		}
 	}
 
-	async addAction(buttonId: number, categoryId: number, timeCursor: number) {
-		const repository = TimelineRepositoryFactory.getInstance();
+	async addAction(button: Button, categoryId: number, timeCursor: number) {
+		let newAction: RangeData;
 
-		const actionInAction = this.#state.actionTimeline.find(
-			(a) => a.buttonId === buttonId && a.categoryId === categoryId && a.timestamp.end === undefined
-		);
-
-		if (actionInAction) {
-			await repository.updateEntryEndTime(actionInAction.id, timeCursor);
-			actionInAction.timestamp.end = timeCursor;
-			// eslint-disable-next-line no-self-assign
-			this.#state = this.#state;
+		if (button.range === ButtonRange.DYNAMIC) {
+			newAction = this.createNewAction(button.id, categoryId, timeCursor);
 		} else {
-			this.#eventSelected = null; // Clear any selected event
-
-			const newAction: RangeData = {
-				id: 0, // ID will be set by the database
-				buttonId: buttonId,
-				categoryId: categoryId,
-				timestamp: {
-					start: timeCursor,
-					end: undefined // Assuming end is undefined for new actions
-				}
-			};
-
-			const newActionId = await repository.addEntry(
-				newAction.buttonId,
-				newAction.categoryId,
-				CategoryType.Action,
-				newAction.timestamp.start,
-				undefined
-			);
-
-			newAction.id = newActionId;
-
-			this.#state = {
-				...this.#state,
-				actionTimeline: [...this.#state.actionTimeline, newAction]
-			};
+			newAction = this.createNewAction(button.id, categoryId, timeCursor - (button.before || 0));
+			newAction.timestamp.end = newAction.timestamp.start + button.duration!;
 		}
 
-		await emit('project:dirty');
+		if (this.#actionPlaying === null && newAction.timestamp.end === undefined) {
+			this.#actionPlaying = newAction;
+			return;
+		}
+
+		if (
+			this.#actionPlaying &&
+			this.#actionPlaying.buttonId === button.id &&
+			this.#actionPlaying.categoryId === categoryId
+		) {
+			this.#actionPlaying.timestamp.end = timeCursor;
+			this.persistAction(this.#actionPlaying);
+		} else if (this.#actionPlaying === null) {
+			this.persistAction(newAction);
+		}
 	}
 
 	setEventSelected(eventId: number) {
@@ -215,10 +233,10 @@ export class Timeline {
 			return [...tags, tagId];
 		};
 
-		if (this.#onPlay) {
-			this.#onPlay = {
-				...this.#onPlay,
-				tagsRelated: toggleTag(this.#onPlay.tagsRelated)
+		if (this.#eventPlaying) {
+			this.#eventPlaying = {
+				...this.#eventPlaying,
+				tagsRelated: toggleTag(this.#eventPlaying.tagsRelated)
 			};
 		} else if (this.#eventSelected) {
 			const newEventTimeline = this.#state.eventTimeline.map((event) =>
@@ -233,11 +251,11 @@ export class Timeline {
 			};
 		}
 
-		if (this.#onPlay || this.#eventSelected) {
+		if (this.#eventPlaying || this.#eventSelected) {
 			if (op === 'add') {
-				await repository.addTagToEntry(this.#eventSelected || this.#onPlay!.id, tagId);
+				await repository.addTagToEntry(this.#eventSelected || this.#eventPlaying!.id, tagId);
 			} else {
-				await repository.removeTagFromEntry(this.#eventSelected || this.#onPlay!.id, tagId);
+				await repository.removeTagFromEntry(this.#eventSelected || this.#eventPlaying!.id, tagId);
 			}
 		}
 
@@ -272,10 +290,6 @@ export class Timeline {
 		await emit('project:dirty');
 	}
 
-	setOnPlay(event: RangeDataWithTags | null) {
-		this.#onPlay = event;
-	}
-
 	wrapForUndo() {
 		Object.assign(
 			this,
@@ -296,8 +310,12 @@ export class Timeline {
 	//#endregion
 
 	//#region Selectors
-	get onPlay() {
-		return this.#onPlay;
+	get eventPlaying() {
+		return this.#eventPlaying;
+	}
+
+	get actionPlaying() {
+		return this.#actionPlaying;
 	}
 
 	get eventSelected() {

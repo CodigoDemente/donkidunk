@@ -3,6 +3,7 @@
 	import { getHoverBackgroundColor, getTextColorForBackground } from './colors';
 	import { timelineContext } from '../../modules/videoplayer/context.svelte';
 	import { CategoryType } from './types';
+	import type { Button } from '../../modules/board/types/Button';
 
 	const timeline = timelineContext.get();
 
@@ -23,11 +24,11 @@
 		draggedCategoryId = categoryId;
 	}
 
-	function addActionOrEvent(categoryId: number, buttonId: number): Promise<void> {
+	function addActionOrEvent(categoryId: number, button: Button): Promise<void> {
 		if (type === CategoryType.Action) {
-			return timeline.addAction(buttonId, categoryId, timeline.currentTime);
+			return timeline.addAction(button, categoryId, timeline.currentTime);
 		} else {
-			return timeline.addEvent(buttonId, categoryId, timeline.currentTime);
+			return timeline.addEvent(button.id, categoryId, timeline.currentTime);
 		}
 	}
 </script>
@@ -52,7 +53,7 @@
 		{#each category.buttons as button (button.id)}
 			<button
 				class="rounded px-2 py-1 text-xs"
-				onclick={() => addActionOrEvent(category.id, button.id)}
+				onclick={() => addActionOrEvent(category.id, button)}
 			>
 				{button.name}
 			</button>

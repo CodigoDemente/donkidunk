@@ -80,9 +80,9 @@
 								{duration}
 								boardCategoriesById={board.eventCategoriesById}
 								buttonsListById={board.eventButtonsById}
-								onPlayObject={timeline.onPlay}
+								playingObject={timeline.eventPlaying}
 								{currentTime}
-								onClick={timeline.setEventSelected}
+								onClick={timeline.setEventSelected.bind(timeline)}
 							/>
 						{/each}
 					</div>
@@ -96,6 +96,7 @@
 								{duration}
 								boardCategoriesById={board.actionCategoriesById}
 								buttonsListById={board.actionButtonsById}
+								playingObject={timeline.actionPlaying}
 								{currentTime}
 							/>
 						{/each}

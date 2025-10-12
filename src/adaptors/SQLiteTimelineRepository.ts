@@ -17,6 +17,11 @@ export class SQLiteTimelineRepository implements TimelineRepository {
 		const categoriesAndButtons: Record<string, RangeDataWithTags> = entries.reduce(
 			(acc, entry) => {
 				if (!acc[entry.id]) {
+					let tagsRelated: number[] = [];
+					if (entry.tag_id) {
+						tagsRelated = [entry.tag_id];
+					}
+
 					acc[entry.id] = {
 						id: entry.id,
 						buttonId: entry.button_id,
@@ -25,9 +30,9 @@ export class SQLiteTimelineRepository implements TimelineRepository {
 							start: entry.timestamp_start,
 							end: entry.timestamp_end ?? undefined
 						},
-						tagsRelated: [entry.tag_id]
+						tagsRelated: tagsRelated
 					};
-				} else {
+				} else if (entry.tag_id) {
 					acc[entry.id].tagsRelated.push(entry.tag_id);
 				}
 				return acc;
