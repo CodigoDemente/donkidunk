@@ -8,7 +8,7 @@ export type Props = {
 	duration: number;
 	boardCategoriesById: Record<string, Category>;
 	buttonsListById: Record<string, Button>;
-	onPlayObject?: RangeDataWithTags | null;
+	playingObject?: RangeDataWithTags | RangeData | null;
 	currentTime: number;
 	onClick?: (id: number) => void;
 };

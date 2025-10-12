@@ -70,15 +70,15 @@ export class Board {
 			);
 		});
 
-		// this.#tagsById = $derived.by(() => {
-		// 	return this.#state.tagsRelatedToEvents.reduce(
-		// 		(acc, tag) => {
-		// 			acc[tag.id] = tag;
-		// 			return acc;
-		// 		},
-		// 		{} as Record<string, Tag>
-		// 	);
-		// });
+		this.#tagsById = $derived.by(() => {
+			return this.#state.tagsRelatedToEvents.reduce(
+				(acc, tag) => {
+					acc[tag.id!] = tag;
+					return acc;
+				},
+				{} as Record<string, Tag>
+			);
+		});
 
 		this.#eventButtonsById = $derived.by(() => {
 			return this.#state[CategoryType.Event].reduce(

@@ -24,6 +24,7 @@ export class SQLiteBoardRepository implements BoardRepository {
 				if (!acc[category.id]) {
 					acc[category.id] = {
 						id: category.id,
+						type: category.type as CategoryType,
 						name: category.name,
 						color: category.color,
 						position: { x: category.grid_position_x, y: category.grid_position_y },
