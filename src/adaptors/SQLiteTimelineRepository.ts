@@ -3,6 +3,7 @@ import type { TimelineRepository } from '../ports/TimelineRepository';
 import type { DatabaseEntryWithTag } from './types/DatabaseEntryWithTags';
 import type { RangeData, RangeDataWithTags } from '../modules/videoplayer/types/RangeData';
 import { CategoryType } from '../components/box/types';
+import type { ExportingRule } from '../modules/export/types';
 
 export class SQLiteTimelineRepository implements TimelineRepository {
 	constructor(private readonly db: Database) {}
@@ -61,44 +62,30 @@ export class SQLiteTimelineRepository implements TimelineRepository {
 		}));
 	}
 
-	async getRangesForExport(
-		eventIds: number[],
-		actionIds: number[],
-		tagIds: number[]
-	): Promise<[number, number][]> {
-		let eventsCondition,
-			actionsCondition = '';
+	async getRangesForExport(rules: ExportingRule[]): Promise<[number, number][]> {
+		const conditions = rules
+			.map((rule) => {
+				let condition = `(t.button_id = ${rule.include}`;
+				if (rule.taggedWith.length > 0) {
+					condition += ` AND tt.tag_id IN (${rule.taggedWith.join(',')})`;
+				}
+				return condition + ')';
+			})
+			.join(' OR ');
 
-		if (eventIds && eventIds.length > 0) {
-			eventsCondition = `t.type = 'event' AND t.button_id IN (${eventIds.join(',')})`;
-
-			if (tagIds && tagIds.length > 0) {
-				eventsCondition += ` AND (tt.tag_id IN (${tagIds.join(',')}) OR tt.tag_id IS NULL)`;
-			}
-
-			eventsCondition = `(${eventsCondition})`;
-		} else {
-			eventsCondition = '1=1';
-		}
-
-		if (actionIds && actionIds.length > 0) {
-			actionsCondition = `t.type = 'action' AND t.button_id IN (${actionIds.join(',')})`;
-			actionsCondition = `(${actionsCondition})`;
-		} else {
-			actionsCondition = '1=1';
-		}
-
-		const baseQuery = `
+		const query = `
 			SELECT t.timestamp_start as timestamp_start, t.timestamp_end as timestamp_end
 			FROM timeline_entry as t LEFT JOIN timeline_entry_tag as tt 
 				ON t.id = tt.timeline_entry_id
 			WHERE
-				(${eventsCondition}) AND (${actionsCondition})
+				${conditions}
 			GROUP BY t.id, t.timestamp_start, t.timestamp_end
 			ORDER BY t.timestamp_start;`;
 
+		console.log(query);
+
 		const entries =
-			await this.db.select<{ timestamp_start: number; timestamp_end: number }[]>(baseQuery);
+			await this.db.select<{ timestamp_start: number; timestamp_end: number }[]>(query);
 
 		return entries.map((entry) => [entry.timestamp_start, entry.timestamp_end]);
 	}
