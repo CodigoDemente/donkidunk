@@ -25,5 +25,12 @@ export type ProjectData = {
 		show: boolean;
 		size?: ModalSize;
 	};
+	snackbar: {
+		title?: string;
+		message?: string;
+		type: 'info' | 'error' | 'success' | 'warning';
+		show: boolean;
+		mode: 'auto' | 'manual';
+	};
 	database: Database | null;
 };
