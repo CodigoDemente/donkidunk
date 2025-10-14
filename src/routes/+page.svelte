@@ -4,6 +4,7 @@
 	import ProjectStore from '../persistence/stores/project/store.svelte';
 	import '../styles/page.css';
 	import Modal from '../components/modal/modal.svelte';
+	import Snackbar from '../components/snackbar/snackbar.svelte';
 
 	let leftWidth = 50;
 	let isResizing = false;
@@ -45,3 +46,4 @@
 	</div>
 </div>
 <Modal bind:modalStore={projectStore.modal} />
+<Snackbar bind:snackbarStore={projectStore.snackbar} />

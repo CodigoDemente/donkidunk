@@ -9,6 +9,8 @@ import type { Tag } from './types/Tag';
 import type { Button } from './types/Button';
 import { projectActions } from '../../persistence/stores/project/actions';
 import { CategoryType } from '../../components/box/types';
+import { feedbackMessages } from '../../utils/messages';
+import { tagValidationSchema } from './validationSchema';
 
 const initialState: BoardData = {
 	[CategoryType.Event]: [],
@@ -283,37 +285,22 @@ export class Board {
 			await emit('project:dirty');
 
 			projectActions.closeAndResetModal();
-			// TODO: Show success snackbar
-			console.log('Category added successfully');
+
+			projectActions.setSnackbar(feedbackMessages.ACTION_SUCCESS);
 			this.resetCategoryForm(section);
 		} catch (error) {
-			//TODO: REUSABLE SNACKBAR ERROR TO CREATE;
-			console.error('Error adding category:', error);
+			projectActions.setSnackbar({
+				...feedbackMessages.ACTION_FAILED,
+				message: error instanceof Error ? error.message : String(error)
+			});
 		}
 	}
 
 	onValidateTagsList(): Record<number, { message: string }> | void {
 		const errorObject: Record<number, { message: string }> = {};
 
-		const validationSchema = [
-			{
-				validate: (tag: Tag) => tag.name.trim() === '',
-				message: 'Tag name cannot be empty'
-			},
-			{
-				validate: (tag: Tag, idx: number, tags: Tag[]) => {
-					const name = tag.name.trim().toLowerCase();
-					return (
-						name &&
-						tags.filter((t, i) => t.name.trim().toLowerCase() === name && i !== idx).length > 0
-					);
-				},
-				message: 'Tag names must be unique'
-			}
-		];
-
 		this.#tempTagsList.forEach((tag, idx, tags) => {
-			for (const rule of validationSchema) {
+			for (const rule of tagValidationSchema) {
 				if (rule.validate(tag, idx, tags)) {
 					errorObject[idx] = { message: rule.message };
 					break;
@@ -348,12 +335,18 @@ export class Board {
 			await emit('project:dirty');
 
 			projectActions.closeAndResetModal();
-			// TODO: Show success snackbar
-			console.log('Tags added successfully');
+
+			projectActions.setSnackbar(feedbackMessages.ACTION_SUCCESS);
 			this.resetTagsListForm();
 		} catch (error) {
-			//TODO: REUSABLE SNACKBAR ERROR TO CREATE;
-			console.error('Error adding tag list:', error);
+			if (error === 'validation-failed') {
+				return projectActions.setSnackbar(feedbackMessages.VALIDATION_ERROR);
+			}
+
+			return projectActions.setSnackbar({
+				...feedbackMessages.ACTION_FAILED,
+				message: error instanceof Error ? error.message : String(error)
+			});
 		}
 	}
 

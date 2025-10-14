@@ -3,6 +3,7 @@ import { ProjectRepositoryFactory } from '../../../factories/ProjectRepositoryFa
 import ProjectStore from './store.svelte';
 import { emit } from '@tauri-apps/api/event';
 import type { ProjectData } from './types/Project';
+import type { FeedbackType } from '../../../utils/messages';
 
 const projectStore = ProjectStore.getState();
 
@@ -53,6 +54,14 @@ export const projectActions = {
 			show: false,
 			size: undefined
 		};
+	},
+
+	setSnackbar({ title, message, type, mode }: FeedbackType): void {
+		projectStore.snackbar = { title, message, type, show: true, mode };
+	},
+
+	hideSnackbar(): void {
+		projectStore.snackbar.show = false;
 	},
 
 	setDatabase(db: Database | null): void {
