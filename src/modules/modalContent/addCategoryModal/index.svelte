@@ -151,7 +151,7 @@
 							<td class="w-8 p-2 text-right">
 								<button
 									class="text-gray-200 hover:cursor-pointer hover:text-white"
-									on:click={() => removeButton(idx)}
+									onclick={() => removeButton(idx)}
 								>
 									<IconTrash class="h-4 w-4" />
 								</button>

@@ -296,6 +296,28 @@ export class Board {
 		}
 	}
 
+	async deleteCategory(section: CategoryType, categoryId: number): Promise<void> {
+		try {
+			const repository = BoardRepositoryFactory.getInstance();
+
+			await repository.deleteCategory(categoryId);
+
+			this.#state = {
+				...this.#state,
+				[section]: this.#state[section].filter((c) => c.id !== categoryId)
+			};
+
+			await emit('project:dirty');
+
+			projectActions.setSnackbar(feedbackMessages.ACTION_SUCCESS);
+		} catch (error) {
+			projectActions.setSnackbar({
+				...feedbackMessages.ACTION_FAILED,
+				message: error instanceof Error ? error.message : String(error)
+			});
+		}
+	}
+
 	onValidateTagsList(): Record<number, { message: string }> | void {
 		const errorObject: Record<number, { message: string }> = {};
 

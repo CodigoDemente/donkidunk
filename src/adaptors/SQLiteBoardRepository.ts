@@ -80,6 +80,10 @@ export class SQLiteBoardRepository implements BoardRepository {
 		return result.lastInsertId!;
 	}
 
+	async deleteCategory(categoryId: number): Promise<void> {
+		await this.db.execute(`DELETE FROM category WHERE id = $1`, [categoryId]);
+	}
+
 	async addTagsList(list: Tag[]): Promise<Tag[]> {
 		const resultList: Tag[] = [];
 
