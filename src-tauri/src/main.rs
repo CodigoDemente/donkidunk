@@ -3,6 +3,7 @@
 
 mod commands;
 mod menu;
+
 #[cfg(target_os = "linux")]
 mod server;
 

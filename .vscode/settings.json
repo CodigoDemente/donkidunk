@@ -5,7 +5,8 @@
 		"project",
 		"menu",
 		"board",
-		"ffmpeg"
+		"ffmpeg",
+		"export"
 	],
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": null,

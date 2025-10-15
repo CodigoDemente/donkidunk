@@ -3,6 +3,7 @@ import type { TimelineRepository } from '../ports/TimelineRepository';
 import type { DatabaseEntryWithTag } from './types/DatabaseEntryWithTags';
 import type { RangeData, RangeDataWithTags } from '../modules/videoplayer/types/RangeData';
 import { CategoryType } from '../components/box/types';
+import type { ExportingRule } from '../modules/export/types';
 
 export class SQLiteTimelineRepository implements TimelineRepository {
 	constructor(private readonly db: Database) {}
@@ -59,6 +60,34 @@ export class SQLiteTimelineRepository implements TimelineRepository {
 				end: entry.timestamp_end ?? undefined
 			}
 		}));
+	}
+
+	async getRangesForExport(rules: ExportingRule[]): Promise<[number, number][]> {
+		const conditions = rules
+			.map((rule) => {
+				let condition = `(t.button_id = ${rule.include}`;
+				if (rule.taggedWith.length > 0) {
+					condition += ` AND tt.tag_id IN (${rule.taggedWith.join(',')})`;
+				}
+				return condition + ')';
+			})
+			.join(' OR ');
+
+		const query = `
+			SELECT t.timestamp_start as timestamp_start, t.timestamp_end as timestamp_end
+			FROM timeline_entry as t LEFT JOIN timeline_entry_tag as tt 
+				ON t.id = tt.timeline_entry_id
+			WHERE
+				${conditions}
+			GROUP BY t.id, t.timestamp_start, t.timestamp_end
+			ORDER BY t.timestamp_start;`;
+
+		console.log(query);
+
+		const entries =
+			await this.db.select<{ timestamp_start: number; timestamp_end: number }[]>(query);
+
+		return entries.map((entry) => [entry.timestamp_start, entry.timestamp_end]);
 	}
 
 	async addEntry(
