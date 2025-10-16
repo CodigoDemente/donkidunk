@@ -5,7 +5,6 @@
 	import Dropdown from '../../../components/dropdown/dropdown.svelte';
 	import Input from '../../../components/input/input.svelte';
 	import Tooltip from '../../../components/tooltip/tooltip.svelte';
-	import type { Option } from '../../../utils/options';
 	import { boardContext } from '../../board/context.svelte';
 	import { ButtonRange, type Button as ButtonType } from '../../board/types/Button';
 	import { secondsOptions, typeOptions } from './utils';
@@ -46,6 +45,7 @@
 			label="Name"
 			placeholder="enter the name of the category"
 			type="text"
+			error={context.errorsForm.category?.message}
 			bind:value={context.categoryToCreate.name}
 		/>
 		<Input
@@ -92,6 +92,9 @@
 							colspan={context.categoryToCreate.type === CategoryType.Action ? 5 : 3}
 							class="px-4 py-6 text-center text-gray-400"
 						>
+							{#if context.errorsForm.buttons}
+								<p class="mt-2 w-full text-xs text-red-400">{context.errorsForm.buttons.message}</p>
+							{/if}
 							No buttons yet. Click <span class="text-tertiary font-semibold">ADD BUTTON</span> to add
 							your first button.
 						</td>
@@ -106,7 +109,7 @@
 									type="text"
 									size="medium"
 									maxlength={15}
-									noErrors
+									error={context.errorsForm[idx]?.message}
 									bind:value={btn.name}
 								/>
 							</td>
@@ -117,7 +120,6 @@
 									size="small"
 									selectClass="bg-gray-800"
 									disabled={context.categoryToCreate.type === CategoryType.Event}
-									noErrors
 									bind:value={btn.range}
 								/>
 							</td>
@@ -129,7 +131,6 @@
 											options={secondsOptions}
 											size="mini"
 											selectClass="bg-gray-800"
-											noErrors
 											bind:value={btn.duration}
 										/>
 									</td>
@@ -139,7 +140,6 @@
 											options={secondsOptions}
 											size="mini"
 											selectClass="bg-gray-800"
-											noErrors
 											bind:value={btn.before}
 										/>
 									</td>

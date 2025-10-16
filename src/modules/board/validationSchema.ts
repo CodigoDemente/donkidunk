@@ -1,4 +1,6 @@
+import type { Category } from './types/Category';
 import type { Tag } from './types/Tag';
+import type { Button } from './types/Button';
 
 export const tagValidationSchema = [
 	{
@@ -13,5 +15,23 @@ export const tagValidationSchema = [
 			);
 		},
 		message: 'Tag names must be unique'
+	}
+];
+
+export const categoryValidationSchema = [
+	{
+		validate: (category: Category) => category.name.trim() === '',
+		message: 'Category name cannot be empty'
+	},
+	{
+		validate: (category: Category) => category.buttons.length === 0,
+		message: 'Category must have at least one button'
+	}
+];
+
+export const buttonValidationSchema = [
+	{
+		validate: (button: Button) => button.name.trim() === '',
+		message: 'Button name cannot be empty'
 	}
 ];
