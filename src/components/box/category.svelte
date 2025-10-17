@@ -1,11 +1,11 @@
 <script lang="ts">
 	import type { Category } from '../../modules/board/types/Category';
-	import { getHoverBackgroundColor, getTextColorForBackground } from './colors';
 	import { timelineContext } from '../../modules/videoplayer/context.svelte';
 	import { boardContext } from '../../modules/board/context.svelte';
 	import { CategoryType } from './types';
 	import type { Button } from '../../modules/board/types/Button';
 	import { IconPencil, IconTrash } from '@tabler/icons-svelte';
+	import { getTextColorForBackground } from './colors';
 
 	const timeline = timelineContext.get();
 	const board = boardContext.get();

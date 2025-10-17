@@ -9,7 +9,7 @@
 		labelFalsy = ''
 	}: ToggleProps = $props();
 
-	function handleToggle(e: MouseEvent | KeyboardEvent) {
+	function handleToggle(_e: MouseEvent | KeyboardEvent) {
 		if (disabled) return;
 		if (onChange) onChange(!checked);
 	}
