@@ -23,7 +23,5 @@
 >
 	{#if text}
 		{text}
-	{:else}
-		<slot />
 	{/if}
 </button>
