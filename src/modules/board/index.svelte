@@ -11,6 +11,7 @@
 </script>
 
 <div id="boards-container" class="flex h-full min-h-0 flex-1 flex-col">
+	<!-- TODO: Create edit and on play mode-->
 	<!-- Events Section -->
 	<Box
 		categories={context.eventCategories}

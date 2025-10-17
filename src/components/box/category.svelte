@@ -14,29 +14,33 @@
 		type: CategoryType;
 		category: Category;
 		draggedCategoryId: number | null;
+		handleModalOpen: (type: CategoryType, categoryId?: number) => void;
 	};
 
-	let { type, category, draggedCategoryId = $bindable() }: Props = $props();
+	let { type, category, handleModalOpen, draggedCategoryId = $bindable() }: Props = $props();
 
 	const buttonBackgroundColor = category.color;
 	const buttonTextColor = getTextColorForBackground(category.color);
-	const hoverBackgroundColor = getHoverBackgroundColor(category.color);
 
-	function handleDragStart(e: DragEvent, categoryId: number) {
+	function handleDragStart(e: DragEvent) {
 		e.dataTransfer?.setData('text/plain', 'dragged');
-		draggedCategoryId = categoryId;
+		draggedCategoryId = category.id;
 	}
 
-	function addActionOrEvent(categoryId: number, button: Button): Promise<void> {
+	function addActionOrEvent(button: Button): Promise<void> {
 		if (type === CategoryType.Action) {
-			return timeline.addAction(button, categoryId, timeline.currentTime);
+			return timeline.addAction(button, category.id, timeline.currentTime);
 		} else {
-			return timeline.addEvent(button.id, categoryId, timeline.currentTime);
+			return timeline.addEvent(button.id, category.id, timeline.currentTime);
 		}
 	}
 
-	function removeCategory(type: CategoryType, categoryId: number) {
-		board.deleteCategory(type, categoryId);
+	function removeCategory() {
+		board.deleteCategory(type, category.id);
+	}
+
+	function editCategory() {
+		handleModalOpen(type, category.id);
 	}
 </script>
 
@@ -47,7 +51,7 @@
 	left: {category.position.x}%;
 	top: {category.position.y}%;"
 	draggable="true"
-	ondragstart={(e) => handleDragStart(e, category.id)}
+	ondragstart={(e) => handleDragStart(e)}
 	role="button"
 	aria-grabbed="true"
 	tabindex="0"
@@ -61,10 +65,11 @@
 			{category.name}
 		</p>
 		<div>
-			<button class="hover:cursor-pointer" onclick={() => removeCategory(type, category.id)}>
+			<button class="hover:cursor-pointer" onclick={() => removeCategory()}>
 				<IconTrash class="h-3 w-3 text-gray-400 hover:text-white" />
 			</button>
-			<button class="hover:cursor-pointer" onclick={() => removeCategory(type, category.id)}>
+			<!-- TODO: should open edit mode -->
+			<button class="hover:cursor-pointer" onclick={() => editCategory()}>
 				<IconPencil class="h-3 w-3 text-gray-400 hover:text-white" />
 			</button>
 		</div>
@@ -79,7 +84,7 @@
 				class="rounded-xs px-2 py-1 text-xs
 				hover:cursor-pointer
 				hover:brightness-110"
-				onclick={() => addActionOrEvent(category.id, button)}
+				onclick={() => addActionOrEvent(button)}
 			>
 				{button.name}
 			</button>

@@ -95,7 +95,7 @@
 			aria-label="Drop area"
 		>
 			{#each categories as category (category.id)}
-				<Category {type} {category} bind:draggedCategoryId />
+				<Category {type} {category} {handleModalOpen} bind:draggedCategoryId />
 			{/each}
 		</div>
 		{#if type === CategoryType.Event}
@@ -122,6 +122,7 @@
 					</p>
 				{:else}
 					<div class="flex flex-wrap gap-2 overflow-y-auto p-3">
+						<!-- TODO: replace and create Button component for all buttons -->
 						{#each tags as tag, idx (tag.id ?? idx)}
 							<div
 								class="rounded-xs px-3 py-1 text-xs font-medium"

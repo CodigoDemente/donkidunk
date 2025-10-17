@@ -221,11 +221,14 @@ export class Board {
 		if (categoryId) {
 			if (section === CategoryType.Event) {
 				this.#tempCategory = this.eventCategoriesById[categoryId];
+				return;
 			} else {
 				this.#tempCategory = this.actionCategoriesById[categoryId];
+				return;
 			}
 		} else {
 			this.resetCategoryForm(section);
+			return;
 		}
 	}
 
@@ -369,7 +372,7 @@ export class Board {
 
 			await emit('project:dirty');
 
-			projectActions.setSnackbar(feedbackMessages.ACTION_SUCCESS);
+			projectActions.setSnackbar(feedbackMessages.DELETE_SUCCESS);
 		} catch (error) {
 			projectActions.setSnackbar({
 				...feedbackMessages.ACTION_FAILED,
