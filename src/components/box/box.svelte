@@ -6,10 +6,10 @@
 	import Button from '../button/button.svelte';
 	import { CategoryType, type Props } from './types';
 	import { boardContext } from '../../modules/board/context.svelte';
-	import { getTextColorForBackground } from './colors';
 	import { startResize } from './utils';
 	import Category from './category.svelte';
 	import { timelineContext } from '../../modules/videoplayer/context.svelte';
+	import Tag from '../tag/tag.svelte';
 
 	const board = boardContext.get();
 	const timeline = timelineContext.get();
@@ -122,15 +122,12 @@
 					</p>
 				{:else}
 					<div class="flex flex-wrap gap-2 overflow-y-auto p-3">
-						<!-- TODO: replace and create Button component for all buttons -->
 						{#each tags as tag, idx (tag.id ?? idx)}
-							<div
-								class="rounded-xs px-3 py-1 text-xs font-medium"
-								style="background-color: {tag.color}; color: {getTextColorForBackground(tag.color)}"
-								onclick={() => timeline.addRelatedTagToEvent(tag.id!)}
-							>
-								{tag.name}
-							</div>
+							<Tag
+								color={tag.color}
+								text={tag.name}
+								onClick={() => timeline.addRelatedTagToEvent(tag.id!)}
+							/>
 						{/each}
 					</div>
 				{/if}

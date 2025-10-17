@@ -2,6 +2,7 @@
 	import { IconChevronDown } from '@tabler/icons-svelte';
 	import { boardContext } from '../board/context.svelte';
 	import { timelineContext } from './context.svelte';
+	import Tag from '../../components/tag/tag.svelte';
 
 	const board = boardContext.get();
 	let isBoxOpen: boolean = $state(false);
@@ -29,23 +30,14 @@
 					<p class="text-sm text-gray-400">No tags related to the current play.</p>
 				{:else}
 					{#each timeline.eventPlaying?.tagsRelated || [] as tag (tag)}
-						<!-- TODO: replace and create Button component for all buttons -->
-						<button
-							class="rounded bg-sky-500 px-3 py-1 text-sm font-medium text-white hover:bg-sky-600"
-						>
-							{board.tagsById[tag]?.name}
-						</button>
+						<Tag color={board.tagsById[tag]?.color} disabled text={board.tagsById[tag]?.name} />
 					{/each}
 				{/if}
 			{:else if timeline.eventSelected}
 				{#each timeline
 					.getState()
 					.eventTimeline.find((event) => event.id === timeline.eventSelected)?.tagsRelated ?? [] as tag (tag)}
-					<button
-						class="rounded bg-sky-500 px-3 py-1 text-sm font-medium text-white hover:bg-sky-600"
-					>
-						{board.tagsById[tag]?.name}
-					</button>
+					<Tag color={board.tagsById[tag]?.color} disabled text={board.tagsById[tag]?.name} />
 				{/each}
 			{:else}
 				<p class="text-sm text-gray-400">No tags to show.</p>
