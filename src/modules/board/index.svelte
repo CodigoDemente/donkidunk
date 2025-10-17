@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Box from '../../components/box/box.svelte';
 	import { CategoryType } from '../../components/box/types';
+	import Toggle from '../../components/toggle/toggle.svelte';
 	import { boardContext } from './context.svelte';
 
 	const context = boardContext.get();
@@ -11,7 +12,12 @@
 </script>
 
 <div id="boards-container" class="flex h-full min-h-0 flex-1 flex-col">
-	<!-- TODO: Create edit and on play mode-->
+	<Toggle
+		labelTruthy="Edit"
+		labelFalsy="Play"
+		checked={context.isEditing}
+		onChange={(value) => context.setEditingMode(value)}
+	/>
 	<!-- Events Section -->
 	<Box
 		categories={context.eventCategories}

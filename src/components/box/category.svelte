@@ -64,14 +64,15 @@
 			></span>
 			{category.name}
 		</p>
-		<div>
-			<button class="hover:cursor-pointer" onclick={() => removeCategory()}>
-				<IconTrash class="h-3 w-3 text-gray-400 hover:text-white" />
-			</button>
-			<!-- TODO: should open edit mode -->
-			<button class="hover:cursor-pointer" onclick={() => editCategory()}>
-				<IconPencil class="h-3 w-3 text-gray-400 hover:text-white" />
-			</button>
+		<div class="ml-2 flex w-5 items-center justify-end gap-1">
+			{#if board.isEditing}
+				<button class="hover:cursor-pointer" onclick={() => removeCategory()}>
+					<IconTrash class="h-3 w-3 text-gray-400 hover:text-white" />
+				</button>
+				<button class="hover:cursor-pointer" onclick={() => editCategory()}>
+					<IconPencil class="h-3 w-3 text-gray-400 hover:text-white" />
+				</button>
+			{/if}
 		</div>
 	</div>
 	<div class="flex flex-wrap gap-2">
@@ -81,9 +82,11 @@
 					background-color: ${buttonBackgroundColor};
 					color: ${buttonTextColor};
 				`}
-				class="rounded-xs px-2 py-1 text-xs
+				class="rounded-xs border border-gray-800 px-2
+				py-1
+				text-xs shadow-sm
 				hover:cursor-pointer
-				hover:brightness-110"
+				hover:brightness-120"
 				onclick={() => addActionOrEvent(button)}
 			>
 				{button.name}
