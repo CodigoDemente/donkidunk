@@ -220,15 +220,12 @@ export class Board {
 	async loadCategoryToAddOrEdit(section: CategoryType, categoryId?: number): Promise<void> {
 		if (categoryId) {
 			if (section === CategoryType.Event) {
-				this.#tempCategory = this.eventCategoriesById[categoryId];
-				return;
+				this.#tempCategory = $state.snapshot(this.eventCategoriesById[categoryId]);
 			} else {
-				this.#tempCategory = this.actionCategoriesById[categoryId];
-				return;
+				this.#tempCategory = $state.snapshot(this.actionCategoriesById[categoryId]);
 			}
 		} else {
 			this.resetCategoryForm(section);
-			return;
 		}
 	}
 
@@ -360,6 +357,7 @@ export class Board {
 	}
 
 	async deleteCategory(section: CategoryType, categoryId: number): Promise<void> {
+		// <!-- TODO: When deleting category, if there is already events created with this categoryId, we should delete them as well, setModal are you sure you want to erase -->
 		try {
 			const repository = BoardRepositoryFactory.getInstance();
 

@@ -45,6 +45,7 @@
 			label="Name"
 			placeholder="enter the name of the category"
 			type="text"
+			maxlength={20}
 			error={context.errorsForm.category?.message}
 			bind:value={context.categoryToCreate.name}
 		/>
