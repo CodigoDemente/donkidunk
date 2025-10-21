@@ -329,7 +329,7 @@ export class Board {
 			const repository = BoardRepositoryFactory.getInstance();
 
 			await repository.updateCategory(category.id!, category.name, category.color);
-			await repository.updateCategoryButtons(category.id!, category.buttons);
+			const buttonsIds = await repository.updateCategoryButtons(category.id!, category.buttons);
 
 			this.#state = {
 				...this.#state,
@@ -337,7 +337,20 @@ export class Board {
 					c.id === category.id
 						? {
 								...category,
-								buttons: category.buttons.map((b) => ({ ...b, temp: false }))
+								buttons: category.buttons.map((b) => {
+									if (b.id && b.id > 0) {
+										return {
+											...b,
+											temp: false
+										};
+									} else {
+										return {
+											...b,
+											id: buttonsIds.shift(),
+											temp: false
+										};
+									}
+								})
 							}
 						: c
 				)

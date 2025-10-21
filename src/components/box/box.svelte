@@ -4,7 +4,7 @@
 	import addTagsModal from '../../modules/modalContent/addTagsModal.svelte';
 	import { IconPlus, IconChevronDown } from '@tabler/icons-svelte';
 	import Button from '../button/button.svelte';
-	import { CategoryType, type Props } from './types';
+	import { CategoryType, type DraggedCategory, type Props } from './types';
 	import { boardContext } from '../../modules/board/context.svelte';
 	import { startResize } from './utils';
 	import Category from './category.svelte';
@@ -16,10 +16,17 @@
 
 	let { boxHeight, isOpened, otherIsOpened, title, type, categories, tags }: Props = $props();
 
-	let draggedCategoryId: number = $state(-1);
-
-	const boxWidthPercent = 15; // ancho del draggable en %
-	const boxHeightPercent = 15; // alto del draggable en %
+	let draggedCategory: DraggedCategory = $state({
+		id: -1,
+		offset: {
+			x: 0,
+			y: 0
+		},
+		container: {
+			width: 0,
+			height: 0
+		}
+	});
 
 	function setBoxHeight(newHeight: number) {
 		boxHeight = newHeight;
@@ -29,14 +36,17 @@
 		const container = e.currentTarget as HTMLElement;
 
 		const rect = container.getBoundingClientRect();
-		let x = ((e.clientX - rect.left) / rect.width) * 100;
-		let y = ((e.clientY - rect.top) / rect.height) * 100;
+		let x = ((e.clientX - draggedCategory.offset.x - rect.left) / rect.width) * 100;
+		let y = ((e.clientY - draggedCategory.offset.y - rect.top) / rect.height) * 100;
 
-		// Limitar para que no sobresalga
-		x = Math.max(0, Math.min(x, 100 - boxWidthPercent));
-		y = Math.max(0, Math.min(y, 100 - boxHeightPercent));
+		const draggedWidthPercent = (draggedCategory.container.width / rect.width) * 100;
+		const draggedHeightPercent = (draggedCategory.container.height / rect.height) * 100;
 
-		board.updateCategoryPosition(type, draggedCategoryId, x, y);
+		// Limit to prevent overflow
+		x = Math.max(0, Math.min(x, 100 - draggedWidthPercent));
+		y = Math.max(0, Math.min(y, 100 - draggedHeightPercent));
+
+		board.updateCategoryPosition(type, draggedCategory.id, x, y);
 	}
 
 	function allowDrop(e: DragEvent) {
@@ -95,7 +105,7 @@
 			aria-label="Drop area"
 		>
 			{#each categories as category (category.id)}
-				<Category {type} {category} {handleModalOpen} bind:draggedCategoryId />
+				<Category {type} {category} {handleModalOpen} bind:draggedCategory />
 			{/each}
 		</div>
 		{#if type === CategoryType.Event}

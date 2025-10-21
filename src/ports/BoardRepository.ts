@@ -13,5 +13,5 @@ export interface BoardRepository {
 	updateCategoryPosition(categoryId: number, x: number, y: number): Promise<void>;
 	updateCategoryName(categoryId: number, categoryName: string): Promise<void>;
 	updateCategory(categoryId: number, categoryName: string, color: string): Promise<void>;
-	updateCategoryButtons(categoryId: number, buttons: Button[]): Promise<void>;
+	updateCategoryButtons(categoryId: number, buttons: Button[]): Promise<number[]>;
 }

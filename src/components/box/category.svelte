@@ -2,7 +2,7 @@
 	import type { Category } from '../../modules/board/types/Category';
 	import { timelineContext } from '../../modules/videoplayer/context.svelte';
 	import { boardContext } from '../../modules/board/context.svelte';
-	import { CategoryType } from './types';
+	import { CategoryType, type DraggedCategory } from './types';
 	import type { Button } from '../../modules/board/types/Button';
 	import { IconPencil, IconTrash } from '@tabler/icons-svelte';
 	import { getTextColorForBackground } from './colors';
@@ -13,18 +13,27 @@
 	type Props = {
 		type: CategoryType;
 		category: Category;
-		draggedCategoryId: number | null;
+		draggedCategory: DraggedCategory;
 		handleModalOpen: (type: CategoryType, categoryId?: number) => void;
 	};
 
-	let { type, category, handleModalOpen, draggedCategoryId = $bindable() }: Props = $props();
+	let { type, category, handleModalOpen, draggedCategory = $bindable() }: Props = $props();
 
 	const buttonBackgroundColor = category.color;
 	const buttonTextColor = getTextColorForBackground(category.color);
 
 	function handleDragStart(e: DragEvent) {
 		e.dataTransfer?.setData('text/plain', 'dragged');
-		draggedCategoryId = category.id;
+
+		draggedCategory.id = category.id;
+		draggedCategory.offset = {
+			x: e.offsetX,
+			y: e.offsetY
+		};
+		draggedCategory.container = {
+			width: (e.currentTarget as HTMLElement).clientWidth,
+			height: (e.currentTarget as HTMLElement).clientHeight
+		};
 	}
 
 	function addActionOrEvent(button: Button): Promise<void> {

@@ -136,7 +136,7 @@
 	<p class="mb-2 inline-block py-1 text-xs">Video / Timeline</p>
 	<video
 		id="video-player"
-		class="w-100% h-100%"
+		class="max-h-[60vh] w-full"
 		bind:currentTime={timeline.currentTime}
 		bind:duration={timeline.duration}
 	></video>
