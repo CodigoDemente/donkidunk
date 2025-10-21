@@ -59,7 +59,7 @@ export class Board {
 		this.#eventCategoriesById = $derived.by(() => {
 			return this.#state[CategoryType.Event].reduce(
 				(acc, category) => {
-					acc[category.id!] = category;
+					acc[category.id] = category;
 					return acc;
 				},
 				{} as Record<string, Category>
@@ -69,7 +69,7 @@ export class Board {
 		this.#actionCategoriesById = $derived.by(() => {
 			return this.#state[CategoryType.Action].reduce(
 				(acc, category) => {
-					acc[category.id!] = category;
+					acc[category.id] = category;
 					return acc;
 				},
 				{} as Record<string, Category>
@@ -90,7 +90,7 @@ export class Board {
 			return this.#state[CategoryType.Event].reduce(
 				(acc, category) => {
 					category.buttons.forEach((button) => {
-						acc[button.id!] = button;
+						acc[button.id] = button;
 					});
 					return acc;
 				},
@@ -102,7 +102,7 @@ export class Board {
 			return this.#state[CategoryType.Action].reduce(
 				(acc, category) => {
 					category.buttons.forEach((button) => {
-						acc[button.id!] = button;
+						acc[button.id] = button;
 					});
 					return acc;
 				},

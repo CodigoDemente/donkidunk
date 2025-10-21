@@ -1,32 +1,20 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { UndoManager } from './UndoManager';
 import { emit } from '@tauri-apps/api/event';
+import type { Board } from '../../modules/board/context.svelte';
+import type { Timeline } from '../../modules/videoplayer/context.svelte';
 
 // Mock board context
-const mockBoardContext = {
+const mockBoardContext: Pick<Board, 'undo' | 'redo'> = {
 	undo: vi.fn(),
 	redo: vi.fn()
 };
-
-// Mock the board context module
-vi.mock('../../modules/board/context.svelte', () => ({
-	boardContext: {
-		get: vi.fn(() => mockBoardContext)
-	}
-}));
 
 // Mock timeline context
-const mockTimelineContext = {
+const mockTimelineContext: Pick<Timeline, 'undo' | 'redo'> = {
 	undo: vi.fn(),
 	redo: vi.fn()
 };
-
-// Mock the timeline context module
-vi.mock('../../modules/videoplayer/context.svelte', () => ({
-	timelineContext: {
-		get: vi.fn(() => mockTimelineContext)
-	}
-}));
 
 vi.mock('@tauri-apps/api/event', () => ({
 	emit: vi.fn()
@@ -39,7 +27,7 @@ describe('UndoManager', () => {
 
 	beforeEach(() => {
 		vi.clearAllMocks();
-		undoManager = new UndoManager();
+		undoManager = new UndoManager(mockBoardContext as Board, mockTimelineContext as Timeline);
 	});
 
 	describe('create', () => {
