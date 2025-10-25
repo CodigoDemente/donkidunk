@@ -29,15 +29,14 @@
 	const timeline = timelineContext.get();
 </script>
 
-<div class="flex w-full flex-row">
-	<div class="w-1/18"></div>
+<div class="flex max-h-[20vh] w-full flex-row">
 	<div class="flex w-full flex-col">
 		<div class="flex w-full flex-row justify-between text-sky-400">
 			<span>
-				{toTimeString(currentTime)}
+				{currentTime ? toTimeString(currentTime) : '00:00:00'}
 			</span>
 			<span>
-				{toTimeString(duration)}
+				{duration ? toTimeString(duration) : '00:00:00'}
 			</span>
 		</div>
 		{#if duration}
@@ -61,7 +60,7 @@
 				/>
 			</div>
 		{/if}
-		<div class="flex max-h-40 flex-col overflow-y-auto">
+		<div class="custom-scrollbar mt-1 flex max-h-40 flex-col overflow-y-auto">
 			<button
 				aria-label="Progress Bar"
 				ondragstart={handleDragStart}
@@ -112,6 +111,25 @@
 		</div>
 	</div>
 </div>
-<div class="relative mt-2 bg-gray-700">
+<div class="relative mt-2 max-h-[20vh] bg-gray-700">
 	<Tagsbox />
 </div>
+
+<style>
+	.custom-scrollbar::-webkit-scrollbar-track {
+		-webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+		border-radius: 10px;
+		background-color: #f5f5f5;
+	}
+
+	.custom-scrollbar::-webkit-scrollbar {
+		width: 5px;
+		background-color: #f5f5f500;
+	}
+
+	.custom-scrollbar::-webkit-scrollbar-thumb {
+		border-radius: 10px;
+		-webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+		background-color: #8a8a8a;
+	}
+</style>

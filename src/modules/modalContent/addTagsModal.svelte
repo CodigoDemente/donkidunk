@@ -69,7 +69,7 @@
 						<td class="w-8 p-2">
 							<button
 								class="text-gray-200 hover:cursor-pointer hover:text-white"
-								on:click={() => removeTag(idx)}
+								onclick={() => removeTag(idx)}
 							>
 								<IconTrash class="h-4 w-4" />
 							</button>
