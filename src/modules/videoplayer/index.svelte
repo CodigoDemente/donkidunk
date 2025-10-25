@@ -26,11 +26,13 @@
 	$effect(() => {
 		if (video) {
 			videoPlayer = document.getElementById('video-player') as HTMLVideoElement;
-			let videoUrl = convertFileSrc(video);
+			let videoUrl = 'http://localhost:16780/?file=' + encodeURIComponent(video);
 
-			if (platform() === 'linux') {
-				videoUrl = 'http://localhost:16780/?file=' + encodeURIComponent(video);
-			}
+			// console.log('http://localhost:16780/?file=' + encodeURIComponent(video));
+
+			// if (platform() === 'linux') {
+			// 	videoUrl = 'http://localhost:16780/?file=' + encodeURIComponent(video);
+			// }
 
 			const source = document.createElement('source');
 			source.type = 'video/mp4';

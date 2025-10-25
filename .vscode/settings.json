@@ -15,4 +15,7 @@
 	"terminal.integrated.env.osx": {
 		"PATH": ""
 	},
+	"rust-analyzer.linkedProjects": [
+		"./src-tauri/Cargo.toml"
+	]
 }

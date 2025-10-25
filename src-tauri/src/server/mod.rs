@@ -1,18 +1,13 @@
-#[cfg(target_os = "linux")]
+// #[cfg(not(target_os = "windows"))]
 use {
-    axum::{
-        extract::{Query, Request},
-        response::IntoResponse,
-        routing::get,
-        Router,
-    },
-    std::{collections::HashMap, convert::Infallible, env},
-    tokio::net::TcpListener,
-    tower::ServiceExt,
-    tower_http::services::ServeFile,
+    axum::{extract::Query, routing::get, Router},
+    axum_extra::{headers::Range, TypedHeader},
+    axum_range::{KnownSize, Ranged},
+    std::{collections::HashMap, env},
+    tokio::{fs::File, net::TcpListener},
 };
 
-#[cfg(target_os = "linux")]
+// #[cfg(not(target_os = "windows"))]
 #[tauri::command]
 pub fn get_linux_file_url(file_path: &str) -> String {
     let port = match env::var("WEBSERVER_PORT") {
@@ -23,7 +18,7 @@ pub fn get_linux_file_url(file_path: &str) -> String {
     format!("http://localhost:{port}/?file={file_path}")
 }
 
-#[cfg(target_os = "linux")]
+// #[cfg(not(target_os = "windows"))]
 pub async fn setup_webserver() {
     let port = match env::var("WEBSERVER_PORT") {
         Ok(port) => port,
@@ -39,14 +34,20 @@ pub async fn setup_webserver() {
     axum::serve(listner, app).await.unwrap();
 }
 
-#[cfg(target_os = "linux")]
+// #[cfg(not(target_os = "windows"))]
 pub async fn download_file(
+    range: Option<TypedHeader<Range>>,
     Query(params): Query<HashMap<String, String>>,
-    req: Request<axum::body::Body>,
-) -> Result<impl IntoResponse, Infallible> {
+) -> Ranged<KnownSize<File>> {
     let file_path = params.get("file").map_or("", String::as_str);
 
     log::debug!("File path: {file_path}");
 
-    ServeFile::new(file_path).oneshot(req).await
+    let file = File::open(file_path).await.unwrap();
+
+    let body = KnownSize::file(file).await.unwrap();
+
+    let range = range.map(|TypedHeader(range)| range);
+
+    Ranged::new(range, body)
 }
