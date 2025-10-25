@@ -1,7 +1,4 @@
 <script lang="ts">
-	import { convertFileSrc } from '@tauri-apps/api/core';
-	import { platform } from '@tauri-apps/plugin-os';
-
 	import Progressbar from './progressbar.svelte';
 	import Controls from './controls.svelte';
 	import { SkipType } from './types/SkipType';
