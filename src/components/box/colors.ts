@@ -13,34 +13,21 @@ type HSL = {
 export function getTextColorForBackground(backgroundColor: string): string {
 	const rgb: RGB = hexStringToRgb(backgroundColor);
 
-	const hsl = rgbToHsl(rgb);
-
-	let newL = hsl.l;
-
-	if (0.0 <= hsl.l && hsl.l < 0.25) {
-		newL = 0.75;
-	} else if (0.25 <= hsl.l && hsl.l < 0.47) {
-		newL = 1;
-	} else if (0.47 <= hsl.l && hsl.l < 0.75) {
-		newL = 0;
-	} else {
-		newL = 0.25;
+	// compute relative luminance per WCAG
+	function srgbToLinear(c: number) {
+		c = c / 255;
+		return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
 	}
 
-	const hslAdjusted = {
-		h: hsl.h,
-		s: hsl.s,
-		l: newL
-	};
+	const R = srgbToLinear(rgb.r);
+	const G = srgbToLinear(rgb.g);
+	const B = srgbToLinear(rgb.b);
 
-	const rgbAdjusted = hslToRgb(hslAdjusted);
+	const luminance = 0.2126 * R + 0.7152 * G + 0.0722 * B; // 0 (dark) .. 1 (bright)
 
-	return (
-		'#' +
-		rgbAdjusted.r.toString(16).padStart(2, '0') +
-		rgbAdjusted.g.toString(16).padStart(2, '0') +
-		rgbAdjusted.b.toString(16).padStart(2, '0')
-	);
+	// prefer white text in the dark-themed app; only use black for light backgrounds
+	const LIGHT_THRESHOLD = 0.5;
+	return luminance > LIGHT_THRESHOLD ? '#000000' : '#ffffff';
 }
 
 export function getHoverBackgroundColor(backgroundColor: string): string {

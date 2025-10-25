@@ -1,4 +1,12 @@
 import { Context, StateHistory } from 'runed';
+import { projectActions } from '../../persistence/stores/project/actions';
+import { CategoryType } from '../../components/box/types';
+import { feedbackMessages } from '../../utils/messages';
+import {
+	tagValidationSchema,
+	categoryValidationSchema,
+	buttonValidationSchema
+} from './validationSchema';
 import type { BoardData } from './types/Board';
 import { BoardRepositoryFactory } from '../../factories/BoardRepositoryFactory';
 import { emit } from '@tauri-apps/api/event';
@@ -7,10 +15,6 @@ import { Scope } from '../../persistence/undo/types/Scope';
 import type { Category } from './types/Category';
 import type { Tag } from './types/Tag';
 import type { Button } from './types/Button';
-import { projectActions } from '../../persistence/stores/project/actions';
-import { CategoryType } from '../../components/box/types';
-import { feedbackMessages } from '../../utils/messages';
-import { tagValidationSchema } from './validationSchema';
 
 const initialState: BoardData = {
 	[CategoryType.Event]: [],
@@ -41,7 +45,7 @@ export class Board {
 	#eventCategoriesById!: Record<string, Category>;
 	#actionCategoriesById!: Record<string, Category>;
 	#tagsById!: Record<string, Tag>;
-	#errorsForm = $state<Record<number, { message: string }>>({});
+	#errorsForm = $state<Record<number | string, { message: string }>>({});
 	#eventButtonsById!: Record<string, Button>;
 	#actionButtonsById!: Record<string, Button>;
 
@@ -139,6 +143,7 @@ export class Board {
 
 	resetCategoryForm(section: CategoryType) {
 		this.#tempCategory = initialCategory(section);
+		this.resetErrorsForm();
 	}
 
 	resetErrorsForm() {
@@ -172,25 +177,6 @@ export class Board {
 		const repository = BoardRepositoryFactory.getInstance();
 
 		await repository.updateCategoryName(categoryId, categoryName);
-	}
-
-	async updateCategory(section: CategoryType, category: Category): Promise<void> {
-		const repository = BoardRepositoryFactory.getInstance();
-
-		await repository.updateCategory(category.id!, category.name, category.color);
-		await repository.updateCategoryButtons(category.id!, category.buttons);
-
-		this.#state = {
-			...this.#state,
-			[section]: this.#state[section].map((c) =>
-				c.id === category.id
-					? {
-							...category,
-							buttons: category.buttons.map((b) => ({ ...b, temp: false }))
-						}
-					: c
-			)
-		};
 	}
 
 	async addButtonToCategory(
@@ -234,26 +220,67 @@ export class Board {
 	async loadCategoryToAddOrEdit(section: CategoryType, categoryId?: number): Promise<void> {
 		if (categoryId) {
 			if (section === CategoryType.Event) {
-				this.#tempCategory = this.eventCategoriesById[categoryId];
+				this.#tempCategory = $state.snapshot(this.eventCategoriesById[categoryId]);
 			} else {
-				this.#tempCategory = this.actionCategoriesById[categoryId];
+				this.#tempCategory = $state.snapshot(this.actionCategoriesById[categoryId]);
 			}
 		} else {
 			this.resetCategoryForm(section);
 		}
 	}
 
-	async addOrUpdateCategory(section: CategoryType): Promise<void> {
-		if (this.#tempCategory.id && this.#tempCategory.id > 0) {
-			// Update existing category
-			await this.updateCategory(section, this.#tempCategory);
-		} else {
-			// Add new category
-			await this.addCategory(section);
+	onValidateCategory(): Record<number | string, { message: string }> | void {
+		const errorObject: Record<number | string, { message: string }> = {};
+
+		for (const rule of categoryValidationSchema) {
+			if (rule.validate(this.#tempCategory)) {
+				if (rule.message.includes('button')) {
+					errorObject['buttons'] = { message: rule.message };
+				} else {
+					errorObject['category'] = { message: rule.message };
+				}
+				break;
+			}
 		}
 
-		this.resetCategoryForm(section);
-		await emit('project:dirty');
+		this.#tempCategory.buttons.forEach((button, idx) => {
+			for (const rule of buttonValidationSchema) {
+				if (rule.validate(button)) {
+					errorObject[idx] = { message: rule.message };
+					break;
+				}
+			}
+		});
+
+		if (Object.keys(errorObject).length > 0) {
+			this.#errorsForm = errorObject;
+			throw 'validation-failed';
+		}
+
+		return this.resetErrorsForm();
+	}
+
+	async addOrUpdateCategory(section: CategoryType): Promise<void> {
+		try {
+			await this.onValidateCategory();
+			if (this.#tempCategory.id && this.#tempCategory.id > 0) {
+				// Update existing category
+				await this.updateCategory(section);
+			} else {
+				// Add new category
+				await this.addCategory(section);
+			}
+			return;
+		} catch (error) {
+			if (error === 'validation-failed') {
+				return projectActions.setSnackbar(feedbackMessages.VALIDATION_ERROR);
+			}
+
+			return projectActions.setSnackbar({
+				...feedbackMessages.ACTION_FAILED,
+				message: error instanceof Error ? error.message : String(error)
+			});
+		}
 	}
 
 	async addCategory(section: CategoryType): Promise<void> {
@@ -288,6 +315,75 @@ export class Board {
 
 			projectActions.setSnackbar(feedbackMessages.ACTION_SUCCESS);
 			this.resetCategoryForm(section);
+		} catch (error) {
+			projectActions.setSnackbar({
+				...feedbackMessages.ACTION_FAILED,
+				message: error instanceof Error ? error.message : String(error)
+			});
+		}
+	}
+
+	async updateCategory(section: CategoryType): Promise<void> {
+		const category = this.#tempCategory;
+		try {
+			const repository = BoardRepositoryFactory.getInstance();
+
+			await repository.updateCategory(category.id!, category.name, category.color);
+			const buttonsIds = await repository.updateCategoryButtons(category.id!, category.buttons);
+
+			this.#state = {
+				...this.#state,
+				[section]: this.#state[section].map((c) =>
+					c.id === category.id
+						? {
+								...category,
+								buttons: category.buttons.map((b) => {
+									if (b.id && b.id > 0) {
+										return {
+											...b,
+											temp: false
+										};
+									} else {
+										return {
+											...b,
+											id: buttonsIds.shift(),
+											temp: false
+										};
+									}
+								})
+							}
+						: c
+				)
+			};
+			await emit('project:dirty');
+
+			projectActions.closeAndResetModal();
+
+			projectActions.setSnackbar(feedbackMessages.UPDATE_SUCCESS);
+			this.resetCategoryForm(section);
+		} catch (error) {
+			projectActions.setSnackbar({
+				...feedbackMessages.ACTION_FAILED,
+				message: error instanceof Error ? error.message : String(error)
+			});
+		}
+	}
+
+	async deleteCategory(section: CategoryType, categoryId: number): Promise<void> {
+		// <!-- TODO: When deleting category, if there is already events created with this categoryId, we should delete them as well, setModal are you sure you want to erase -->
+		try {
+			const repository = BoardRepositoryFactory.getInstance();
+
+			await repository.deleteCategory(categoryId);
+
+			this.#state = {
+				...this.#state,
+				[section]: this.#state[section].filter((c) => c.id !== categoryId)
+			};
+
+			await emit('project:dirty');
+
+			projectActions.setSnackbar(feedbackMessages.DELETE_SUCCESS);
 		} catch (error) {
 			projectActions.setSnackbar({
 				...feedbackMessages.ACTION_FAILED,

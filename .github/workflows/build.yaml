@@ -4,201 +4,217 @@ on:
   push:
     branches:
       - main
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+  RUST_BACKTRACE: 1
+  SCCACHE_GHA_ENABLED: true
+  RUSTC_WRAPPER: sccache
+
 jobs:
-  build-lint:
-    strategy:
-      fail-fast: false
-      matrix:
-        platform: [windows-latest, macos-latest, ubuntu-latest]
-        rust:
-          - stable
-        include:
-          - platform: 'macos-latest' # for Arm based macs (M1 and above).
-            args: '--target aarch64-apple-darwin'
-          - platform: 'macos-latest' # for Intel based macs.
-            args: '--target x86_64-apple-darwin'
-          - platform: 'ubuntu-latest'
-            args: ''
-          - platform: 'windows-latest'
-            args: ''
-
-    runs-on: ${{ matrix.platform }}
+  test-ubuntu:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-      - name: Update system repositories
-        if: matrix.platform == 'ubuntu-latest' # This must match the platform value defined above.
+      - name: Cache apt packages
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: libwebkit2gtk-4.1-dev build-essential libssl-dev
+          version: 1.0
+
+      - name: Install minimal system deps
         run: |
           sudo apt-get update
-
-      - name: Install system dependencies
-        if: matrix.platform == 'ubuntu-latest' # This must match the platform value defined above.
-        run: |
-          sudo apt-get install libwebkit2gtk-4.1-dev \
+          sudo apt-get install -y libwebkit2gtk-4.1-dev \
             build-essential \
-            curl \
-            wget \
-            file \
-            libxdo-dev \
-            libssl-dev \
-            libayatana-appindicator3-dev \
-            librsvg2-dev
-
-      - name: Install LinuxDeploy
-        if: matrix.platform == 'ubuntu-latest' # This must match the platform value defined above.
-        uses: miurahr/install-linuxdeploy-action@v1
-        with:
-          plugins: gstreamer appimage
-          dir: /usr/local/bin
-
-      - name: Install WebView2
-        if: matrix.platform == 'windows-latest' # This must match the platform value defined above.
-        run: |
-          Remove-Item -Path WebView2Installer.exe -ErrorAction Ignore
-          Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/p/?LinkId=2124703" -OutFile "WebView2Installer.exe"
-          if (Test-Path "WebView2Installer.exe") {
-            Start-Process -FilePath WebView2Installer.exe -ArgumentList "/silent /install" -NoNewWindow -Wait
-          } else {
-            echo "Failed to download WebView2 installer"
-            exit 1
-          }
+            libssl-dev
 
       - name: Setup node
         uses: actions/setup-node@v4
         with:
-          node-version: 20.x
+          node-version: 22.x # Update to 22 to remove warning
 
       - uses: pnpm/action-setup@v4
         with:
-          run_install: true
+          run_install: false # Do not install automatically
 
-      - name: Install Rust stable
-        uses: dtolnay/rust-toolchain@stable
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        id: pnpm-cache
         with:
-          # Those targets are only used on macos runners so it's in an `if` to slightly speed up windows and linux builds.
-          targets: ${{ (matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin') || (matrix.platform == 'windows-latest' && 'x86_64-pc-windows-msvc') || '' }}
+          path: node_modules
+          key: pnpm-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: pnpm-${{ runner.os }}-
 
-      - name: Install Rust format and lints
-        working-directory: ./src-tauri
-        run: |
-          rustup component add rustfmt clippy
+      - name: Install dependencies
+        if: steps.pnpm-cache.outputs.cache-hit != 'true'
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup sccache
+        uses: mozilla-actions/sccache-action@v0.0.6
 
       - uses: Swatinem/rust-cache@v2
         with:
-          shared-key: ${{ matrix.platform }}
-          key: v1 # increment this to bust the cache if needed
+          shared-key: ubuntu-test
           workspaces: src-tauri
+          cache-on-failure: true
 
-      - name: Install frontend dependencies
-        run: pnpm install
-
-      - name: Format backend
-        working-directory: ./src-tauri
-        run: |
-          cargo fmt -- --check
-
-      - name: Build project
-        run: |
-          pnpm tauri build
-
-      - name: Lint backend
-        working-directory: ./src-tauri
-        run: |
-          cargo clippy -- -D warnings
-
-      - name: Lint frontend
-        run: |
-          pnpm lint
-
-  test:
-    strategy:
-      fail-fast: false
-      matrix:
-        platform: [windows-latest, macos-latest, ubuntu-latest]
-        rust:
-          - stable
-        include:
-          - platform: 'macos-latest' # for Arm based macs (M1 and above).
-            args: '--target aarch64-apple-darwin'
-          - platform: 'macos-latest' # for Intel based macs.
-            args: '--target x86_64-apple-darwin'
-          - platform: 'ubuntu-latest'
-            args: ''
-          - platform: 'windows-latest'
-            args: ''
-
-    runs-on: ${{ matrix.platform }}
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Update system repositories
-        if: matrix.platform == 'ubuntu-latest' # This must match the platform value defined above.
-        run: |
-          sudo apt-get update
-
-      - name: Install system dependencies
-        if: matrix.platform == 'ubuntu-latest' # This must match the platform value defined above.
-        run: |
-          sudo apt-get install libwebkit2gtk-4.1-dev \
-            build-essential \
-            curl \
-            wget \
-            file \
-            libxdo-dev \
-            libssl-dev \
-            libayatana-appindicator3-dev \
-            librsvg2-dev
-
-      - name: Install LinuxDeploy
-        if: matrix.platform == 'ubuntu-latest' # This must match the platform value defined above.
-        uses: miurahr/install-linuxdeploy-action@v1
-        with:
-          plugins: gstreamer appimage
-          dir: /usr/local/bin
-
-      - name: Install WebView2
-        if: matrix.platform == 'windows-latest' # This must match the platform value defined above.
-        run: |
-          Remove-Item -Path WebView2Installer.exe -ErrorAction Ignore
-          Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/p/?LinkId=2124703" -OutFile "WebView2Installer.exe"
-          if (Test-Path "WebView2Installer.exe") {
-            Start-Process -FilePath WebView2Installer.exe -ArgumentList "/silent /install" -NoNewWindow -Wait
-          } else {
-            echo "Failed to download WebView2 installer"
-            exit 1
-          }
-
-      - name: Setup node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20.x
-
-      - uses: pnpm/action-setup@v4
-        with:
-          run_install: true
-
-      - name: Install Rust stable
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          # Those targets are only used on macos runners so it's in an `if` to slightly speed up windows and linux builds.
-          targets: ${{ (matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin') || (matrix.platform == 'windows-latest' && 'x86_64-pc-windows-msvc') || '' }}
-
-      - uses: Swatinem/rust-cache@v2
-        with:
-          shared-key: ${{ matrix.platform }}
-          key: v1 # increment this to bust the cache if needed
-          workspaces: src-tauri
-
-      - name: Install frontend dependencies
-        run: pnpm install
+      - name: Check types
+        run: pnpm check
 
       - name: Test frontend
-        run: |
-          pnpm test
+        run: pnpm test
 
       - name: Test backend
         working-directory: ./src-tauri
+        run: cargo test --profile ci --tests --no-fail-fast
+
+  # Build jobs per platform
+  build-multiplatform:
+    needs: test-ubuntu
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: ubuntu-latest
+            rust-target: ''
+            args: ''
+          - platform: windows-latest
+            rust-target: x86_64-pc-windows-msvc
+            args: ''
+          - platform: macos-latest
+            rust-target: 'aarch64-apple-darwin,x86_64-apple-darwin'
+            args: '--target aarch64-apple-darwin'
+          - platform: macos-latest
+            rust-target: 'aarch64-apple-darwin,x86_64-apple-darwin'
+            args: '--target x86_64-apple-darwin'
+
+    runs-on: ${{ matrix.platform }}
+    timeout-minutes: 25
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # System dependencies (conditional per platform)
+      - name: Update repos (Linux)
+        if: matrix.platform == 'ubuntu-latest'
+        run: sudo apt-get update
+
+      - name: Cache apt packages (Linux)
+        if: matrix.platform == 'ubuntu-latest'
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
+          version: 1.0
+
+      - name: Install system deps (Linux)
+        if: matrix.platform == 'ubuntu-latest'
         run: |
-          cargo test --tests
+          sudo apt-get install -y libwebkit2gtk-4.1-dev \
+            build-essential curl wget file libxdo-dev \
+            libssl-dev libayatana-appindicator3-dev librsvg2-dev
+
+      - name: Install LinuxDeploy (Linux)
+        if: matrix.platform == 'ubuntu-latest'
+        uses: miurahr/install-linuxdeploy-action@v1
+        with:
+          plugins: gstreamer appimage
+          dir: /usr/local/bin
+
+      - name: Cache WebView2 (Windows)
+        if: matrix.platform == 'windows-latest'
+        uses: actions/cache@v4
+        id: webview2-cache
+        with:
+          path: WebView2Installer.exe
+          key: webview2-installer
+
+      - name: Install WebView2 (Windows)
+        if: matrix.platform == 'windows-latest'
+        run: |
+          if (!(Test-Path "WebView2Installer.exe")) {
+            Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/p/?LinkId=2124703" -OutFile "WebView2Installer.exe"
+          }
+          Start-Process -FilePath WebView2Installer.exe -ArgumentList "/silent /install" -NoNewWindow -Wait
+
+      # Node setup
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: pnpm-store-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: pnpm-store-${{ runner.os }}-
+
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        id: pnpm-cache
+        with:
+          path: node_modules
+          key: pnpm-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Rust setup
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust-target }}
+          components: rustfmt, clippy
+
+      - name: Setup sccache
+        uses: mozilla-actions/sccache-action@v0.0.6
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: ${{ matrix.platform }}-${{ hashFiles('src-tauri/Cargo.lock') }}
+          workspaces: src-tauri
+          cache-all-crates: true
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+
+      # Format check (fast)
+      - name: Format check
+        working-directory: ./src-tauri
+        run: cargo fmt --check --quiet
+
+      # Build with integrated clippy (saves recompilation)
+      - name: Build and lint
+        env:
+          GENERATE_SOURCEMAP: false
+        run: |
+          cd src-tauri
+          cargo clippy --profile ci ${{ matrix.args }} -- -D warnings
+          cd ..
+          pnpm tauri build --profile ci ${{ matrix.args }}
+
+      # Lint frontend (with cache)
+      - name: Lint frontend
+        run: pnpm lint --cache --cache-location=.eslintcache
+
+      - name: Upload artifacts
+        if: matrix.platform == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.platform }}
+          path: src-tauri/target/release/bundle/
+          retention-days: 5

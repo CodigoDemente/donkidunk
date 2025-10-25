@@ -6,6 +6,18 @@ export enum CategoryType {
 	Action = 'action'
 }
 
+export type DraggedCategory = {
+	id: number;
+	offset: {
+		x: number;
+		y: number;
+	};
+	container: {
+		width: number;
+		height: number;
+	};
+};
+
 export type Props = {
 	boxHeight: number;
 	isOpened: boolean;

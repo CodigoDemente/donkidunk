@@ -39,3 +39,19 @@ regex = "1.12.2"
 axum-range = "1.0.0"
 axum-extra = "0.10.3"
 
+[profile.release]
+opt-level = "z"
+lto = "thin"
+codegen-units = 1
+strip = true
+panic = "abort"
+
+[profile.dev]
+opt-level = 1
+debug = true
+split-debuginfo = "unpacked"
+
+[profile.ci]
+inherits = "release"
+opt-level = 2
+lto = false 
