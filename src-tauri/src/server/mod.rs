@@ -1,4 +1,4 @@
-// #[cfg(not(target_os = "windows"))]
+#[cfg(not(target_os = "windows"))]
 use {
     axum::{extract::Query, routing::get, Router},
     axum_extra::{headers::Range, TypedHeader},
@@ -7,7 +7,7 @@ use {
     tokio::{fs::File, net::TcpListener},
 };
 
-// #[cfg(not(target_os = "windows"))]
+#[cfg(not(target_os = "windows"))]
 #[tauri::command]
 pub fn get_linux_file_url(file_path: &str) -> String {
     let port = match env::var("WEBSERVER_PORT") {
@@ -18,7 +18,7 @@ pub fn get_linux_file_url(file_path: &str) -> String {
     format!("http://localhost:{port}/?file={file_path}")
 }
 
-// #[cfg(not(target_os = "windows"))]
+#[cfg(not(target_os = "windows"))]
 pub async fn setup_webserver() {
     let port = match env::var("WEBSERVER_PORT") {
         Ok(port) => port,
@@ -34,7 +34,7 @@ pub async fn setup_webserver() {
     axum::serve(listner, app).await.unwrap();
 }
 
-// #[cfg(not(target_os = "windows"))]
+#[cfg(not(target_os = "windows"))]
 pub async fn download_file(
     range: Option<TypedHeader<Range>>,
     Query(params): Query<HashMap<String, String>>,

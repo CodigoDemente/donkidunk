@@ -4,7 +4,7 @@
 mod commands;
 mod menu;
 
-// #[cfg(not(target_os = "windows"))]
+#[cfg(not(target_os = "windows"))]
 mod server;
 
 use commands::menu::*;
@@ -15,13 +15,13 @@ use tauri::Manager;
 fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
     builder
         .invoke_handler(tauri::generate_handler![
-            // #[cfg(not(target_os = "windows"))]
+            #[cfg(not(target_os = "windows"))]
             server::get_linux_file_url,
             set_menu_item_enabling_status,
             cut_video,
         ])
         .setup(|app| {
-            // #[cfg(not(target_os = "windows"))]
+            #[cfg(not(target_os = "windows"))]
             tokio::spawn(server::setup_webserver());
 
             menu::setup_menu(app)?;
