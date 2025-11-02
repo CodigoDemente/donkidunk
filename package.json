@@ -10,7 +10,7 @@
 		"build": "vite build",
 		"preview": "vite preview",
 		"format": "prettier --write .",
-		"test": "vites run",
+		"test": "vitest run",
 		"lint": "prettier --check . && eslint . --cache",
 		"lint:fix": "prettier --write . && eslint . --fix",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
