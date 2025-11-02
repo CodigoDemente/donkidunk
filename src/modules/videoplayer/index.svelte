@@ -1,7 +1,4 @@
 <script lang="ts">
-	import { convertFileSrc } from '@tauri-apps/api/core';
-	import { platform } from '@tauri-apps/plugin-os';
-
 	import Progressbar from './progressbar.svelte';
 	import Controls from './controls.svelte';
 	import { SkipType } from './types/SkipType';
@@ -26,11 +23,13 @@
 	$effect(() => {
 		if (video) {
 			videoPlayer = document.getElementById('video-player') as HTMLVideoElement;
-			let videoUrl = convertFileSrc(video);
+			let videoUrl = 'http://localhost:16780/?file=' + encodeURIComponent(video);
 
-			if (platform() === 'linux') {
-				videoUrl = 'http://localhost:16780/?file=' + encodeURIComponent(video);
-			}
+			// console.log('http://localhost:16780/?file=' + encodeURIComponent(video));
+
+			// if (platform() === 'linux') {
+			// 	videoUrl = 'http://localhost:16780/?file=' + encodeURIComponent(video);
+			// }
 
 			const source = document.createElement('source');
 			source.type = 'video/mp4';

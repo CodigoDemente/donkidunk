@@ -57,8 +57,8 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Setup sccache
-        uses: mozilla-actions/sccache-action@v0.0.6
+      - name: Run sccache-cache
+        uses: mozilla-actions/sccache-action@v0.0.9
 
       - uses: Swatinem/rust-cache@v2
         with:
@@ -74,7 +74,7 @@ jobs:
 
       - name: Test backend
         working-directory: ./src-tauri
-        run: cargo test --profile ci --tests --no-fail-fast
+        run: cargo test --tests --no-fail-fast
 
   # Build jobs per platform
   build-multiplatform:
@@ -182,8 +182,8 @@ jobs:
           targets: ${{ matrix.rust-target }}
           components: rustfmt, clippy
 
-      - name: Setup sccache
-        uses: mozilla-actions/sccache-action@v0.0.6
+      - name: Run sccache-cache
+        uses: mozilla-actions/sccache-action@v0.0.9
 
       - uses: Swatinem/rust-cache@v2
         with:
@@ -205,7 +205,7 @@ jobs:
           cd src-tauri
           cargo clippy --profile ci ${{ matrix.args }} -- -D warnings
           cd ..
-          pnpm tauri build --profile ci ${{ matrix.args }}
+          pnpm tauri build ${{ matrix.args }} -- --profile ci
 
       # Lint frontend (with cache)
       - name: Lint frontend
