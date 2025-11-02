@@ -15,9 +15,6 @@
 	const board = boardContext.get();
 	const timelineRepository = TimelineRepositoryFactory.getInstance();
 
-	const selectedEvents: number[] = $state([]);
-	const selectedTags: number[] = $state([]);
-
 	let exportingRules: ExportingRule[] = $state([]);
 
 	const allEventOptions = Object.values(board.eventButtonsById).map((button) => ({
@@ -112,7 +109,7 @@
 			</tr>
 		</thead>
 		<tbody>
-			{#each exportingRules as rule}
+			{#each exportingRules as rule, idx (idx)}
 				{#if !rule.temp}
 					<tr>
 						<td>{rule.type}</td>
