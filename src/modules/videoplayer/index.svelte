@@ -1,9 +1,11 @@
 <script lang="ts">
-	import Progressbar from './progressbar.svelte';
+	import Timeline from './timeline.svelte';
 	import Controls from './controls.svelte';
 	import { SkipType } from './types/SkipType';
 	import { SkipDirection } from './types/SkipDirection';
 	import { timelineContext } from './context.svelte';
+	import { convertFileSrc } from '@tauri-apps/api/core';
+	import { platform } from '@tauri-apps/plugin-os';
 
 	type Props = {
 		video: string | undefined;
@@ -23,13 +25,11 @@
 	$effect(() => {
 		if (video) {
 			videoPlayer = document.getElementById('video-player') as HTMLVideoElement;
-			let videoUrl = 'http://localhost:16780/?file=' + encodeURIComponent(video);
+			let videoUrl = convertFileSrc(video);
 
-			// console.log('http://localhost:16780/?file=' + encodeURIComponent(video));
-
-			// if (platform() === 'linux') {
-			// 	videoUrl = 'http://localhost:16780/?file=' + encodeURIComponent(video);
-			// }
+			if (platform() !== 'windows') {
+				videoUrl = 'http://localhost:16780/?file=' + encodeURIComponent(video);
+			}
 
 			const source = document.createElement('source');
 			source.type = 'video/mp4';
@@ -57,33 +57,6 @@
 	});
 
 	// Component handlers
-
-	// Progress bar
-
-	function handleProgressClick(event: MouseEvent) {
-		event.preventDefault();
-		event.stopPropagation();
-
-		const target = event.target as HTMLElement;
-
-		// If not a button, the user clicked the time marker
-		if (target.nodeName !== 'BUTTON') {
-			return;
-		}
-
-		const fullWidth = target.offsetWidth;
-
-		if (event.offsetX < 0 || event.offsetX > fullWidth) {
-			return;
-		}
-
-		const horizontalPosition = event.offsetX;
-
-		const percentage = horizontalPosition / fullWidth;
-
-		timeline.currentTime = percentage * timeline.duration;
-	}
-
 	function handleDragStart(event: DragEvent) {
 		var img = new Image();
 		img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=';
@@ -142,13 +115,13 @@
 	{#if videoPlayer}
 		<Controls isPlaying={videoIsPlaying} {skip} {play} />
 	{/if}
-	<Progressbar
+	<Timeline
 		bind:currentTime={timeline.currentTime}
 		duration={timeline.duration}
 		{toTimeString}
 		{handleDragStart}
 		{handleDragEnd}
-		{handleProgressClick}
 		bind:progress
+		isPlaying={videoIsPlaying}
 	/>
 </div>

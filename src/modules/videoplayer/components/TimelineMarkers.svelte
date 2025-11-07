@@ -1,0 +1,51 @@
+<script lang="ts">
+	/**
+	 * Timeline Markers Component
+	 * Displays time markers that adapt to zoom level
+	 */
+
+	import {
+		getTimeInterval,
+		generateMarkerPositions,
+		getMarkerPercentage
+	} from '../utils/timeMarkers';
+
+	type Props = {
+		leftLimitTime: number;
+		rightLimitTime: number;
+		visibleDuration: number;
+		toTimeString: (time: number) => string;
+	};
+
+	let { leftLimitTime, rightLimitTime, visibleDuration, toTimeString }: Props = $props();
+
+	// Calculate appropriate interval based on zoom level
+	const interval = $derived(getTimeInterval(visibleDuration));
+
+	// Generate marker positions within visible range
+	const markerPositions = $derived(
+		generateMarkerPositions(leftLimitTime, rightLimitTime, interval.seconds)
+	);
+
+	// Calculate percentage position for each marker
+	function getPosition(markerTime: number): number {
+		return getMarkerPercentage(markerTime, leftLimitTime, visibleDuration);
+	}
+</script>
+
+<div class="w-ful relative h-6">
+	{#each markerPositions as markerTime (markerTime)}
+		{@const position = getPosition(markerTime)}
+		<div class="absolute top-0 flex flex-col items-center" style="left: {position}%">
+			<!-- Time label on top, centered -->
+			<span class="text-[10px] whitespace-nowrap text-gray-400">
+				{toTimeString(markerTime)}
+			</span>
+			<!-- Marker line -->
+			<div
+				class="h-3 w-px bg-gray-600"
+				aria-label="Time marker at {toTimeString(markerTime)}"
+			></div>
+		</div>
+	{/each}
+</div>
