@@ -65,47 +65,43 @@
 	}
 
 	// Handle mouse move during drag
-	function onPointerMove(pointerEvent: PointerEvent) {
-		const allEvents = pointerEvent.getCoalescedEvents();
+	function onPointerMove(event: PointerEvent) {
+		if (!isDraggingStart && !isDraggingEnd && !isDraggingBar) return;
+		if (!timelineBarRef) return;
 
-		for (const event of allEvents) {
-			if (!isDraggingStart && !isDraggingEnd && !isDraggingBar) return;
-			if (!timelineBarRef) return;
+		const rect = timelineBarRef.getBoundingClientRect();
+		const pointerX = event.clientX - rect.left;
 
-			const rect = timelineBarRef.getBoundingClientRect();
-			const pointerX = event.clientX - rect.left;
+		const dragState: DragState = {
+			isDraggingStart,
+			isDraggingEnd,
+			isDraggingBar,
+			dragStartX,
+			initialStart,
+			initialEnd
+		};
 
-			const dragState: DragState = {
-				isDraggingStart,
-				isDraggingEnd,
-				isDraggingBar,
-				dragStartX,
-				initialStart,
-				initialEnd
-			};
+		// Use mirrored drag for handles (Premiere Pro style)
+		let result = null;
+		if (isDraggingStart || isDraggingEnd) {
+			result = handleMirroredDrag(
+				pointerX,
+				event.movementX || 0,
+				rect.width,
+				dragState,
+				timelineStart,
+				timelineEnd,
+				currentTime,
+				duration
+			);
+		} else if (isDraggingBar) {
+			result = handleDragMove(pointerX, rect.width, dragState, timelineStart, timelineEnd);
+		}
 
-			// Use mirrored drag for handles (Premiere Pro style)
-			let result = null;
-			if (isDraggingStart || isDraggingEnd) {
-				result = handleMirroredDrag(
-					pointerX,
-					event.movementX || 0,
-					rect.width,
-					dragState,
-					timelineStart,
-					timelineEnd,
-					currentTime,
-					duration
-				);
-			} else if (isDraggingBar) {
-				result = handleDragMove(pointerX, rect.width, dragState, timelineStart, timelineEnd);
-			}
-
-			if (result) {
-				timelineStart = result.start;
-				timelineEnd = result.end;
-				onRangeChange(result.start, result.end);
-			}
+		if (result) {
+			timelineStart = result.start;
+			timelineEnd = result.end;
+			onRangeChange(result.start, result.end);
 		}
 	}
 
@@ -151,14 +147,30 @@
 
 	/* ==================== EFFECTS ==================== */
 
+	function onFullCompatiblePointerMove(pointerEvent: PointerEvent) {
+		try {
+			const allEvents = pointerEvent.getCoalescedEvents();
+
+			for (const event of allEvents) {
+				onPointerMove(event);
+			}
+		} catch (e: unknown) {
+			if (e instanceof TypeError) {
+				return onPointerMove(pointerEvent);
+			}
+
+			throw e;
+		}
+	}
+
 	// Setup drag event listeners
 	$effect(() => {
 		if (isDraggingStart || isDraggingEnd || isDraggingBar) {
-			window.addEventListener('pointermove', onPointerMove);
+			window.addEventListener('pointermove', onFullCompatiblePointerMove);
 			window.addEventListener('mouseup', onPointerCancel);
 
 			return () => {
-				window.removeEventListener('pointermove', onPointerMove);
+				window.removeEventListener('pointermove', onFullCompatiblePointerMove);
 				window.removeEventListener('mouseup', onPointerCancel);
 			};
 		}

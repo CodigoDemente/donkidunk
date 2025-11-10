@@ -286,7 +286,6 @@ export function handleMirroredDrag(
 				return { start: currentStart, end: currentEnd };
 			}
 
-			console.log('currentStart', currentStart);
 			// If we have been moving only the start handle, the end will be farther than the cursor, so we need
 			// to move from the starting position, not from the cursor.
 			newEnd = Math.max(0, Math.max(newEnd, newEnd + delta));
