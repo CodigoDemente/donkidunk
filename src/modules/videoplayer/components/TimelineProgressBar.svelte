@@ -5,7 +5,10 @@
 	 */
 
 	import Eventline from '../../../components/eventline/eventline.svelte';
+	import type { Button } from '../../board/types/Button';
+	import type { Category } from '../../board/types/Category';
 	import { mapClickToVisibleTime } from '../timelineZoom';
+	import type { RangeData, RangeDataWithTags } from '../types/RangeData';
 
 	type Props = {
 		currentTime: number;
@@ -16,14 +19,14 @@
 		visibleDuration: number;
 		handleDragStart: (event: DragEvent) => void;
 		handleDragEnd: (event: DragEvent) => void;
-		eventCategoriesById: Record<string, any>;
-		actionCategoriesById: Record<string, any>;
-		eventsByCategory: Record<string, any[]>;
-		actionsByCategory: Record<string, any[]>;
-		eventButtonsById: Record<string, any>;
-		actionButtonsById: Record<string, any>;
-		eventPlaying: any;
-		actionPlaying: any;
+		eventCategoriesById: Record<string, Category>;
+		actionCategoriesById: Record<string, Category>;
+		eventsByCategory: Record<string, RangeDataWithTags[]>;
+		actionsByCategory: Record<string, RangeData[]>;
+		eventButtonsById: Record<string, Button>;
+		actionButtonsById: Record<string, Button>;
+		eventPlaying: RangeDataWithTags | null;
+		actionPlaying: RangeData | null;
 		onEventClick: (eventId: number) => void;
 		onTimeChange: (time: number) => void;
 	};
@@ -48,8 +51,6 @@
 		onEventClick,
 		onTimeChange
 	}: Props = $props();
-
-	$inspect(relativeProgress);
 
 	/* ==================== EVENT HANDLERS ==================== */
 
@@ -126,11 +127,11 @@
 		{/if}
 
 		<!-- Time marker (cursor) -->
-		{#if relativeProgress > 0 && relativeProgress < 100}
+		{#if relativeProgress >= 0 && relativeProgress <= 1}
 			<div
 				id="time-marker"
 				class="absolute top-0 left-0 z-10 h-full w-px rounded-full bg-sky-400"
-				style="left: {relativeProgress}%"
+				style="left: {relativeProgress * 100}%"
 			></div>
 		{/if}
 	</button>

@@ -141,8 +141,8 @@
 
 		// Reset to full view
 		timelineStart = 0;
-		timelineEnd = 100;
-		onRangeChange(0, 100);
+		timelineEnd = 1;
+		onRangeChange(0, 1);
 	}
 
 	/* ==================== EFFECTS ==================== */
@@ -199,7 +199,7 @@
 		<!-- Resizable bar that follows the handles -->
 		<div
 			class="absolute top-0 h-full cursor-grab rounded-md bg-gray-500 transition-colors hover:bg-gray-400 active:cursor-grabbing"
-			style="left: {timelineStart}%; width: {timelineEnd - timelineStart}%"
+			style="left: {timelineStart * 100}%; width: {(timelineEnd - timelineStart) * 100}%"
 			onmousedown={onBarMouseDown}
 			role="button"
 			tabindex="0"
@@ -208,14 +208,14 @@
 		<!-- Start handle -->
 		<button
 			class="absolute top-0 z-10 h-full w-2 cursor-ew-resize rounded-full bg-gray-300 transition-colors hover:bg-white"
-			style="left: {timelineStart}%"
+			style="left: {timelineStart * 100}%"
 			aria-label="Timeline Start"
 			onmousedown={onStartHandleMouseDown}
 		></button>
 		<!-- End handle -->
 		<button
 			class="absolute top-0 z-10 h-full w-2 cursor-ew-resize rounded-full bg-gray-300 transition-colors hover:bg-white"
-			style="right: {100 - timelineEnd}%"
+			style="right: {(1 - timelineEnd) * 100}%"
 			aria-label="Timeline End"
 			onmousedown={onEndHandleMouseDown}
 		></button>

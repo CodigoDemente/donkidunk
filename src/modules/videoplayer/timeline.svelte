@@ -42,7 +42,7 @@
 
 	// Timeline zoom state (0-100 percentage range)
 	let timelineStart = $state(0);
-	let timelineEnd = $state(100);
+	let timelineEnd = $state(1);
 
 	const board = boardContext.get();
 	const timeline = timelineContext.get();
@@ -113,12 +113,6 @@
 	}
 
 	/* ==================== AUTO-SCROLL EFFECTS ==================== */
-
-	function onForceCursorToCenter() {
-		currentTime = duration / 2;
-		handleTimeChange(currentTime);
-	}
-
 	// Track if user is dragging (derived from child component state)
 	let isDragging = $state(false);
 
@@ -153,12 +147,6 @@
 			visibleDuration={limits.visibleDuration}
 			{toTimeString}
 		/>
-
-		<div class="w-full">
-			<button class="rounded-md bg-gray-100" onclick={onForceCursorToCenter}
-				>Force cursor to center</button
-			>
-		</div>
 
 		<TimelineProgressBar
 			bind:currentTime

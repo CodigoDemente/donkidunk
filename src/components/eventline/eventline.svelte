@@ -17,8 +17,8 @@
 		onClick
 	}: Props = $props();
 
-	const leftLimit = $derived(timeline.duration * (timelineStart / 100));
-	const rightLimit = $derived(timeline.duration * (timelineEnd / 100));
+	const leftLimit = $derived(timeline.duration * timelineStart);
+	const rightLimit = $derived(timeline.duration * timelineEnd);
 
 	// Función para verificar si un evento está visible en el rango del timeline
 	function isEventVisible(start: number, end: number | null | undefined): boolean {

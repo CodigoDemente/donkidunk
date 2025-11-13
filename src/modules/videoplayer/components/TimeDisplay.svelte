@@ -15,9 +15,9 @@
 
 <div class="flex w-full flex-row justify-between text-xs text-sky-400">
 	<span>
-		{currentTime ? toTimeString(currentTime) : '00:00:00'}
+		{currentTime >= 0 ? toTimeString(currentTime) : '00:00:00'}
 	</span>
 	<span>
-		{duration ? toTimeString(duration) : '00:00:00'}
+		{duration >= 0 ? toTimeString(duration) : '00:00:00'}
 	</span>
 </div>

@@ -18,13 +18,13 @@
 	let relativeEnd = $derived(Math.min(timelineEnd, end || timelineEnd) - timelineStart);
 
 	// Calcular el ancho y posición en porcentaje
-	let leftPercentage = $derived((relativeStart / total) * 100);
-	let widthPercentage = $derived(((relativeEnd - relativeStart) / total) * 100);
+	let leftPercentage = $derived(relativeStart / total);
+	let widthPercentage = $derived((relativeEnd - relativeStart) / total);
 </script>
 
 <div
 	class="absolute h-full rounded-xs opacity-80 hover:opacity-100"
-	style="left: {leftPercentage}%; width: {widthPercentage}%; background-color: {color};"
+	style="left: {leftPercentage * 100}%; width: {widthPercentage * 100}%; background-color: {color};"
 	aria-label={name}
 	title={name}
 	role="button"
