@@ -69,6 +69,10 @@ jobs:
       - name: Check types
         run: pnpm check
 
+      # Lint frontend (with cache)
+      - name: Lint frontend
+        run: pnpm lint --cache --cache-location=.eslintcache
+
       - name: Test frontend
         run: pnpm test
 
@@ -206,10 +210,6 @@ jobs:
           cargo clippy --profile ci ${{ matrix.args }} -- -D warnings
           cd ..
           pnpm tauri build ${{ matrix.args }} -- --profile ci
-
-      # Lint frontend (with cache)
-      - name: Lint frontend
-        run: pnpm lint --cache --cache-location=.eslintcache
 
       - name: Upload artifacts
         if: matrix.platform == 'ubuntu-latest'

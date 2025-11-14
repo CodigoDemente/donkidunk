@@ -32,7 +32,7 @@
 </script>
 
 <div class="flex w-full flex-row gap-1">
-	<div class="flex-shrink-0" style="width: {leftWidth}%">
+	<div class="shrink-0" style="width: {leftWidth}%">
 		<VideoPlayer video={projectStore.video?.path} />
 	</div>
 	<div
@@ -41,7 +41,7 @@
 		role="separator"
 		aria-orientation="horizontal"
 	></div>
-	<div class="flex-grow">
+	<div class="grow">
 		<Board />
 	</div>
 </div>

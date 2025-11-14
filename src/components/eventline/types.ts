@@ -5,7 +5,8 @@ import type { RangeData, RangeDataWithTags } from '../../modules/videoplayer/typ
 export type Props = {
 	categoryId: number;
 	allTagsByCategory: Record<string, RangeDataWithTags[] | RangeData[]>;
-	duration: number;
+	timelineStart: number;
+	timelineEnd: number;
 	boardCategoriesById: Record<string, Category>;
 	buttonsListById: Record<string, Button>;
 	playingObject?: RangeDataWithTags | RangeData | null;
