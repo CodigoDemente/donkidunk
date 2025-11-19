@@ -41,7 +41,7 @@
 
 			videoPlayer.appendChild(source);
 			videoPlayer.load();
-			videoPlayer.currentTime = 0;
+			videoPlayer.currentTime = 0.001;
 		}
 	});
 
