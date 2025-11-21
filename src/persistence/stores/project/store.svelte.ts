@@ -28,7 +28,8 @@ export const InitialProjectData: ProjectData = {
 		show: false,
 		mode: 'auto'
 	},
-	database: null
+	database: null,
+	newProjectFormData: null
 };
 
 let projectStore: ProjectData = $state(InitialProjectData);
