@@ -108,24 +108,6 @@
 			</div>
 		{/if}
 
-		<!-- Action categories -->
-		{#if Object.entries(actionCategoriesById).length > 0}
-			<div class="flex w-full flex-col items-start gap-1">
-				{#each Object.keys(actionCategoriesById) as categoryId (categoryId)}
-					<Eventline
-						categoryId={+categoryId}
-						allTagsByCategory={actionsByCategory}
-						{timelineStart}
-						{timelineEnd}
-						boardCategoriesById={actionCategoriesById}
-						buttonsListById={actionButtonsById}
-						playingObject={actionPlaying}
-						{currentTime}
-					/>
-				{/each}
-			</div>
-		{/if}
-
 		<!-- Time marker (cursor) -->
 		{#if relativeProgress >= 0 && relativeProgress <= 1}
 			<div

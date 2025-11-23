@@ -55,13 +55,13 @@
 
 	function handleModalOpen(type: CategoryType | 'tag', categoryId?: number) {
 		const tagCreation = type === 'tag';
-		if (type === CategoryType.Event || type === CategoryType.Action) {
+		if (type === CategoryType.Event) {
 			board.loadCategoryToAddOrEdit(type, categoryId);
 		}
 		projectActions.setModal({
 			content: tagCreation ? addTagsModal : addCategoryModal,
 			title: tagCreation ? `Create tags` : `Add category to ${title}`,
-			onCancel: () => (tagCreation ? board.resetTagsListForm() : board.resetCategoryForm(type)),
+			onCancel: () => (tagCreation ? board.resetTagsListForm() : board.resetCategoryForm()),
 			onSubmit: () => (tagCreation ? board.addTagsList() : board.addOrUpdateCategory(type)),
 			show: true,
 			size: 'medium'

@@ -45,19 +45,6 @@ export class Timeline {
 				{} as Record<string, RangeDataWithTags[]>
 			);
 		});
-
-		this.#timelineActionsByCategory = $derived.by(() => {
-			return this.#state.actionTimeline.reduce(
-				(acc, action) => {
-					if (!acc[action.categoryId]) {
-						acc[action.categoryId] = [];
-					}
-					acc[action.categoryId].push(action);
-					return acc;
-				},
-				{} as Record<string, RangeData[]>
-			);
-		});
 		//#endregion
 	}
 
@@ -139,29 +126,6 @@ export class Timeline {
 		await emit('project:dirty');
 	}
 
-	private async persistAction(action: RangeData) {
-		const repository = TimelineRepositoryFactory.getInstance();
-
-		const actionId = await repository.addEntry(
-			action.buttonId,
-			action.categoryId,
-			CategoryType.Action,
-			action.timestamp.start,
-			action.timestamp.end
-		);
-
-		action.id = actionId;
-
-		this.#state = {
-			...this.#state,
-			actionTimeline: [...this.#state.actionTimeline, action]
-		};
-
-		this.#actionPlaying = null;
-
-		await emit('project:dirty');
-	}
-
 	//#region Actions
 	async addEvent(buttonId: number, categoryId: number, timeCursor: number) {
 		const newEvent = this.createNewEvent(buttonId, categoryId, timeCursor);
@@ -195,17 +159,6 @@ export class Timeline {
 		if (this.#actionPlaying === null && newAction.timestamp.end === undefined) {
 			this.#actionPlaying = newAction;
 			return;
-		}
-
-		if (
-			this.#actionPlaying &&
-			this.#actionPlaying.buttonId === button.id &&
-			this.#actionPlaying.categoryId === categoryId
-		) {
-			this.#actionPlaying.timestamp.end = timeCursor;
-			this.persistAction(this.#actionPlaying);
-		} else if (this.#actionPlaying === null) {
-			this.persistAction(newAction);
 		}
 	}
 

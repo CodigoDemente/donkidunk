@@ -37,11 +37,7 @@
 	}
 
 	function addActionOrEvent(button: Button): Promise<void> {
-		if (type === CategoryType.Action) {
-			return timeline.addAction(button, category.id, timeline.currentTime);
-		} else {
-			return timeline.addEvent(button.id, category.id, timeline.currentTime);
-		}
+		return timeline.addEvent(button.id, category.id, timeline.currentTime);
 	}
 
 	function removeCategory() {

@@ -6,7 +6,7 @@
 
 	const context = boardContext.get();
 
-	let boxHeight = 50; // Default height percentage for boxes
+	let boxHeight = 100; // Default height percentage for boxes
 	let eventsOpen = true;
 	let actionsOpen = true;
 </script>
@@ -28,7 +28,7 @@
 		isOpened={eventsOpen}
 		otherIsOpened={actionsOpen}
 	/>
-	<!-- Actions Section -->
+	<!-- Actions Section
 	<Box
 		categories={context.actionCategories}
 		title="Actions Board"
@@ -36,5 +36,5 @@
 		type={CategoryType.Action}
 		isOpened={actionsOpen}
 		otherIsOpened={eventsOpen}
-	/>
+	/> -->
 </div>

@@ -18,14 +18,13 @@ import type { Button } from './types/Button';
 
 const initialState: BoardData = {
 	[CategoryType.Event]: [],
-	[CategoryType.Action]: [],
 	tagsRelatedToEvents: []
 };
 
-const initialCategory = (section: CategoryType): Category => ({
+const initialCategory = (): Category => ({
 	id: -1,
 	name: '',
-	type: section,
+	type: CategoryType.Event,
 	position: {
 		x: 0,
 		y: 0
@@ -39,11 +38,10 @@ export const boardContext = new Context<Board>('');
 export class Board {
 	#history!: StateHistory<BoardData>;
 	#isEditing = $state(false);
-	#tempCategory = $state<Category>(initialCategory(CategoryType.Event));
+	#tempCategory = $state<Category>(initialCategory());
 	#tempTagsList = $state<Tag[]>([]);
 	#state = $state<BoardData>(initialState);
 	#eventCategoriesById!: Record<string, Category>;
-	#actionCategoriesById!: Record<string, Category>;
 	#tagsById!: Record<string, Tag>;
 	#errorsForm = $state<Record<number | string, { message: string }>>({});
 	#eventButtonsById!: Record<string, Button>;
@@ -58,16 +56,6 @@ export class Board {
 		//#region Selector derived states
 		this.#eventCategoriesById = $derived.by(() => {
 			return this.#state[CategoryType.Event].reduce(
-				(acc, category) => {
-					acc[category.id] = category;
-					return acc;
-				},
-				{} as Record<string, Category>
-			);
-		});
-
-		this.#actionCategoriesById = $derived.by(() => {
-			return this.#state[CategoryType.Action].reduce(
 				(acc, category) => {
 					acc[category.id] = category;
 					return acc;
@@ -97,19 +85,6 @@ export class Board {
 				{} as Record<string, Button>
 			);
 		});
-
-		this.#actionButtonsById = $derived.by(() => {
-			return this.#state[CategoryType.Action].reduce(
-				(acc, category) => {
-					category.buttons.forEach((button) => {
-						acc[button.id] = button;
-					});
-					return acc;
-				},
-				{} as Record<string, Button>
-			);
-		});
-		//#endregion
 	}
 
 	getState() {
@@ -141,8 +116,8 @@ export class Board {
 		this.#isEditing = value;
 	}
 
-	resetCategoryForm(section: CategoryType) {
-		this.#tempCategory = initialCategory(section);
+	resetCategoryForm() {
+		this.#tempCategory = initialCategory();
 		this.resetErrorsForm();
 	}
 
@@ -221,11 +196,9 @@ export class Board {
 		if (categoryId) {
 			if (section === CategoryType.Event) {
 				this.#tempCategory = $state.snapshot(this.eventCategoriesById[categoryId]);
-			} else {
-				this.#tempCategory = $state.snapshot(this.actionCategoriesById[categoryId]);
 			}
 		} else {
-			this.resetCategoryForm(section);
+			this.resetCategoryForm();
 		}
 	}
 
@@ -297,6 +270,7 @@ export class Board {
 					...this.#state[section],
 					{
 						id: categoryId,
+						type: section,
 						name: name,
 						color: color,
 						position: { x: 0, y: 0 },
@@ -314,7 +288,7 @@ export class Board {
 			projectActions.closeAndResetModal();
 
 			projectActions.setSnackbar(feedbackMessages.ACTION_SUCCESS);
-			this.resetCategoryForm(section);
+			this.resetCategoryForm();
 		} catch (error) {
 			projectActions.setSnackbar({
 				...feedbackMessages.ACTION_FAILED,
@@ -333,26 +307,29 @@ export class Board {
 
 			this.#state = {
 				...this.#state,
-				[section]: this.#state[section].map((c) =>
-					c.id === category.id
-						? {
-								...category,
-								buttons: category.buttons.map((b) => {
-									if (b.id && b.id > 0) {
-										return {
-											...b,
-											temp: false
-										};
-									} else {
-										return {
-											...b,
-											id: buttonsIds.shift(),
-											temp: false
-										};
-									}
-								})
-							}
-						: c
+				[section]: this.#state[section].map(
+					(c): Category =>
+						c.id === category.id
+							? {
+									...c,
+									name: category.name,
+									color: category.color,
+									buttons: category.buttons.map((b) => {
+										if (b.id && b.id > 0 && buttonsIds.includes(b.id)) {
+											return {
+												...b,
+												temp: false
+											};
+										} else {
+											return {
+												...b,
+												id: buttonsIds.shift()!,
+												temp: false
+											};
+										}
+									})
+								}
+							: c
 				)
 			};
 			await emit('project:dirty');
@@ -360,7 +337,7 @@ export class Board {
 			projectActions.closeAndResetModal();
 
 			projectActions.setSnackbar(feedbackMessages.UPDATE_SUCCESS);
-			this.resetCategoryForm(section);
+			this.resetCategoryForm();
 		} catch (error) {
 			projectActions.setSnackbar({
 				...feedbackMessages.ACTION_FAILED,
@@ -486,13 +463,13 @@ export class Board {
 		this.#tempCategory = value;
 	}
 
-	get actionCategories() {
-		return this.#state[CategoryType.Action];
-	}
+	// get actionCategories() {
+	// 	return this.#state[CategoryType.Action];
+	// }
 
-	get actionCategoriesById() {
-		return this.#actionCategoriesById;
-	}
+	// get actionCategoriesById() {
+	// 	return this.#actionCategoriesById;
+	// }
 
 	get eventCategories() {
 		return this.#state[CategoryType.Event];

@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { IconTrash } from '@tabler/icons-svelte';
-	import { CategoryType } from '../../../components/box/types';
 	import Button from '../../../components/button/button.svelte';
 	import Dropdown from '../../../components/dropdown/dropdown.svelte';
 	import Input from '../../../components/input/input.svelte';
@@ -58,41 +57,36 @@
 		/>
 	</div>
 	<!-- Buttons Table -->
-	<div>
-		<div class="mb-2 border-b border-gray-700">
-			<span class="text-sm text-gray-100">Button settings</span>
-		</div>
-		<table class="w-full rounded bg-gray-700 text-sm text-white">
-			<thead>
+	<div class="mb-2 border-b border-gray-700">
+		<span class="text-sm text-gray-100">Button settings</span>
+	</div>
+	<div class="max-h-[400px] overflow-y-auto rounded bg-gray-700">
+		<table class="w-full text-sm text-white">
+			<thead class="sticky top-0 z-2 bg-gray-700">
 				<tr>
 					<th class="w-2/5 min-w-[120px] p-2 text-left">Name</th>
 					<th class="w-1/5 min-w-[80px] p-2 text-left">Range</th>
-					{#if context.categoryToCreate.type === CategoryType.Action}
-						<th class="w-1/5 min-w-[80px] p-2 text-left">
-							<Tooltip
-								size="medium"
-								text="Enabled ONLY when it is an action type: The duration of the button's action"
-								info
-							>
-								Duration
-							</Tooltip>
-						</th>
-						<th class="w-1/5 min-w-[80px] p-2 text-left">
-							<Tooltip size="medium" text="Time lapse starting before the click" info>
-								Before
-							</Tooltip>
-						</th>
-					{/if}
+
+					<th class="w-1/5 min-w-[80px] p-2 text-left">
+						<Tooltip
+							size="medium"
+							text="Enabled ONLY when it is an action type: The duration of the button's action"
+							info
+						>
+							Duration
+						</Tooltip>
+					</th>
+					<th class="w-1/5 min-w-[80px] p-2 text-left">
+						<Tooltip size="medium" text="Time lapse starting before the click" info>Before</Tooltip>
+					</th>
+
 					<th class="w-8 p-2"></th>
 				</tr>
 			</thead>
 			<tbody>
 				{#if context.categoryToCreate.buttons.length === 0}
 					<tr>
-						<td
-							colspan={context.categoryToCreate.type === CategoryType.Action ? 5 : 3}
-							class="px-4 py-6 text-center text-gray-400"
-						>
+						<td colspan={3} class="px-4 py-6 text-center text-gray-400">
 							{#if context.errorsForm.buttons}
 								<p class="mt-2 w-full text-xs text-red-400">{context.errorsForm.buttons.message}</p>
 							{/if}
@@ -120,36 +114,35 @@
 									options={typeOptions}
 									size="small"
 									selectClass="bg-gray-800"
-									disabled={context.categoryToCreate.type === CategoryType.Event}
 									bind:value={btn.range}
 								/>
 							</td>
-							{#if context.categoryToCreate.type === CategoryType.Action}
-								{#if btn.range === ButtonRange.FIXED}
-									<td class="w-1/5 min-w-[80px] p-2">
-										<Dropdown
-											placeholder="Select duration"
-											options={secondsOptions}
-											size="mini"
-											selectClass="bg-gray-800"
-											bind:value={btn.duration}
-										/>
-									</td>
-									<td class="w-1/5 min-w-[80px] p-2">
-										<Dropdown
-											placeholder="Select before"
-											options={secondsOptions}
-											size="mini"
-											selectClass="bg-gray-800"
-											bind:value={btn.before}
-										/>
-									</td>
-								{:else}
-									<td class="w-1/5 min-w-[80px] p-2"></td>
-									<td class="w-1/5 min-w-[80px] p-2"></td>
-								{/if}
+
+							{#if btn.range === ButtonRange.FIXED}
+								<td class="w-1/5 min-w-[80px] p-2">
+									<Dropdown
+										placeholder="Select duration"
+										options={secondsOptions}
+										size="mini"
+										selectClass="bg-gray-800"
+										bind:value={btn.duration}
+									/>
+								</td>
+								<td class="w-1/5 min-w-[80px] p-2">
+									<Dropdown
+										placeholder="Select before"
+										options={secondsOptions}
+										size="mini"
+										selectClass="bg-gray-800"
+										bind:value={btn.before}
+									/>
+								</td>
+							{:else}
+								<td class="w-1/5 min-w-[80px] p-2"></td>
+								<td class="w-1/5 min-w-[80px] p-2"></td>
 							{/if}
-							<td class="w-8 p-2 text-right">
+
+							<td class="w-8 p-2 pr-4 text-right">
 								<button
 									class="text-gray-200 hover:cursor-pointer hover:text-white"
 									onclick={() => removeButton(idx)}
@@ -160,8 +153,8 @@
 						</tr>
 					{/each}
 				{/if}
-				<tr>
-					<td colspan={context.categoryToCreate.type === CategoryType.Action ? 5 : 3} class="p-2">
+				<tr class="sticky bottom-0 z-10 bg-gray-700">
+					<td colspan={5} class="p-2">
 						<div class="flex justify-center">
 							<Button
 								onClick={addButton}

@@ -21,10 +21,7 @@
 		value: button.id,
 		label: button.name
 	}));
-	const allActionOptions = Object.values(board.actionButtonsById).map((button) => ({
-		value: button.id,
-		label: button.name
-	}));
+
 	const allTags = Object.values(board.tagsById).map((tag) => ({
 		id: tag.id!,
 		value: tag.id!,
@@ -133,7 +130,7 @@
 					<td class="p-2">
 						<Dropdown
 							placeholder="Event or action"
-							options={newRule.type === CategoryType.Event ? allEventOptions : allActionOptions}
+							options={allEventOptions}
 							size="full"
 							selectClass="bg-gray-800"
 							noErrors
@@ -146,7 +143,6 @@
 							size="full"
 							selectClass="bg-gray-800"
 							noErrors
-							disabled={newRule.type === CategoryType.Action}
 							bind:selectedValues={newRule.taggedWith}
 						/>
 					</td>

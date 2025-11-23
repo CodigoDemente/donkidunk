@@ -1,7 +1,7 @@
 import type Database from '@tauri-apps/plugin-sql';
 import type { TimelineRepository } from '../ports/TimelineRepository';
 import type { DatabaseEntryWithTag } from './types/DatabaseEntryWithTags';
-import type { RangeData, RangeDataWithTags } from '../modules/videoplayer/types/RangeData';
+import type { RangeDataWithTags } from '../modules/videoplayer/types/RangeData';
 import { CategoryType } from '../components/box/types';
 import type { ExportingRule } from '../modules/export/types';
 
@@ -44,24 +44,6 @@ export class SQLiteTimelineRepository implements TimelineRepository {
 		return Object.values(categoriesAndButtons);
 	}
 
-	async getActions(): Promise<RangeData[]> {
-		const entries = await this.db.select<DatabaseEntryWithTag[]>(
-			`SELECT id, button_id, category_id, type, timestamp_start, timestamp_end
-			 FROM timeline_entry
-			 WHERE type = '${CategoryType.Action}'`
-		);
-
-		return entries.map((entry) => ({
-			id: entry.id,
-			buttonId: entry.button_id,
-			categoryId: entry.category_id,
-			timestamp: {
-				start: entry.timestamp_start,
-				end: entry.timestamp_end ?? undefined
-			}
-		}));
-	}
-
 	async getRangesForExport(rules: ExportingRule[]): Promise<[number, number][]> {
 		const conditions = rules
 			.map((rule) => {
@@ -81,8 +63,6 @@ export class SQLiteTimelineRepository implements TimelineRepository {
 				${conditions}
 			GROUP BY t.id, t.timestamp_start, t.timestamp_end
 			ORDER BY t.timestamp_start;`;
-
-		console.log(query);
 
 		const entries =
 			await this.db.select<{ timestamp_start: number; timestamp_end: number }[]>(query);
