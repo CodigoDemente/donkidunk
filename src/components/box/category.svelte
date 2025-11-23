@@ -6,6 +6,7 @@
 	import type { Button } from '../../modules/board/types/Button';
 	import { IconPencil, IconTrash } from '@tabler/icons-svelte';
 	import { getTextColorForBackground } from './colors';
+	import Tag from '../tag/tag.svelte';
 
 	const timeline = timelineContext.get();
 	const board = boardContext.get();
@@ -36,7 +37,7 @@
 		};
 	}
 
-	function addActionOrEvent(button: Button): Promise<void> {
+	function addEvent(button: Button): Promise<void> {
 		return timeline.addEvent(button.id, category.id, timeline.currentTime);
 	}
 
@@ -81,21 +82,32 @@
 		</div>
 	</div>
 	<div class="flex flex-wrap gap-2">
-		{#each category.buttons as button (button.id)}
-			<button
-				style={`
+		{#if type === CategoryType.Event}
+			{#each category.buttons as button (button.id)}
+				<button
+					style={`
 					background-color: ${buttonBackgroundColor};
 					color: ${buttonTextColor};
 				`}
-				class="rounded-xs border border-gray-800 px-2
+					class="rounded-xs border border-gray-800 px-2
 				py-1
 				text-xs shadow-sm
 				hover:cursor-pointer
 				hover:brightness-120"
-				onclick={() => addActionOrEvent(button)}
-			>
-				{button.name}
-			</button>
-		{/each}
+					onclick={() => addEvent(button as Button)}
+				>
+					{button.name}
+				</button>
+			{/each}
+		{/if}
+		{#if type === CategoryType.Tag}
+			{#each category.buttons as tag (tag.id)}
+				<Tag
+					color={category.color}
+					text={tag.name}
+					onClick={() => timeline.addRelatedTagToEvent(tag.id!)}
+				/>
+			{/each}
+		{/if}
 	</div>
 </div>

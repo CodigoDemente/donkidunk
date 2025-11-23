@@ -2,7 +2,8 @@ import type { Category } from '../../modules/board/types/Category';
 import type { Tag } from '../../modules/board/types/Tag';
 
 export enum CategoryType {
-	Event = 'event'
+	Event = 'event',
+	Tag = 'tag'
 }
 
 export type DraggedCategory = {

@@ -1,20 +1,16 @@
 <script lang="ts">
 	import { projectActions } from '../../persistence/stores/project/actions';
 	import addCategoryModal from '../../modules/modalContent/addCategoryModal/index.svelte';
-	import addTagsModal from '../../modules/modalContent/addTagsModal.svelte';
 	import { IconPlus, IconChevronDown } from '@tabler/icons-svelte';
 	import Button from '../button/button.svelte';
 	import { CategoryType, type DraggedCategory, type Props } from './types';
 	import { boardContext } from '../../modules/board/context.svelte';
 	import { startResize } from './utils';
 	import Category from './category.svelte';
-	import { timelineContext } from '../../modules/videoplayer/context.svelte';
-	import Tag from '../tag/tag.svelte';
 
 	const board = boardContext.get();
-	const timeline = timelineContext.get();
 
-	let { boxHeight, isOpened, otherIsOpened, title, type, categories, tags }: Props = $props();
+	let { boxHeight, isOpened, otherIsOpened, title, type, categories }: Props = $props();
 
 	let draggedCategory: DraggedCategory = $state({
 		id: -1,
@@ -53,16 +49,13 @@
 		e.preventDefault();
 	}
 
-	function handleModalOpen(type: CategoryType | 'tag', categoryId?: number) {
-		const tagCreation = type === 'tag';
-		if (type === CategoryType.Event) {
-			board.loadCategoryToAddOrEdit(type, categoryId);
-		}
+	function handleModalOpen(type: CategoryType, categoryId?: number) {
+		board.loadCategoryToAddOrEdit(type, categoryId);
 		projectActions.setModal({
-			content: tagCreation ? addTagsModal : addCategoryModal,
-			title: tagCreation ? `Create tags` : `Add category to ${title}`,
-			onCancel: () => (tagCreation ? board.resetTagsListForm() : board.resetCategoryForm()),
-			onSubmit: () => (tagCreation ? board.addTagsList() : board.addOrUpdateCategory(type)),
+			content: addCategoryModal,
+			title: `Add category to ${title}`,
+			onCancel: () => board.resetCategoryForm(type),
+			onSubmit: () => board.addOrUpdateCategory(type),
 			show: true,
 			size: 'medium'
 		});
@@ -108,41 +101,6 @@
 				<Category {type} {category} {handleModalOpen} bind:draggedCategory />
 			{/each}
 		</div>
-		{#if type === CategoryType.Event}
-			<div
-				class="absolute bottom-2 mx-1 mt-4 flex max-h-1/2 w-[calc(100%-0.5rem)] flex-col self-end rounded-sm border border-gray-500 bg-gray-700 shadow-inner transition-all duration-200"
-			>
-				<div
-					class="flex h-8 items-center justify-between border-b border-gray-500 bg-gray-700 px-4"
-				>
-					<p class="text-xs font-semibold text-white">Tags</p>
-					<Button
-						customClass="!h-5 !w-5 p-0 flex items-center justify-center"
-						size="mini"
-						primary
-						onClick={() => handleModalOpen('tag')}
-					>
-						<IconPlus class="h-4 w-4 text-white" />
-					</Button>
-				</div>
-				{#if !tags || tags.length === 0}
-					<p class=" p-6 text-center text-gray-400">
-						No tags yet. Click in the <span class="text-primary font-semibold">+ button</span> to create
-						your first tag.
-					</p>
-				{:else}
-					<div class="flex flex-wrap gap-2 overflow-y-auto p-3">
-						{#each tags as tag, idx (tag.id ?? idx)}
-							<Tag
-								color={tag.color}
-								text={tag.name}
-								onClick={() => timeline.addRelatedTagToEvent(tag.id!)}
-							/>
-						{/each}
-					</div>
-				{/if}
-			</div>
-		{/if}
 	{/if}
 </div>
 
