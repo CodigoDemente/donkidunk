@@ -164,7 +164,7 @@ export async function loadBoardFromDatabase(
 	board: Board
 ): Promise<void> {
 	board.getState()[CategoryType.Event] = await repository.getSectionCategories(CategoryType.Event);
-	board.getState().tagsRelatedToEvents = await repository.getTagsRelatedToEvents();
+	board.getState()[CategoryType.Tag] = await repository.getSectionCategories(CategoryType.Tag);
 }
 
 export async function loadTimelineFromDatabase(

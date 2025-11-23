@@ -22,7 +22,7 @@ export const migrations: Migration[] = [
 		sql: `
 		CREATE TABLE IF NOT EXISTS category (
 			id INTEGER PRIMARY KEY,
-			type TEXT CHECK( type in ('event', 'action') ) NOT NULL,
+			type TEXT CHECK( type in ('event', 'tag') ) NOT NULL,
 			name TEXT NOT NULL,
 			color TEXT NOT NULL,
 			grid_position_x INTEGER NOT NULL,
@@ -61,7 +61,7 @@ export const migrations: Migration[] = [
 			id INTEGER PRIMARY KEY,
 			button_id INTEGER NOT NULL,
 			category_id INTEGER NOT NULL,
-			type TEXT CHECK( type in ('event', 'action') ) NOT NULL,
+			type TEXT CHECK( type in ('event', 'tag') ) NOT NULL,
 			timestamp_start REAL NOT NULL,
 			timestamp_end REAL,
 			FOREIGN KEY (button_id) REFERENCES button(id) ON DELETE CASCADE,

@@ -6,24 +6,24 @@
 	import { boardContext } from '../board/context.svelte';
 	import { onMount } from 'svelte';
 
-	const context = boardContext.get();
+	// const context = boardContext.get();
 
-	const initialTag: Tag = { name: '', color: '#8888ff' };
-	let newTag: Tag = initialTag;
+	// const initialTag: Tag = { name: '', color: '#8888ff' };
+	// let newTag: Tag = initialTag;
 
-	function addTag() {
-		context.tagsListToCreate.push({ ...newTag });
-		newTag = initialTag;
-	}
+	// function addTag() {
+	// 	context.tagsListToCreate.push({ ...newTag });
+	// 	newTag = initialTag;
+	// }
 
-	function removeTag(idx: number) {
-		context.tagsListToCreate.splice(idx, 1);
-		context.resetErrorsForm();
-	}
+	// function removeTag(idx: number) {
+	// 	context.tagsListToCreate.splice(idx, 1);
+	// 	context.resetErrorsForm();
+	// }
 
-	onMount(() => {
-		context.tagsListToCreate.push(...context.tagsRelatedToEvents);
-	});
+	// onMount(() => {
+	// 	context.tagsListToCreate.push(...context.tagsRelatedToEvents);
+	// });
 </script>
 
 <div class="flex max-h-[600px] min-h-[600px] flex-col gap-4 overflow-y-auto p-4">

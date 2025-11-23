@@ -25,8 +25,7 @@
 	const allTags = Object.values(board.tagsById).map((tag) => ({
 		id: tag.id!,
 		value: tag.id!,
-		label: tag.name,
-		color: tag.color
+		label: tag.name
 	}));
 
 	const initialRule: ExportingRule = {

@@ -2,29 +2,25 @@ import { Context, StateHistory } from 'runed';
 import { projectActions } from '../../persistence/stores/project/actions';
 import { CategoryType } from '../../components/box/types';
 import { feedbackMessages } from '../../utils/messages';
-import {
-	tagValidationSchema,
-	categoryValidationSchema,
-	buttonValidationSchema
-} from './validationSchema';
+import { categoryValidationSchema, buttonValidationSchema } from './validationSchema';
 import type { BoardData } from './types/Board';
 import { BoardRepositoryFactory } from '../../factories/BoardRepositoryFactory';
 import { emit } from '@tauri-apps/api/event';
 import { wrapObjectForUndo } from '../../persistence/undo/UndoStateWrapper';
 import { Scope } from '../../persistence/undo/types/Scope';
 import type { Category } from './types/Category';
-import type { Tag } from './types/Tag';
 import type { Button } from './types/Button';
+import type { Tag } from './types/Tag';
 
 const initialState: BoardData = {
 	[CategoryType.Event]: [],
-	tagsRelatedToEvents: []
+	[CategoryType.Tag]: []
 };
 
-const initialCategory = (): Category => ({
+const initialCategory = (section: CategoryType): Category => ({
 	id: -1,
 	name: '',
-	type: CategoryType.Event,
+	type: section,
 	position: {
 		x: 0,
 		y: 0
@@ -38,14 +34,13 @@ export const boardContext = new Context<Board>('');
 export class Board {
 	#history!: StateHistory<BoardData>;
 	#isEditing = $state(false);
-	#tempCategory = $state<Category>(initialCategory());
-	#tempTagsList = $state<Tag[]>([]);
+	#tempCategory = $state<Category>(initialCategory(CategoryType.Event));
 	#state = $state<BoardData>(initialState);
 	#eventCategoriesById!: Record<string, Category>;
-	#tagsById!: Record<string, Tag>;
+	#tagCategoriesById!: Record<string, Category>;
 	#errorsForm = $state<Record<number | string, { message: string }>>({});
 	#eventButtonsById!: Record<string, Button>;
-	#actionButtonsById!: Record<string, Button>;
+	#tagsById!: Record<string, Tag>;
 
 	constructor() {
 		this.#history = new StateHistory<BoardData>(
@@ -64,13 +59,13 @@ export class Board {
 			);
 		});
 
-		this.#tagsById = $derived.by(() => {
-			return this.#state.tagsRelatedToEvents.reduce(
-				(acc, tag) => {
-					acc[tag.id!] = tag;
+		this.#tagCategoriesById = $derived.by(() => {
+			return this.#state[CategoryType.Tag].reduce(
+				(acc, category) => {
+					acc[category.id] = category;
 					return acc;
 				},
-				{} as Record<string, Tag>
+				{} as Record<string, Category>
 			);
 		});
 
@@ -78,11 +73,23 @@ export class Board {
 			return this.#state[CategoryType.Event].reduce(
 				(acc, category) => {
 					category.buttons.forEach((button) => {
-						acc[button.id] = button;
+						acc[button.id] = button as Button;
 					});
 					return acc;
 				},
 				{} as Record<string, Button>
+			);
+		});
+
+		this.#tagsById = $derived.by(() => {
+			return this.#state[CategoryType.Tag].reduce(
+				(acc, category) => {
+					category.buttons.forEach((button) => {
+						acc[button.id] = button as Tag;
+					});
+					return acc;
+				},
+				{} as Record<string, Tag>
 			);
 		});
 	}
@@ -116,18 +123,13 @@ export class Board {
 		this.#isEditing = value;
 	}
 
-	resetCategoryForm() {
-		this.#tempCategory = initialCategory();
+	resetCategoryForm(section: CategoryType) {
+		this.#tempCategory = initialCategory(section);
 		this.resetErrorsForm();
 	}
 
 	resetErrorsForm() {
 		this.#errorsForm = {};
-	}
-
-	resetTagsListForm() {
-		this.#tempTagsList = [];
-		this.resetErrorsForm();
 	}
 
 	async updateCategoryPosition(
@@ -157,7 +159,7 @@ export class Board {
 	async addButtonToCategory(
 		section: CategoryType,
 		categoryId: number,
-		button: Button
+		button: Button | Tag
 	): Promise<void> {
 		const repository = BoardRepositoryFactory.getInstance();
 
@@ -196,9 +198,11 @@ export class Board {
 		if (categoryId) {
 			if (section === CategoryType.Event) {
 				this.#tempCategory = $state.snapshot(this.eventCategoriesById[categoryId]);
+			} else if (section === CategoryType.Tag) {
+				this.#tempCategory = $state.snapshot(this.tagCategoriesById[categoryId]);
 			}
 		} else {
-			this.resetCategoryForm();
+			this.resetCategoryForm(section);
 		}
 	}
 
@@ -216,9 +220,9 @@ export class Board {
 			}
 		}
 
-		this.#tempCategory.buttons.forEach((button, idx) => {
+		this.#tempCategory.buttons.forEach((button: Button | Tag, idx: number) => {
 			for (const rule of buttonValidationSchema) {
-				if (rule.validate(button)) {
+				if (rule.validate(button, idx, this.#tempCategory.buttons as Button[] | Tag[])) {
 					errorObject[idx] = { message: rule.message };
 					break;
 				}
@@ -288,7 +292,7 @@ export class Board {
 			projectActions.closeAndResetModal();
 
 			projectActions.setSnackbar(feedbackMessages.ACTION_SUCCESS);
-			this.resetCategoryForm();
+			this.resetCategoryForm(section);
 		} catch (error) {
 			projectActions.setSnackbar({
 				...feedbackMessages.ACTION_FAILED,
@@ -327,7 +331,7 @@ export class Board {
 												temp: false
 											};
 										}
-									})
+									}) as Button[] | Tag[]
 								}
 							: c
 				)
@@ -337,7 +341,7 @@ export class Board {
 			projectActions.closeAndResetModal();
 
 			projectActions.setSnackbar(feedbackMessages.UPDATE_SUCCESS);
-			this.resetCategoryForm();
+			this.resetCategoryForm(section);
 		} catch (error) {
 			projectActions.setSnackbar({
 				...feedbackMessages.ACTION_FAILED,
@@ -363,60 +367,6 @@ export class Board {
 			projectActions.setSnackbar(feedbackMessages.DELETE_SUCCESS);
 		} catch (error) {
 			projectActions.setSnackbar({
-				...feedbackMessages.ACTION_FAILED,
-				message: error instanceof Error ? error.message : String(error)
-			});
-		}
-	}
-
-	onValidateTagsList(): Record<number, { message: string }> | void {
-		const errorObject: Record<number, { message: string }> = {};
-
-		this.#tempTagsList.forEach((tag, idx, tags) => {
-			for (const rule of tagValidationSchema) {
-				if (rule.validate(tag, idx, tags)) {
-					errorObject[idx] = { message: rule.message };
-					break;
-				}
-			}
-		});
-
-		if (Object.keys(errorObject).length > 0) {
-			this.#errorsForm = errorObject;
-			throw 'validation-failed';
-		}
-
-		return this.resetErrorsForm();
-	}
-
-	async addTagsList(): Promise<void> {
-		try {
-			const section = 'tagsRelatedToEvents';
-			const tags = this.#tempTagsList;
-
-			await this.onValidateTagsList();
-
-			const repository = BoardRepositoryFactory.getInstance();
-
-			const result = await repository.addTagsList(tags);
-
-			this.#state = {
-				...this.#state,
-				[section]: [...result]
-			};
-
-			await emit('project:dirty');
-
-			projectActions.closeAndResetModal();
-
-			projectActions.setSnackbar(feedbackMessages.ACTION_SUCCESS);
-			this.resetTagsListForm();
-		} catch (error) {
-			if (error === 'validation-failed') {
-				return projectActions.setSnackbar(feedbackMessages.VALIDATION_ERROR);
-			}
-
-			return projectActions.setSnackbar({
 				...feedbackMessages.ACTION_FAILED,
 				message: error instanceof Error ? error.message : String(error)
 			});
@@ -451,10 +401,6 @@ export class Board {
 		return this.#tempCategory;
 	}
 
-	get tagsListToCreate() {
-		return this.#tempTagsList;
-	}
-
 	get errorsForm() {
 		return this.#errorsForm;
 	}
@@ -463,13 +409,9 @@ export class Board {
 		this.#tempCategory = value;
 	}
 
-	// get actionCategories() {
-	// 	return this.#state[CategoryType.Action];
-	// }
-
-	// get actionCategoriesById() {
-	// 	return this.#actionCategoriesById;
-	// }
+	get tagCategories() {
+		return this.#state[CategoryType.Tag];
+	}
 
 	get eventCategories() {
 		return this.#state[CategoryType.Event];
@@ -479,20 +421,16 @@ export class Board {
 		return this.#eventCategoriesById;
 	}
 
-	get tagsRelatedToEvents() {
-		return this.#state.tagsRelatedToEvents;
-	}
-
-	get tagsById() {
-		return this.#tagsById;
+	get tagCategoriesById() {
+		return this.#tagCategoriesById;
 	}
 
 	get eventButtonsById() {
 		return this.#eventButtonsById;
 	}
 
-	get actionButtonsById() {
-		return this.#actionButtonsById;
+	get tagsById() {
+		return this.#tagsById;
 	}
 	//#endregion
 }

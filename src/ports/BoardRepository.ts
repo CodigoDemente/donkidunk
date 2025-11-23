@@ -9,9 +9,9 @@ export interface BoardRepository {
 	addCategory(section: CategoryType, name: string, color: string): Promise<number>;
 	deleteCategory(categoryId: number): Promise<void>;
 	addTagsList(list: Tag[]): Promise<Tag[]>;
-	addButtonToCategory(categoryId: number, button: Button): Promise<number>;
+	addButtonToCategory(categoryId: number, button: Button | Tag): Promise<number>;
 	updateCategoryPosition(categoryId: number, x: number, y: number): Promise<void>;
 	updateCategoryName(categoryId: number, categoryName: string): Promise<void>;
 	updateCategory(categoryId: number, categoryName: string, color: string): Promise<void>;
-	updateCategoryButtons(categoryId: number, buttons: Button[]): Promise<number[]>;
+	updateCategoryButtons(categoryId: number, buttons: Button[] | Tag[]): Promise<number[]>;
 }
