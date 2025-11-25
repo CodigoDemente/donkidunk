@@ -40,7 +40,6 @@ jobs:
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 10
           run_install: false # Do not install automatically
 
       - name: Cache node_modules
@@ -157,7 +156,6 @@ jobs:
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 10
           run_install: false
 
       - name: Get pnpm store directory
