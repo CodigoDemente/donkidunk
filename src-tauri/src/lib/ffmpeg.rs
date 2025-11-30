@@ -2,6 +2,7 @@ use std::{
     ffi::OsString,
     future::Future,
     path::PathBuf,
+    pin::Pin,
     process::Stdio,
     sync::Arc,
     time::{SystemTime, UNIX_EPOCH},
@@ -80,10 +81,18 @@ async fn process_progress(
     Ok(())
 }
 
+type ClipTaks<'a> = Pin<Box<dyn Future<Output = Result<ClipData, AppError>> + Send + 'a>>;
+
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase", tag = "event")]
 pub struct ExportEvent {
     progress: f32,
+}
+
+#[derive(Debug)]
+struct ClipData {
+    path: PathBuf,
+    is_separator: bool,
 }
 
 #[derive(Debug)]
@@ -106,124 +115,193 @@ impl Ffmpeg {
         app: &AppHandle<R>,
         progress_channel: Channel<ExportEvent>,
     ) -> Result<Self, AppError> {
-        match app.shell().sidecar("donkidunk_ffmpeg") {
-            Ok(ffmpeg) => {
-                let ffmpeg_std_command = std::process::Command::from(ffmpeg);
+        let ffmpeg_std_command: Result<std::process::Command, AppError> =
+            match app.shell().sidecar("donkidunk_ffmpeg") {
+                Ok(ffmpeg) => Ok(std::process::Command::from(ffmpeg)),
+                Err(e) => {
+                    return Err(FfmpegError::FfmpegSidecarAccess(format!(
+                        "[ffmpeg-sidecar] Error: {e}"
+                    ))
+                    .into())
+                }
+            };
 
-                let parts_dir = match app.path().temp_dir() {
-                    Ok(temp_dir) => {
-                        let unique_id = Uuid::new_v4();
-                        let dir = temp_dir.join(format!("donkidunk_video_parts_{unique_id}"));
+        let parts_dir = match app.path().temp_dir() {
+            Ok(temp_dir) => {
+                let unique_id = Uuid::new_v4();
+                let dir = temp_dir.join(format!("donkidunk_video_parts_{unique_id}"));
 
-                        if !dir.exists() {
-                            std::fs::create_dir_all(&dir).map_err(|e| {
-                                FfmpegError::FfmpegSidecarAccess(format!(
-                                    "[ffmpeg-sidecar] Failed to create temp dir: {e}"
-                                ))
-                            })?;
-                        }
-                        dir
-                    }
-                    _ => {
-                        return Err(anyhow!("Failed to get temp dir").into());
-                    }
-                };
-
-                Ok(Self {
-                    ffmpeg_path: ffmpeg_std_command.get_program().to_owned(),
-                    temp_dir: parts_dir,
-                    on_progress_channel: Arc::new(progress_channel),
-                    progress_tracker: Arc::new(Mutex::new(ProgressTracker {
-                        total_clips_extracted: 0.0,
-                        total_clips_to_extract: 0.0,
-                        final_clip_total_duration: 0.0,
-                        merge_progress: 0.0,
-                    })),
-                })
+                if !dir.exists() {
+                    std::fs::create_dir_all(&dir).map_err(|e| {
+                        FfmpegError::FfmpegSidecarAccess(format!(
+                            "[ffmpeg-sidecar] Failed to create temp dir: {e}"
+                        ))
+                    })?;
+                }
+                dir
             }
-            Err(e) => {
-                Err(FfmpegError::FfmpegSidecarAccess(format!("[ffmpeg-sidecar] Error: {e}")).into())
+            _ => {
+                return Err(anyhow!("Failed to get temp dir").into());
             }
-        }
+        };
+
+        Ok(Self {
+            ffmpeg_path: ffmpeg_std_command?.get_program().to_owned(),
+            temp_dir: parts_dir,
+            on_progress_channel: Arc::new(progress_channel),
+            progress_tracker: Arc::new(Mutex::new(ProgressTracker {
+                total_clips_extracted: 0.0,
+                total_clips_to_extract: 0.0,
+                final_clip_total_duration: 0.0,
+                merge_progress: 0.0,
+            })),
+        })
     }
 
     fn create_default_split_command(
         &self,
-        start_time: &str,
-        end_time: &str,
+        start_time: &f32,
+        end_time: &f32,
         source_path: &str,
         output_path: &PathBuf,
     ) -> Command {
         let mut cmd = Command::new(&self.ffmpeg_path);
 
+        let ffmpeg_start_time = parse_time_to_ffmpeg_format(start_time);
+
+        let duration = end_time - start_time;
+
         cmd.arg("-hide_banner")
+            .arg("-accurate_seek")
+            .arg("-ss")
+            .arg(ffmpeg_start_time)
             .arg("-i")
             .arg(source_path)
-            .arg("-ss")
-            .arg(start_time)
-            .arg("-to")
-            .arg(end_time)
-            .arg("-c")
-            .arg("copy")
-            .arg("-avoid_negative_ts")
-            .arg("make_zero")
+            .arg("-t")
+            .arg(duration.to_string())
+            .arg("-c:v")
+            .arg("libx264")
+            .arg("-preset")
+            .arg("ultrafast")
+            .arg("-crf")
+            .arg("23")
+            .arg("-pix_fmt")
+            .arg("yuv420p")
+            .arg("-c:a")
+            .arg("aac")
+            .arg("-b:a")
+            .arg("96k")
             .arg(output_path)
             .stderr(Stdio::piped());
 
         cmd
     }
 
+    fn generate_black_video<'a>(&'a self, source_path: &'a str) -> ClipTaks<'a> {
+        Box::pin(async move {
+            let output_path = self.temp_dir.join(format!("black_separator.mp4"));
+
+            let mut cmd = Command::new(&self.ffmpeg_path);
+            cmd.arg("-hide_banner")
+                .arg("-i")
+                .arg(source_path)
+                .arg("-t")
+                .arg("0.3")
+                .arg("-vf")
+                .arg("drawbox=x=0:y=0:w=iw:h=ih:t=fill:color=black")
+                .arg("-af")
+                .arg("volume=0")
+                .arg("-c:v")
+                .arg("libx264")
+                .arg("-preset")
+                .arg("ultrafast")
+                .arg("-crf")
+                .arg("23")
+                .arg("-pix_fmt")
+                .arg("yuv420p")
+                .arg("-c:a")
+                .arg("aac")
+                .arg("-b:a")
+                .arg("96k")
+                .arg("-y")
+                .arg(&output_path);
+
+            let status = cmd
+                .spawn()
+                .map_err(FfmpegError::from)?
+                .wait()
+                .await
+                .map_err(FfmpegError::from)?;
+
+            if !status.success() {
+                return Err(FfmpegError::FfmpegExecution(format!(
+                    "FFMPEG command failed with status: {status}"
+                ))
+                .into());
+            }
+
+            Ok(ClipData {
+                path: output_path,
+                is_separator: true,
+            })
+        })
+    }
+
     fn extract_clips<'a>(
         &'a self,
         source_path: &'a str,
         ranges: &'a [(f32, f32)],
-    ) -> Vec<impl Future<Output = Result<PathBuf, FfmpegError>> + 'a> {
+    ) -> Vec<ClipTaks<'a>> {
         let tasks: Vec<_> = ranges
             .iter()
-            .map(|(start, end)| async move {
-                let start_time = parse_time_to_ffmpeg_format(start);
-                let end_time = parse_time_to_ffmpeg_format(end);
+            .map(|(start, end)| -> ClipTaks<'a> {
+                Box::pin(async move {
+                    log::debug!("Starting cut: {start} to {end}");
 
-                log::debug!("Starting cut: {start_time} to {end_time}");
+                    let output_name = format!(
+                        "part_{}_{}{}",
+                        start,
+                        end,
+                        &source_path[source_path.rfind('.').unwrap()..]
+                    );
 
-                let output_name = format!(
-                    "part_{}_{}{}",
-                    start,
-                    end,
-                    &source_path[source_path.rfind('.').unwrap()..]
-                );
+                    let output_path = self.temp_dir.join(output_name);
 
-                let output_path = self.temp_dir.join(output_name);
+                    let mut cmd =
+                        self.create_default_split_command(start, end, source_path, &output_path);
 
-                let mut cmd = self.create_default_split_command(
-                    &start_time,
-                    &end_time,
-                    source_path,
-                    &output_path,
-                );
+                    let status = cmd
+                        .spawn()
+                        .map_err(FfmpegError::from)?
+                        .wait()
+                        .await
+                        .map_err(FfmpegError::from)?;
 
-                let status = cmd.spawn()?.wait().await?;
+                    if !status.success() {
+                        return Err(FfmpegError::FfmpegExecution(format!(
+                            "FFMPEG command failed with status: {status}"
+                        ))
+                        .into());
+                    }
 
-                if !status.success() {
-                    return Err(FfmpegError::FfmpegExecution(format!(
-                        "FFMPEG command failed with status: {status}"
-                    )));
-                }
+                    let total_clips_extracted = {
+                        let mut tracker = self.progress_tracker.lock().await;
+                        tracker.final_clip_total_duration += end - start;
+                        tracker.total_clips_extracted += 1.0;
+                        tracker.total_clips_extracted
+                    };
 
-                let total_clips_extracted = {
-                    let mut tracker = self.progress_tracker.lock().await;
-                    tracker.final_clip_total_duration += end - start;
-                    tracker.total_clips_extracted += 1.0;
-                    tracker.total_clips_extracted
-                };
+                    let _ = self.on_progress_channel.send(ExportEvent {
+                        progress: (total_clips_extracted) / (ranges.len() as f32 * 2.0),
+                    });
 
-                let _ = self.on_progress_channel.send(ExportEvent {
-                    progress: (total_clips_extracted) / (ranges.len() as f32 * 2.0),
-                });
+                    log::debug!("Cut finished: {start} - {end}");
 
-                log::debug!("Cut finished: {start_time} - {end_time}");
-
-                Ok::<PathBuf, FfmpegError>(output_path)
+                    Ok::<ClipData, AppError>(ClipData {
+                        path: output_path,
+                        is_separator: false,
+                    })
+                })
             })
             .collect();
 
@@ -233,13 +311,20 @@ impl Ffmpeg {
     async fn merge_clips(
         &self,
         clips_paths: &[PathBuf],
+        separator_path: &PathBuf,
         out_path: &str,
     ) -> Result<(), FfmpegError> {
         log::debug!("Starting concat...");
 
         let full_arg = clips_paths
             .iter()
-            .map(|p| format!("file '{}'", p.to_string_lossy()))
+            .map(|p| {
+                format!(
+                    "file '{}'\nfile '{}'",
+                    p.to_string_lossy(),
+                    separator_path.to_string_lossy()
+                )
+            })
             .collect::<Vec<String>>()
             .join("\n");
 
@@ -318,6 +403,7 @@ impl Ffmpeg {
         let start = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
 
         let mut clips_paths = Vec::new();
+        let mut separator_path = PathBuf::new();
 
         {
             let mut tracker = self.progress_tracker.lock().await;
@@ -327,17 +413,25 @@ impl Ffmpeg {
             tracker.merge_progress = 0.0;
         }
 
-        let tasks = self.extract_clips(source_path, ranges);
+        let mut tasks = self.extract_clips(source_path, ranges);
+        tasks.push(self.generate_black_video(source_path));
 
         // TODO: think what to do if 1 of the tasks fail
         for task in tasks {
             match task.await {
-                Ok(path) => clips_paths.push(path),
+                Ok(clip_data) => {
+                    if clip_data.is_separator {
+                        separator_path = clip_data.path;
+                    } else {
+                        clips_paths.push(clip_data.path);
+                    }
+                }
                 Err(e) => return Err(e.into()),
             }
         }
 
-        self.merge_clips(&clips_paths, out_path).await?;
+        self.merge_clips(&clips_paths, &separator_path, out_path)
+            .await?;
 
         let end = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
 

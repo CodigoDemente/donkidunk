@@ -62,13 +62,12 @@
 		exporting = false;
 		export_progress = 0;
 
-		const inVideoExtension = projectStore.video.path!.split('.').pop();
 		const inVideoFolder = await path.dirname(projectStore.video.path!);
 
 		const outPath = await save({
 			title: 'Select output video file',
 			defaultPath: inVideoFolder,
-			filters: [{ name: 'Video', extensions: [inVideoExtension!] }]
+			filters: [{ name: 'Video', extensions: ['mp4'] }]
 		});
 
 		if (!outPath) {
