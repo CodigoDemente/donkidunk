@@ -41,6 +41,7 @@
 
 			videoPlayer.appendChild(source);
 			videoPlayer.load();
+			videoPlayer.currentTime = 0.1;
 		}
 	});
 
@@ -108,7 +109,11 @@
 	<p class="mb-2 inline-block py-1 text-xs">Video / Timeline</p>
 	<video
 		id="video-player"
-		class="max-h-[60vh] w-full"
+		class={{
+			'max-h-[60vh]': true,
+			'w-full': true,
+			'bg-black': !!videoPlayer
+		}}
 		bind:currentTime={timeline.currentTime}
 		bind:duration={timeline.duration}
 	></video>
