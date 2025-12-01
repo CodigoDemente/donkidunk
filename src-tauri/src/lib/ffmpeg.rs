@@ -92,7 +92,6 @@ pub struct ExportEvent {
 #[derive(Debug)]
 struct ClipData {
     path: PathBuf,
-    is_separator: bool,
 }
 
 #[derive(Debug)]
@@ -197,56 +196,6 @@ impl Ffmpeg {
         cmd
     }
 
-    fn generate_black_video<'a>(&'a self, source_path: &'a str) -> ClipTaks<'a> {
-        Box::pin(async move {
-            let output_path = self.temp_dir.join(format!("black_separator.mp4"));
-
-            let mut cmd = Command::new(&self.ffmpeg_path);
-            cmd.arg("-hide_banner")
-                .arg("-i")
-                .arg(source_path)
-                .arg("-t")
-                .arg("0.3")
-                .arg("-vf")
-                .arg("drawbox=x=0:y=0:w=iw:h=ih:t=fill:color=black")
-                .arg("-af")
-                .arg("volume=0")
-                .arg("-c:v")
-                .arg("libx264")
-                .arg("-preset")
-                .arg("ultrafast")
-                .arg("-crf")
-                .arg("23")
-                .arg("-pix_fmt")
-                .arg("yuv420p")
-                .arg("-c:a")
-                .arg("aac")
-                .arg("-b:a")
-                .arg("96k")
-                .arg("-y")
-                .arg(&output_path);
-
-            let status = cmd
-                .spawn()
-                .map_err(FfmpegError::from)?
-                .wait()
-                .await
-                .map_err(FfmpegError::from)?;
-
-            if !status.success() {
-                return Err(FfmpegError::FfmpegExecution(format!(
-                    "FFMPEG command failed with status: {status}"
-                ))
-                .into());
-            }
-
-            Ok(ClipData {
-                path: output_path,
-                is_separator: true,
-            })
-        })
-    }
-
     fn extract_clips<'a>(
         &'a self,
         source_path: &'a str,
@@ -297,10 +246,7 @@ impl Ffmpeg {
 
                     log::debug!("Cut finished: {start} - {end}");
 
-                    Ok::<ClipData, AppError>(ClipData {
-                        path: output_path,
-                        is_separator: false,
-                    })
+                    Ok::<ClipData, AppError>(ClipData { path: output_path })
                 })
             })
             .collect();
@@ -311,20 +257,13 @@ impl Ffmpeg {
     async fn merge_clips(
         &self,
         clips_paths: &[PathBuf],
-        separator_path: &PathBuf,
         out_path: &str,
     ) -> Result<(), FfmpegError> {
         log::debug!("Starting concat...");
 
         let full_arg = clips_paths
             .iter()
-            .map(|p| {
-                format!(
-                    "file '{}'\nfile '{}'",
-                    p.to_string_lossy(),
-                    separator_path.to_string_lossy()
-                )
-            })
+            .map(|p| format!("file '{}'", p.to_string_lossy()))
             .collect::<Vec<String>>()
             .join("\n");
 
@@ -403,7 +342,6 @@ impl Ffmpeg {
         let start = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
 
         let mut clips_paths = Vec::new();
-        let mut separator_path = PathBuf::new();
 
         {
             let mut tracker = self.progress_tracker.lock().await;
@@ -413,25 +351,17 @@ impl Ffmpeg {
             tracker.merge_progress = 0.0;
         }
 
-        let mut tasks = self.extract_clips(source_path, ranges);
-        tasks.push(self.generate_black_video(source_path));
+        let tasks = self.extract_clips(source_path, ranges);
 
         // TODO: think what to do if 1 of the tasks fail
         for task in tasks {
             match task.await {
-                Ok(clip_data) => {
-                    if clip_data.is_separator {
-                        separator_path = clip_data.path;
-                    } else {
-                        clips_paths.push(clip_data.path);
-                    }
-                }
+                Ok(clip_data) => clips_paths.push(clip_data.path),
                 Err(e) => return Err(e.into()),
             }
         }
 
-        self.merge_clips(&clips_paths, &separator_path, out_path)
-            .await?;
+        self.merge_clips(&clips_paths, out_path).await?;
 
         let end = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
 
