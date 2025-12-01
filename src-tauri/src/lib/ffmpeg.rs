@@ -57,6 +57,7 @@ async fn process_progress(
 
     let _ = tokio::spawn(async move {
         while let Some(line) = lines.next_line().await? {
+            log::debug!("{line}");
             for capture in re.captures_iter(&line) {
                 let time = capture.name("time").unwrap().as_str();
 
@@ -207,12 +208,7 @@ impl Ffmpeg {
                 Box::pin(async move {
                     log::debug!("Starting cut: {start} to {end}");
 
-                    let output_name = format!(
-                        "part_{}_{}{}",
-                        start,
-                        end,
-                        &source_path[source_path.rfind('.').unwrap()..]
-                    );
+                    let output_name = format!("part_{}_{}.mp4", start, end);
 
                     let output_path = self.temp_dir.join(output_name);
 
@@ -254,12 +250,12 @@ impl Ffmpeg {
         tasks
     }
 
-    async fn merge_clips(
-        &self,
-        clips_paths: &[PathBuf],
-        out_path: &str,
-    ) -> Result<(), FfmpegError> {
+    async fn merge_clips(&self, clips_paths: &[PathBuf]) -> Result<PathBuf, FfmpegError> {
         log::debug!("Starting concat...");
+
+        let output_name = format!("merged_{}.mp4", Uuid::new_v4());
+
+        let merged_path = self.temp_dir.join(output_name);
 
         let full_arg = clips_paths
             .iter()
@@ -273,6 +269,8 @@ impl Ffmpeg {
 
         concat_command
             .arg("-hide_banner")
+            .arg("-fflags")
+            .arg("+genpts")
             .arg("-f")
             .arg("concat")
             .arg("-safe")
@@ -282,15 +280,18 @@ impl Ffmpeg {
             .arg("-c")
             .arg("copy")
             .arg("-y")
-            .arg(out_path)
+            .arg(&merged_path)
             .stderr(Stdio::piped());
 
         log::debug!("Spawning command");
-        let mut child = concat_command.spawn().map_err(FfmpegError::from)?;
+        let mut concat_process = concat_command.spawn().map_err(FfmpegError::from)?;
 
-        let stderr = child.stderr.take().ok_or(FfmpegError::StderrCapture)?;
+        let concat_stderr = concat_process
+            .stderr
+            .take()
+            .ok_or(FfmpegError::StderrCapture)?;
 
-        let reader = BufReader::new(stderr);
+        let concat_reader = BufReader::new(concat_stderr);
 
         let total_duration = {
             let tracker = self.progress_tracker.lock().await;
@@ -304,15 +305,70 @@ impl Ffmpeg {
 
             file.write_all(full_arg.as_bytes()).await?;
 
-            child.wait().await?;
+            concat_process.wait().await?;
 
             Ok::<(), FfmpegError>(())
         }));
 
-        let cloned_channel = self.on_progress_channel.clone();
+        let concat_channel = self.on_progress_channel.clone();
 
         tasks.push(tokio::spawn(async move {
-            process_progress(reader, total_duration, cloned_channel).await?;
+            process_progress(concat_reader, total_duration, concat_channel).await?;
+
+            Ok::<(), FfmpegError>(())
+        }));
+
+        log::debug!("Running command");
+        for task in tasks {
+            match task.await {
+                Ok(_) => {}
+                Err(e) => return Err(e.into()),
+            }
+        }
+
+        Ok(merged_path)
+    }
+
+    async fn fix_movstart(&self, merged_path: &PathBuf, out_path: &str) -> Result<(), FfmpegError> {
+        log::debug!("Starting concat...");
+
+        let mut movflags_command = Command::new(&self.ffmpeg_path);
+        movflags_command
+            .arg("-hide_banner")
+            .arg("-i")
+            .arg(merged_path)
+            .arg("-c")
+            .arg("copy")
+            .arg("-movflags")
+            .arg("+faststart")
+            .arg("-y")
+            .arg(out_path)
+            .stderr(Stdio::piped());
+
+        log::debug!("Spawning command");
+        let mut movflags_process = movflags_command.spawn().map_err(FfmpegError::from)?;
+
+        let movflags_stderr = movflags_process
+            .stderr
+            .take()
+            .ok_or(FfmpegError::StderrCapture)?;
+
+        let movflags_reader = BufReader::new(movflags_stderr);
+
+        let mut tasks = Vec::new();
+
+        tasks.push(tokio::spawn(async move {
+            movflags_process.wait().await?;
+
+            Ok::<(), FfmpegError>(())
+        }));
+
+        tasks.push(tokio::spawn(async move {
+            let mut lines = movflags_reader.lines();
+
+            while let Some(line) = lines.next_line().await? {
+                log::debug!("{line}");
+            }
 
             Ok::<(), FfmpegError>(())
         }));
@@ -341,8 +397,6 @@ impl Ffmpeg {
     ) -> Result<(), AppError> {
         let start = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
 
-        let mut clips_paths = Vec::new();
-
         {
             let mut tracker = self.progress_tracker.lock().await;
             tracker.final_clip_total_duration = 0.0;
@@ -353,15 +407,15 @@ impl Ffmpeg {
 
         let tasks = self.extract_clips(source_path, ranges);
 
-        // TODO: think what to do if 1 of the tasks fail
-        for task in tasks {
-            match task.await {
-                Ok(clip_data) => clips_paths.push(clip_data.path),
-                Err(e) => return Err(e.into()),
-            }
-        }
+        let results = futures::future::try_join_all(tasks)
+            .await
+            .map_err(|e| FfmpegError::FfmpegExecution(format!("Failed to extract clips: {e}")))?;
 
-        self.merge_clips(&clips_paths, out_path).await?;
+        let clips_paths: Vec<PathBuf> = results.into_iter().map(|clip| clip.path).collect();
+
+        let merged_path = self.merge_clips(&clips_paths).await?;
+
+        self.fix_movstart(&merged_path, out_path).await?;
 
         let end = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
 

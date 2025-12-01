@@ -44,7 +44,7 @@ async fn main() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(
             tauri_plugin_log::Builder::new()
-                .level(log::LevelFilter::Info)
+                .level(log::LevelFilter::Debug)
                 .build(),
         )
         .plugin(tauri_plugin_opener::init())
@@ -53,7 +53,9 @@ async fn main() {
     let app = create_app(builder);
 
     app.run(|_, event| {
-        log::debug!("Tauri event: {event:?}");
+        if !matches!(event, tauri::RunEvent::MainEventsCleared) {
+            log::debug!("Tauri event: {event:?}");
+        }
 
         if let tauri::RunEvent::Ready = event {
             log::debug!("Tauri is ready");
