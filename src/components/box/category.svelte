@@ -20,9 +20,6 @@
 
 	let { type, category, handleModalOpen, draggedCategory = $bindable() }: Props = $props();
 
-	const buttonBackgroundColor = category.color;
-	const buttonTextColor = getTextColorForBackground(category.color);
-
 	function handleDragStart(e: DragEvent) {
 		e.dataTransfer?.setData('text/plain', 'dragged');
 
@@ -83,11 +80,11 @@
 	</div>
 	<div class="flex flex-wrap gap-2">
 		{#if type === CategoryType.Event}
-			{#each category.buttons as button (button.id)}
+			{#each category.buttons as button, idx (button.id ?? `temp-${category.id}-${idx}`)}
 				<button
 					style={`
-					background-color: ${buttonBackgroundColor};
-					color: ${buttonTextColor};
+					background-color: ${button.color};
+					color: ${getTextColorForBackground(button.color)};
 				`}
 					class="rounded-xs border border-gray-800 px-2
 				py-1
@@ -101,9 +98,9 @@
 			{/each}
 		{/if}
 		{#if type === CategoryType.Tag}
-			{#each category.buttons as tag (tag.id)}
+			{#each category.buttons as tag, idx (tag.id ?? `temp-${category.id}-${idx}`)}
 				<Tag
-					color={category.color}
+					color={tag.color}
 					text={tag.name}
 					onClick={() => timeline.addRelatedTagToEvent(tag.id!)}
 				/>

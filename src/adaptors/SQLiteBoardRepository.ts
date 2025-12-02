@@ -12,8 +12,8 @@ export class SQLiteBoardRepository implements BoardRepository {
 
 	async getSectionCategories(section: CategoryType): Promise<Category[]> {
 		const categories = await this.db.select<DatabaseCategory[]>(
-			`SELECT category.id, type, category.name, color, grid_position_x, grid_position_y, button.id AS button_id, button.name AS button_name, button.range as button_range, button.duration as button_duration, button.before as button_before
-             FROM category LEFT JOIN button ON category.id = button.category_id
+			`SELECT category.id, type, category.name, color, grid_position_x, grid_position_y, button.id AS button_id, button.name AS button_name, button.range as button_range, button.duration as button_duration, button.before as button_before, button.color as button_color
+			FROM category LEFT JOIN button ON category.id = button.category_id
              WHERE type = $1
              ORDER BY grid_position_y, grid_position_x`,
 			[section]
@@ -35,6 +35,7 @@ export class SQLiteBoardRepository implements BoardRepository {
 								range: ButtonRange[category.button_range as keyof typeof ButtonRange],
 								duration: category.button_duration,
 								before: category.button_before,
+								color: category.button_color,
 								temp: false
 							}
 						]
@@ -46,6 +47,7 @@ export class SQLiteBoardRepository implements BoardRepository {
 						range: ButtonRange[category.button_range as keyof typeof ButtonRange],
 						duration: category.button_duration,
 						before: category.button_before,
+						color: category.button_color,
 						temp: false
 					});
 				}
@@ -102,7 +104,7 @@ export class SQLiteBoardRepository implements BoardRepository {
 				]);
 				resultList.push({
 					...tag,
-					id: result.lastInsertId
+					id: result.lastInsertId!
 				});
 			}
 		}
@@ -112,9 +114,9 @@ export class SQLiteBoardRepository implements BoardRepository {
 
 	async addButtonToCategory(categoryId: number, button: Button): Promise<number> {
 		const result = await this.db.execute(
-			`INSERT INTO button (name, range, duration, before, category_id)
-             VALUES ($1, $2, $3, $4, $5)`,
-			[button.name, button.range, button.duration, button.before, categoryId]
+			`INSERT INTO button (name, range, duration, before, color, category_id)
+             VALUES ($1, $2, $3, $4, $5, $6)`,
+			[button.name, button.range, button.duration, button.before, button.color, categoryId]
 		);
 		return result.lastInsertId!;
 	}
@@ -146,7 +148,7 @@ export class SQLiteBoardRepository implements BoardRepository {
 		);
 	}
 
-	async updateCategoryButtons(categoryId: number, buttons: Button[]): Promise<number[]> {
+	async updateCategoryButtons(categoryId: number, buttons: Button[] | Tag[]): Promise<number[]> {
 		// Start a transaction to ensure data integrity
 		await this.db.execute('BEGIN TRANSACTION');
 
@@ -162,17 +164,18 @@ export class SQLiteBoardRepository implements BoardRepository {
 				if (button.id && button.id > -1) {
 					await this.db.execute(fullUpdateQuery, [
 						button.name,
-						button.range!.valueOf(),
-						button.duration,
-						button.before,
+						'range' in button ? button.range : null,
+						'duration' in button ? button.duration : null,
+						'before' in button ? button.before : null,
 						button.id
 					]);
 				} else {
 					const result = await this.db.execute(fullInsertQuery, [
 						button.name,
-						button.range!.valueOf(),
-						button.duration,
-						button.before,
+						'range' in button ? button.range!.valueOf() : null,
+						'duration' in button ? button.duration : null,
+						'before' in button ? button.before : null,
+						button.color,
 						categoryId
 					]);
 

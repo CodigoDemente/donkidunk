@@ -41,8 +41,16 @@ export const projectActions = {
 		projectStore.file.currentPath = path;
 	},
 
-	setModal({ content, title, onCancel, onSubmit, show, size }: ProjectData['modal']): void {
-		projectStore.modal = { content, title, onCancel, onSubmit, show, size };
+	setModal({
+		content,
+		title,
+		onCancel,
+		onSubmit,
+		onSubmitText,
+		show,
+		size
+	}: ProjectData['modal']): void {
+		projectStore.modal = { content, title, onCancel, onSubmit, onSubmitText, show, size };
 	},
 
 	closeAndResetModal(): void {
@@ -51,6 +59,7 @@ export const projectActions = {
 			title: undefined,
 			onCancel: undefined,
 			onSubmit: undefined,
+			onSubmitText: undefined,
 			show: false,
 			size: undefined
 		};

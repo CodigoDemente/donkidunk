@@ -13,4 +13,5 @@ export type DatabaseCategory = {
 	button_range: DatabaseButton['range'];
 	button_duration: DatabaseButton['duration'];
 	button_before: DatabaseButton['before'];
+	button_color: DatabaseButton['color'];
 };

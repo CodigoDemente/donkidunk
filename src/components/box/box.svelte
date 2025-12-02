@@ -57,7 +57,7 @@
 			onCancel: () => board.resetCategoryForm(type),
 			onSubmit: () => board.addOrUpdateCategory(type),
 			show: true,
-			size: 'medium'
+			size: 'large'
 		});
 	}
 </script>

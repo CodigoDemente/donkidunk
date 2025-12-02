@@ -22,6 +22,7 @@ export type ProjectData = {
 		title?: string;
 		onCancel?: () => void;
 		onSubmit?: () => void;
+		onSubmitText?: string;
 		show: boolean;
 		size?: ModalSize;
 	};
