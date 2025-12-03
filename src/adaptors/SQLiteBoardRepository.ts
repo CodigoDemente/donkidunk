@@ -35,8 +35,7 @@ export class SQLiteBoardRepository implements BoardRepository {
 								range: ButtonRange[category.button_range as keyof typeof ButtonRange],
 								duration: category.button_duration,
 								before: category.button_before,
-								color: category.button_color,
-								temp: false
+								color: category.button_color
 							}
 						]
 					};
@@ -47,8 +46,7 @@ export class SQLiteBoardRepository implements BoardRepository {
 						range: ButtonRange[category.button_range as keyof typeof ButtonRange],
 						duration: category.button_duration,
 						before: category.button_before,
-						color: category.button_color,
-						temp: false
+						color: category.button_color
 					});
 				}
 				return acc;
@@ -86,37 +84,19 @@ export class SQLiteBoardRepository implements BoardRepository {
 		await this.db.execute(`DELETE FROM category WHERE id = $1`, [categoryId]);
 	}
 
-	async addTagsList(list: Tag[]): Promise<Tag[]> {
-		const resultList: Tag[] = [];
-
-		for (const tag of list) {
-			if (tag.id) {
-				await this.db.execute(`UPDATE tag SET name = $1, color = $2 WHERE id = $3`, [
-					tag.name,
-					tag.color,
-					tag.id
-				]);
-				resultList.push(tag);
-			} else {
-				const result = await this.db.execute(`INSERT INTO tag (name, color) VALUES ($1, $2)`, [
-					tag.name,
-					tag.color
-				]);
-				resultList.push({
-					...tag,
-					id: result.lastInsertId!
-				});
-			}
-		}
-
-		return resultList;
-	}
-
 	async addButtonToCategory(categoryId: number, button: Button): Promise<number> {
 		const result = await this.db.execute(
 			`INSERT INTO button (name, range, duration, before, color, category_id)
              VALUES ($1, $2, $3, $4, $5, $6)`,
 			[button.name, button.range, button.duration, button.before, button.color, categoryId]
+		);
+		return result.lastInsertId!;
+	}
+
+	async addTagToCategory(categoryId: number, tag: Tag): Promise<number> {
+		const result = await this.db.execute(
+			`INSERT INTO tag (name, color, category_id) VALUES ($1, $2, $3)`,
+			[tag.name, tag.color, categoryId]
 		);
 		return result.lastInsertId!;
 	}
@@ -148,7 +128,7 @@ export class SQLiteBoardRepository implements BoardRepository {
 		);
 	}
 
-	async updateCategoryButtons(categoryId: number, buttons: Button[] | Tag[]): Promise<number[]> {
+	async updateCategoryButtons(categoryId: number, buttons: Button[]): Promise<number[]> {
 		// Start a transaction to ensure data integrity
 		await this.db.execute('BEGIN TRANSACTION');
 
@@ -156,9 +136,9 @@ export class SQLiteBoardRepository implements BoardRepository {
 
 		try {
 			const fullInsertQuery =
-				'INSERT INTO button (name, range, duration, before, category_id) VALUES ($1, $2, $3, $4, $5)';
+				'INSERT INTO button (name, range, duration, before, color, category_id) VALUES ($1, $2, $3, $4, $5, $6)';
 			const fullUpdateQuery =
-				'UPDATE button SET name = $1, range = $2, duration = $3, before = $4 WHERE id = $5';
+				'UPDATE button SET name = $1, range = $2, duration = $3, before = $4, color = $5 WHERE id = $6';
 
 			for (const button of buttons) {
 				if (button.id && button.id > -1) {
@@ -167,6 +147,7 @@ export class SQLiteBoardRepository implements BoardRepository {
 						'range' in button ? button.range : null,
 						'duration' in button ? button.duration : null,
 						'before' in button ? button.before : null,
+						button.color,
 						button.id
 					]);
 				} else {
@@ -191,6 +172,32 @@ export class SQLiteBoardRepository implements BoardRepository {
 		// If everything is successful, commit the transaction
 		await this.db.execute('COMMIT');
 
+		return insertedIds;
+	}
+
+	async updateCategoryTags(categoryId: number, tags: Tag[]): Promise<number[]> {
+		await this.db.execute('BEGIN TRANSACTION');
+
+		const insertedIds: number[] = [];
+
+		try {
+			const fullInsertQuery = 'INSERT INTO tag (name, color, category_id) VALUES ($1, $2, $3)';
+			const fullUpdateQuery = 'UPDATE tag SET name = $1, color = $2 WHERE id = $3';
+
+			for (const tag of tags) {
+				if (tag.id && tag.id > -1) {
+					await this.db.execute(fullUpdateQuery, [tag.name, tag.color, tag.id]);
+				} else {
+					const result = await this.db.execute(fullInsertQuery, [tag.name, tag.color, categoryId]);
+					insertedIds.push(result.lastInsertId!);
+				}
+			}
+		} catch (error) {
+			await this.db.execute('ROLLBACK');
+			throw error;
+		}
+
+		await this.db.execute('COMMIT');
 		return insertedIds;
 	}
 }

@@ -10,5 +10,4 @@ export interface Button {
 	range?: ButtonRange;
 	duration: number | null;
 	before: number | null;
-	temp: boolean;
 }

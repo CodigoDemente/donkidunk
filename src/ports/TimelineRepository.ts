@@ -1,4 +1,3 @@
-import type { CategoryType } from '../components/box/types';
 import type { ExportingRule } from '../modules/export/types';
 import type { RangeDataWithTags } from '../modules/videoplayer/types/RangeData';
 
@@ -8,7 +7,6 @@ export interface TimelineRepository {
 	addEntry(
 		buttonId: number,
 		categoryId: number,
-		type: CategoryType,
 		startTime: number,
 		endTime?: number
 	): Promise<number>;

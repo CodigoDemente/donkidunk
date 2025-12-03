@@ -2,7 +2,6 @@ import type Database from '@tauri-apps/plugin-sql';
 import type { TimelineRepository } from '../ports/TimelineRepository';
 import type { DatabaseEntryWithTag } from './types/DatabaseEntryWithTags';
 import type { RangeDataWithTags } from '../modules/videoplayer/types/RangeData';
-import { CategoryType } from '../components/box/types';
 import type { ExportingRule } from '../modules/export/types';
 
 export class SQLiteTimelineRepository implements TimelineRepository {
@@ -10,7 +9,7 @@ export class SQLiteTimelineRepository implements TimelineRepository {
 
 	async getEvents(): Promise<RangeDataWithTags[]> {
 		const entries = await this.db.select<DatabaseEntryWithTag[]>(
-			`SELECT te.id, te.button_id, te.category_id, te.type, te.timestamp_start, te.timestamp_end, tet.tag_id
+			`SELECT te.id, te.button_id, te.category_id, te.timestamp_start, te.timestamp_end, tet.tag_id
 			 FROM timeline_entry te LEFT JOIN timeline_entry_tag tet ON te.id = tet.timeline_entry_id
 			 WHERE te.type = 'event'`
 		);
@@ -73,14 +72,13 @@ export class SQLiteTimelineRepository implements TimelineRepository {
 	async addEntry(
 		buttonId: number,
 		categoryId: number,
-		type: CategoryType,
 		startTime: number,
 		endTime: number
 	): Promise<number> {
 		const result = await this.db.execute(
-			`INSERT INTO timeline_entry (button_id, category_id, type, timestamp_start, timestamp_end)
+			`INSERT INTO timeline_entry (button_id, category_id, timestamp_start, timestamp_end)
              VALUES ($1, $2, $3, $4, $5)`,
-			[buttonId, categoryId, type, startTime, endTime]
+			[buttonId, categoryId, startTime, endTime]
 		);
 
 		return result.lastInsertId!;

@@ -20,8 +20,7 @@
 		color: '',
 		range: ButtonRange.DYNAMIC,
 		duration: null,
-		before: null,
-		temp: true
+		before: null
 	};
 
 	const initialTag = {
@@ -35,7 +34,6 @@
 
 	function addButton() {
 		if (isEventType) {
-			newButton.temp = false;
 			newButton.color = context.categoryToCreate.color;
 			const button = { ...newButton };
 			context.categoryToCreate.buttons = [...context.categoryToCreate.buttons, button] as any;

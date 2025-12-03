@@ -168,7 +168,10 @@ export class Board {
 		const cat = currState[section].find((c) => c.id === categoryId);
 
 		if (cat) {
-			const buttonId = await repository.addButtonToCategory(categoryId, button);
+			const buttonId =
+				section === CategoryType.Event
+					? await repository.addButtonToCategory(categoryId, button as Button)
+					: await repository.addTagToCategory(categoryId, button as Tag);
 
 			this.#state = {
 				...this.#state,
@@ -180,8 +183,7 @@ export class Board {
 								...c.buttons,
 								{
 									...button,
-									id: buttonId,
-									temp: false
+									id: buttonId
 								}
 							]
 						};
@@ -307,7 +309,10 @@ export class Board {
 			const repository = BoardRepositoryFactory.getInstance();
 
 			await repository.updateCategory(category.id!, category.name, category.color);
-			const buttonsIds = await repository.updateCategoryButtons(category.id!, category.buttons);
+			const buttonsIds =
+				section === CategoryType.Event
+					? await repository.updateCategoryButtons(category.id!, category.buttons as Button[])
+					: await repository.updateCategoryTags(category.id!, category.buttons as Tag[]);
 
 			this.#state = {
 				...this.#state,
@@ -321,14 +326,12 @@ export class Board {
 									buttons: category.buttons.map((b) => {
 										if (b.id && b.id > 0 && buttonsIds.includes(b.id)) {
 											return {
-												...b,
-												temp: false
+												...b
 											};
 										} else {
 											return {
 												...b,
-												id: buttonsIds.shift()!,
-												temp: false
+												id: buttonsIds.shift()!
 											};
 										}
 									}) as Button[] | Tag[]
