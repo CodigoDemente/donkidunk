@@ -77,7 +77,7 @@ export class SQLiteTimelineRepository implements TimelineRepository {
 	): Promise<number> {
 		const result = await this.db.execute(
 			`INSERT INTO timeline_entry (button_id, category_id, timestamp_start, timestamp_end)
-             VALUES ($1, $2, $3, $4, $5)`,
+             VALUES ($1, $2, $3, $4)`,
 			[buttonId, categoryId, startTime, endTime]
 		);
 

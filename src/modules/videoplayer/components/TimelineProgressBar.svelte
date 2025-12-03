@@ -20,13 +20,10 @@
 		handleDragStart: (event: DragEvent) => void;
 		handleDragEnd: (event: DragEvent) => void;
 		eventCategoriesById: Record<string, Category>;
-		actionCategoriesById: Record<string, Category>;
 		eventsByCategory: Record<string, RangeDataWithTags[]>;
-		actionsByCategory: Record<string, RangeData[]>;
 		eventButtonsById: Record<string, Button>;
-		actionButtonsById: Record<string, Button>;
 		eventPlaying: RangeDataWithTags | null;
-		actionPlaying: RangeData | null;
+		eventSelected: number | null;
 		onEventClick: (eventId: number) => void;
 		onTimeChange: (time: number) => void;
 	};
@@ -41,13 +38,10 @@
 		handleDragStart,
 		handleDragEnd,
 		eventCategoriesById,
-		actionCategoriesById,
 		eventsByCategory,
-		actionsByCategory,
 		eventButtonsById,
-		actionButtonsById,
 		eventPlaying,
-		actionPlaying,
+		eventSelected,
 		onEventClick,
 		onTimeChange
 	}: Props = $props();
@@ -101,6 +95,7 @@
 						boardCategoriesById={eventCategoriesById}
 						buttonsListById={eventButtonsById}
 						playingObject={eventPlaying}
+						{eventSelected}
 						{currentTime}
 						onClick={onEventClick}
 					/>

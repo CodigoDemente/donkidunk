@@ -13,6 +13,7 @@
 		boardCategoriesById,
 		buttonsListById,
 		playingObject,
+		eventSelected,
 		currentTime,
 		onClick
 	}: Props = $props();
@@ -37,7 +38,9 @@
 					end={event.timestamp.end ? event.timestamp.end : currentTime}
 					timelineStart={leftLimit}
 					timelineEnd={rightLimit}
+					isSelected={eventSelected === event.id}
 					color={boardCategoriesById[categoryId]?.color}
+					borderColor={buttonsListById[event.buttonId]?.color}
 					name={buttonsListById[event.buttonId]?.name}
 					onClick={() => onClick && playingObject === null && onClick(event.id)}
 				/>

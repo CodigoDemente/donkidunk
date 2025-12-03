@@ -10,6 +10,7 @@ export type Props = {
 	boardCategoriesById: Record<string, Category>;
 	buttonsListById: Record<string, Button>;
 	playingObject?: RangeDataWithTags | RangeData | null;
+	eventSelected?: number | null;
 	currentTime: number;
 	onClick?: (id: number) => void;
 };
