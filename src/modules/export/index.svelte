@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Channel, invoke } from '@tauri-apps/api/core';
+	import { Channel } from '@tauri-apps/api/core';
 	import ProjectStore from '../../persistence/stores/project/store.svelte';
 	import { boardContext } from '../../modules/board/context.svelte';
 	import { TimelineRepositoryFactory } from '../../factories/TimelineRepositoryFactory';
@@ -11,6 +11,7 @@
 	import { CategoryType } from '../../components/box/types';
 	import Dropdown from '../../components/dropdown/dropdown.svelte';
 	import Multiselect from '../../components/multiselect';
+	import { cutVideo } from './commands/CutVideo';
 
 	const board = boardContext.get();
 	const timelineRepository = TimelineRepositoryFactory.getInstance();
@@ -85,12 +86,7 @@
 			export_progress = Math.trunc(progress * 100);
 		};
 
-		await invoke('cut_video', {
-			videoPath: projectStore.video.path,
-			outPath,
-			ranges,
-			onEvent
-		});
+		await cutVideo(projectStore.video.path!, outPath, ranges, onEvent);
 
 		exporting = false;
 	}

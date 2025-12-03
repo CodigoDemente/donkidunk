@@ -7,10 +7,15 @@ mod menu;
 #[cfg(not(target_os = "windows"))]
 mod server;
 
+use commands::config::*;
 use commands::menu::*;
 use commands::video::*;
-#[cfg(debug_assertions)]
+use lib::configmanager::ConfigManager;
 use tauri::Manager;
+
+pub struct AppState {
+    config_manager: ConfigManager,
+}
 
 fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
     builder
@@ -19,12 +24,17 @@ fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
             server::get_linux_file_url,
             set_menu_item_enabling_status,
             cut_video,
+            get_user_config,
         ])
         .setup(|app| {
             #[cfg(not(target_os = "windows"))]
             tokio::spawn(server::setup_webserver());
 
             menu::setup_menu(app)?;
+
+            app.manage(AppState {
+                config_manager: ConfigManager::new(app)?,
+            });
 
             #[cfg(debug_assertions)]
             app.get_webview_window("main").unwrap().open_devtools();
