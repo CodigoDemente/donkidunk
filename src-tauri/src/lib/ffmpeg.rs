@@ -208,7 +208,7 @@ impl Ffmpeg {
                 Box::pin(async move {
                     log::debug!("Starting cut: {start} to {end}");
 
-                    let output_name = format!("part_{}_{}.mp4", start, end);
+                    let output_name = format!("part_{start}_{end}.mp4");
 
                     let output_path = self.temp_dir.join(output_name);
 
