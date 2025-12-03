@@ -11,7 +11,6 @@ use commands::config::*;
 use commands::menu::*;
 use commands::video::*;
 use lib::configmanager::ConfigManager;
-#[cfg(debug_assertions)]
 use tauri::Manager;
 
 pub struct AppState {
