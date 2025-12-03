@@ -7,8 +7,6 @@
 	import { boardContext, Board } from '../modules/board/context.svelte';
 	import { Timeline, timelineContext } from '../modules/videoplayer/context.svelte';
 	import { Config, configContext } from '../modules/config/context.svelte';
-	import { invoke } from '@tauri-apps/api/core';
-	import type { ConfigData } from '../modules/config/types/Config';
 	import { getConfig } from '../modules/config/commands/GetConfig';
 
 	const board = boardContext.set(new Board());

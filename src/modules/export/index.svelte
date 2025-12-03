@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Channel, invoke } from '@tauri-apps/api/core';
+	import { Channel } from '@tauri-apps/api/core';
 	import ProjectStore from '../../persistence/stores/project/store.svelte';
 	import { boardContext } from '../../modules/board/context.svelte';
 	import { TimelineRepositoryFactory } from '../../factories/TimelineRepositoryFactory';
