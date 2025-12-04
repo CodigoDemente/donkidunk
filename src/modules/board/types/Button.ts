@@ -5,9 +5,9 @@ export enum ButtonRange {
 
 export interface Button {
 	id: number;
+	color: string;
 	name: string;
 	range?: ButtonRange;
 	duration: number | null;
 	before: number | null;
-	temp: boolean;
 }

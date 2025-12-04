@@ -1,4 +1,5 @@
 import type { CategoryType } from '../../../components/box/types';
+import type { Tag } from './Tag';
 import type { Button } from './Button';
 
 export interface Category {
@@ -7,5 +8,5 @@ export interface Category {
 	type: CategoryType;
 	color: string;
 	position: { x: number; y: number };
-	buttons: Button[];
+	buttons: Button[] | Tag[];
 }

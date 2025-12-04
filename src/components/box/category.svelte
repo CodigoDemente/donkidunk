@@ -6,6 +6,7 @@
 	import type { Button } from '../../modules/board/types/Button';
 	import { IconPencil, IconTrash } from '@tabler/icons-svelte';
 	import { getTextColorForBackground } from './colors';
+	import Tag from '../tag/tag.svelte';
 
 	const timeline = timelineContext.get();
 	const board = boardContext.get();
@@ -18,9 +19,6 @@
 	};
 
 	let { type, category, handleModalOpen, draggedCategory = $bindable() }: Props = $props();
-
-	const buttonBackgroundColor = category.color;
-	const buttonTextColor = getTextColorForBackground(category.color);
 
 	function handleDragStart(e: DragEvent) {
 		e.dataTransfer?.setData('text/plain', 'dragged');
@@ -36,12 +34,14 @@
 		};
 	}
 
-	function addActionOrEvent(button: Button): Promise<void> {
-		if (type === CategoryType.Action) {
-			return timeline.addAction(button, category.id, timeline.currentTime);
-		} else {
-			return timeline.addEvent(button.id, category.id, timeline.currentTime);
-		}
+	function addEvent(button: Button): Promise<void> {
+		return timeline.addEvent(
+			button.id,
+			category.id,
+			timeline.currentTime,
+			button.duration ?? undefined,
+			button.before ?? undefined
+		);
 	}
 
 	function removeCategory() {
@@ -85,21 +85,32 @@
 		</div>
 	</div>
 	<div class="flex flex-wrap gap-2">
-		{#each category.buttons as button (button.id)}
-			<button
-				style={`
-					background-color: ${buttonBackgroundColor};
-					color: ${buttonTextColor};
+		{#if type === CategoryType.Event}
+			{#each category.buttons as button, idx (button.id ?? `temp-${category.id}-${idx}`)}
+				<button
+					style={`
+					background-color: ${button.color};
+					color: ${getTextColorForBackground(button.color)};
 				`}
-				class="rounded-xs border border-gray-800 px-2
+					class="rounded-xs border border-gray-800 px-2
 				py-1
 				text-xs shadow-sm
 				hover:cursor-pointer
 				hover:brightness-120"
-				onclick={() => addActionOrEvent(button)}
-			>
-				{button.name}
-			</button>
-		{/each}
+					onclick={() => addEvent(button as Button)}
+				>
+					{button.name}
+				</button>
+			{/each}
+		{/if}
+		{#if type === CategoryType.Tag}
+			{#each category.buttons as tag, idx (tag.id ?? `temp-${category.id}-${idx}`)}
+				<Tag
+					color={tag.color}
+					text={tag.name}
+					onClick={() => timeline.addRelatedTagToEvent(tag.id!)}
+				/>
+			{/each}
+		{/if}
 	</div>
 </div>

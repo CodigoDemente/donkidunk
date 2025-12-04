@@ -1,22 +1,31 @@
 import type Database from '@tauri-apps/plugin-sql';
 import type { BoardRepository } from '../ports/BoardRepository';
 import type { Category } from '../modules/board/types/Category';
-import type { DatabaseCategory } from './types/DatabaseCategory';
 import type { Tag } from '../modules/board/types/Tag';
 import type { DatabaseTag } from './types/DatabaseTag';
 import { ButtonRange, type Button } from '../modules/board/types/Button';
-import type { CategoryType } from '../components/box/types';
+import { CategoryType } from '../components/box/types';
+import type { DatabaseEventCategory, DatabaseTagCategory } from './types/DatabaseCategory';
 
 export class SQLiteBoardRepository implements BoardRepository {
 	constructor(private readonly db: Database) {}
 
 	async getSectionCategories(section: CategoryType): Promise<Category[]> {
-		const categories = await this.db.select<DatabaseCategory[]>(
-			`SELECT category.id, type, category.name, color, grid_position_x, grid_position_y, button.id AS button_id, button.name AS button_name, button.range as button_range, button.duration as button_duration, button.before as button_before
-             FROM category LEFT JOIN button ON category.id = button.category_id
+		if (section === CategoryType.Event) {
+			return this.getEventCategories();
+		} else if (section === CategoryType.Tag) {
+			return this.getTagCategories();
+		}
+		throw new Error(`Invalid section: ${section}`);
+	}
+
+	private async getEventCategories(): Promise<Category[]> {
+		const categories = await this.db.select<DatabaseEventCategory[]>(
+			`SELECT category.id, type, category.name, category.color, grid_position_x, grid_position_y, button.id AS button_id, button.name AS button_name, button.range as button_range, button.duration as button_duration, button.before as button_before, button.color as button_color
+			FROM category LEFT JOIN button ON category.id = button.category_id
              WHERE type = $1
              ORDER BY grid_position_y, grid_position_x`,
-			[section]
+			[CategoryType.Event]
 		);
 
 		const categoriesAndButtons: Record<string, Category> = categories.reduce(
@@ -35,7 +44,7 @@ export class SQLiteBoardRepository implements BoardRepository {
 								range: ButtonRange[category.button_range as keyof typeof ButtonRange],
 								duration: category.button_duration,
 								before: category.button_before,
-								temp: false
+								color: category.button_color
 							}
 						]
 					};
@@ -46,7 +55,7 @@ export class SQLiteBoardRepository implements BoardRepository {
 						range: ButtonRange[category.button_range as keyof typeof ButtonRange],
 						duration: category.button_duration,
 						before: category.button_before,
-						temp: false
+						color: category.button_color
 					});
 				}
 				return acc;
@@ -55,6 +64,47 @@ export class SQLiteBoardRepository implements BoardRepository {
 		);
 
 		return Object.values(categoriesAndButtons);
+	}
+
+	private async getTagCategories(): Promise<Category[]> {
+		const categories = await this.db.select<DatabaseTagCategory[]>(
+			`SELECT category.id, type, category.name, category.color, grid_position_x, grid_position_y, tag.id AS tag_id, tag.name AS tag_name, tag.color as tag_color
+			FROM category LEFT JOIN tag ON category.id = tag.category_id
+             WHERE type = $1
+             ORDER BY grid_position_y, grid_position_x`,
+			[CategoryType.Tag]
+		);
+
+		const categoriesAndTags: Record<string, Category> = categories.reduce(
+			(acc, category) => {
+				if (!acc[category.id]) {
+					acc[category.id] = {
+						id: category.id,
+						type: category.type as CategoryType,
+						name: category.name,
+						color: category.color,
+						position: { x: category.grid_position_x, y: category.grid_position_y },
+						buttons: [
+							{
+								id: category.tag_id,
+								name: category.tag_name,
+								color: category.tag_color
+							} as Tag
+						]
+					};
+				} else {
+					(acc[category.id].buttons as Tag[]).push({
+						id: category.tag_id,
+						name: category.tag_name,
+						color: category.tag_color
+					});
+				}
+				return acc;
+			},
+			{} as Record<string, Category>
+		);
+
+		return Object.values(categoriesAndTags);
 	}
 
 	async getTagsRelatedToEvents(): Promise<Tag[]> {
@@ -84,37 +134,19 @@ export class SQLiteBoardRepository implements BoardRepository {
 		await this.db.execute(`DELETE FROM category WHERE id = $1`, [categoryId]);
 	}
 
-	async addTagsList(list: Tag[]): Promise<Tag[]> {
-		const resultList: Tag[] = [];
-
-		for (const tag of list) {
-			if (tag.id) {
-				await this.db.execute(`UPDATE tag SET name = $1, color = $2 WHERE id = $3`, [
-					tag.name,
-					tag.color,
-					tag.id
-				]);
-				resultList.push(tag);
-			} else {
-				const result = await this.db.execute(`INSERT INTO tag (name, color) VALUES ($1, $2)`, [
-					tag.name,
-					tag.color
-				]);
-				resultList.push({
-					...tag,
-					id: result.lastInsertId
-				});
-			}
-		}
-
-		return resultList;
-	}
-
 	async addButtonToCategory(categoryId: number, button: Button): Promise<number> {
 		const result = await this.db.execute(
-			`INSERT INTO button (name, range, duration, before, category_id)
-             VALUES ($1, $2, $3, $4, $5)`,
-			[button.name, button.range, button.duration, button.before, categoryId]
+			`INSERT INTO button (name, range, duration, before, color, category_id)
+             VALUES ($1, $2, $3, $4, $5, $6)`,
+			[button.name, button.range, button.duration, button.before, button.color, categoryId]
+		);
+		return result.lastInsertId!;
+	}
+
+	async addTagToCategory(categoryId: number, tag: Tag): Promise<number> {
+		const result = await this.db.execute(
+			`INSERT INTO tag (name, color, category_id) VALUES ($1, $2, $3)`,
+			[tag.name, tag.color, categoryId]
 		);
 		return result.lastInsertId!;
 	}
@@ -154,25 +186,27 @@ export class SQLiteBoardRepository implements BoardRepository {
 
 		try {
 			const fullInsertQuery =
-				'INSERT INTO button (name, range, duration, before, category_id) VALUES ($1, $2, $3, $4, $5)';
+				'INSERT INTO button (name, range, duration, before, color, category_id) VALUES ($1, $2, $3, $4, $5, $6)';
 			const fullUpdateQuery =
-				'UPDATE button SET name = $1, range = $2, duration = $3, before = $4 WHERE id = $5';
+				'UPDATE button SET name = $1, range = $2, duration = $3, before = $4, color = $5 WHERE id = $6';
 
 			for (const button of buttons) {
 				if (button.id && button.id > -1) {
 					await this.db.execute(fullUpdateQuery, [
 						button.name,
-						button.range!.valueOf(),
-						button.duration,
-						button.before,
+						'range' in button ? button.range : null,
+						'duration' in button ? button.duration : null,
+						'before' in button ? button.before : null,
+						button.color,
 						button.id
 					]);
 				} else {
 					const result = await this.db.execute(fullInsertQuery, [
 						button.name,
-						button.range!.valueOf(),
-						button.duration,
-						button.before,
+						'range' in button ? button.range!.valueOf() : null,
+						'duration' in button ? button.duration : null,
+						'before' in button ? button.before : null,
+						button.color,
 						categoryId
 					]);
 
@@ -188,6 +222,32 @@ export class SQLiteBoardRepository implements BoardRepository {
 		// If everything is successful, commit the transaction
 		await this.db.execute('COMMIT');
 
+		return insertedIds;
+	}
+
+	async updateCategoryTags(categoryId: number, tags: Tag[]): Promise<number[]> {
+		await this.db.execute('BEGIN TRANSACTION');
+
+		const insertedIds: number[] = [];
+
+		try {
+			const fullInsertQuery = 'INSERT INTO tag (name, color, category_id) VALUES ($1, $2, $3)';
+			const fullUpdateQuery = 'UPDATE tag SET name = $1, color = $2 WHERE id = $3';
+
+			for (const tag of tags) {
+				if (tag.id && tag.id > -1) {
+					await this.db.execute(fullUpdateQuery, [tag.name, tag.color, tag.id]);
+				} else {
+					const result = await this.db.execute(fullInsertQuery, [tag.name, tag.color, categoryId]);
+					insertedIds.push(result.lastInsertId!);
+				}
+			}
+		} catch (error) {
+			await this.db.execute('ROLLBACK');
+			throw error;
+		}
+
+		await this.db.execute('COMMIT');
 		return insertedIds;
 	}
 }

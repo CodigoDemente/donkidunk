@@ -33,6 +33,9 @@
 					class="text-2xl text-gray-400 transition hover:cursor-pointer hover:text-white"
 					aria-label="Close"
 					onclick={async () => {
+						if (modalStore?.onCancel) {
+							modalStore.onCancel();
+						}
 						modalStore.show = false;
 					}}
 				>
@@ -61,7 +64,7 @@
 						}
 					}}
 				>
-					Submit
+					{modalStore.onSubmitText || 'Submit'}
 				</Button>
 			</div>
 		</div>

@@ -8,7 +8,7 @@
 	import type { Button } from '../../board/types/Button';
 	import type { Category } from '../../board/types/Category';
 	import { mapClickToVisibleTime } from '../timelineZoom';
-	import type { RangeData, RangeDataWithTags } from '../types/RangeData';
+	import type { RangeDataWithTags } from '../types/RangeData';
 
 	type Props = {
 		currentTime: number;
@@ -20,13 +20,10 @@
 		handleDragStart: (event: DragEvent) => void;
 		handleDragEnd: (event: DragEvent) => void;
 		eventCategoriesById: Record<string, Category>;
-		actionCategoriesById: Record<string, Category>;
 		eventsByCategory: Record<string, RangeDataWithTags[]>;
-		actionsByCategory: Record<string, RangeData[]>;
 		eventButtonsById: Record<string, Button>;
-		actionButtonsById: Record<string, Button>;
 		eventPlaying: RangeDataWithTags | null;
-		actionPlaying: RangeData | null;
+		eventSelected: number | null;
 		onEventClick: (eventId: number) => void;
 		onTimeChange: (time: number) => void;
 	};
@@ -41,13 +38,10 @@
 		handleDragStart,
 		handleDragEnd,
 		eventCategoriesById,
-		actionCategoriesById,
 		eventsByCategory,
-		actionsByCategory,
 		eventButtonsById,
-		actionButtonsById,
 		eventPlaying,
-		actionPlaying,
+		eventSelected,
 		onEventClick,
 		onTimeChange
 	}: Props = $props();
@@ -106,26 +100,9 @@
 						boardCategoriesById={eventCategoriesById}
 						buttonsListById={eventButtonsById}
 						playingObject={eventPlaying}
+						{eventSelected}
 						{currentTime}
 						onClick={onEventClick}
-					/>
-				{/each}
-			</div>
-		{/if}
-
-		<!-- Action categories -->
-		{#if Object.entries(actionCategoriesById).length > 0}
-			<div class="flex w-full flex-col items-start gap-1">
-				{#each Object.keys(actionCategoriesById) as categoryId (categoryId)}
-					<Eventline
-						categoryId={+categoryId}
-						allTagsByCategory={actionsByCategory}
-						{timelineStart}
-						{timelineEnd}
-						boardCategoriesById={actionCategoriesById}
-						buttonsListById={actionButtonsById}
-						playingObject={actionPlaying}
-						{currentTime}
 					/>
 				{/each}
 			</div>

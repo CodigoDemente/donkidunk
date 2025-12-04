@@ -18,6 +18,7 @@ export const InitialProjectData: ProjectData = {
 		title: undefined,
 		onCancel: undefined,
 		onSubmit: undefined,
+		onSubmitText: undefined,
 		show: false,
 		size: undefined
 	},

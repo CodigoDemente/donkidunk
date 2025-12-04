@@ -2,24 +2,19 @@ import { Context, StateHistory } from 'runed';
 import { projectActions } from '../../persistence/stores/project/actions';
 import { CategoryType } from '../../components/box/types';
 import { feedbackMessages } from '../../utils/messages';
-import {
-	tagValidationSchema,
-	categoryValidationSchema,
-	buttonValidationSchema
-} from './validationSchema';
+import { categoryValidationSchema, buttonValidationSchema } from './validationSchema';
 import type { BoardData } from './types/Board';
 import { BoardRepositoryFactory } from '../../factories/BoardRepositoryFactory';
 import { emit } from '@tauri-apps/api/event';
 import { wrapObjectForUndo } from '../../persistence/undo/UndoStateWrapper';
 import { Scope } from '../../persistence/undo/types/Scope';
 import type { Category } from './types/Category';
-import type { Tag } from './types/Tag';
 import type { Button } from './types/Button';
+import type { Tag } from './types/Tag';
 
 const initialState: BoardData = {
 	[CategoryType.Event]: [],
-	[CategoryType.Action]: [],
-	tagsRelatedToEvents: []
+	[CategoryType.Tag]: []
 };
 
 const initialCategory = (section: CategoryType): Category => ({
@@ -40,14 +35,12 @@ export class Board {
 	#history!: StateHistory<BoardData>;
 	#isEditing = $state(false);
 	#tempCategory = $state<Category>(initialCategory(CategoryType.Event));
-	#tempTagsList = $state<Tag[]>([]);
 	#state = $state<BoardData>(initialState);
 	#eventCategoriesById!: Record<string, Category>;
-	#actionCategoriesById!: Record<string, Category>;
-	#tagsById!: Record<string, Tag>;
+	#tagCategoriesById!: Record<string, Category>;
 	#errorsForm = $state<Record<number | string, { message: string }>>({});
 	#eventButtonsById!: Record<string, Button>;
-	#actionButtonsById!: Record<string, Button>;
+	#tagsById!: Record<string, Tag>;
 
 	constructor() {
 		this.#history = new StateHistory<BoardData>(
@@ -66,8 +59,8 @@ export class Board {
 			);
 		});
 
-		this.#actionCategoriesById = $derived.by(() => {
-			return this.#state[CategoryType.Action].reduce(
+		this.#tagCategoriesById = $derived.by(() => {
+			return this.#state[CategoryType.Tag].reduce(
 				(acc, category) => {
 					acc[category.id] = category;
 					return acc;
@@ -76,40 +69,29 @@ export class Board {
 			);
 		});
 
+		this.#eventButtonsById = $derived.by(() => {
+			return this.#state[CategoryType.Event].reduce(
+				(acc, category) => {
+					category.buttons.forEach((button) => {
+						acc[button.id] = button as Button;
+					});
+					return acc;
+				},
+				{} as Record<string, Button>
+			);
+		});
+
 		this.#tagsById = $derived.by(() => {
-			return this.#state.tagsRelatedToEvents.reduce(
-				(acc, tag) => {
-					acc[tag.id!] = tag;
+			return this.#state[CategoryType.Tag].reduce(
+				(acc, category) => {
+					category.buttons.forEach((button) => {
+						acc[button.id] = button as Tag;
+					});
 					return acc;
 				},
 				{} as Record<string, Tag>
 			);
 		});
-
-		this.#eventButtonsById = $derived.by(() => {
-			return this.#state[CategoryType.Event].reduce(
-				(acc, category) => {
-					category.buttons.forEach((button) => {
-						acc[button.id] = button;
-					});
-					return acc;
-				},
-				{} as Record<string, Button>
-			);
-		});
-
-		this.#actionButtonsById = $derived.by(() => {
-			return this.#state[CategoryType.Action].reduce(
-				(acc, category) => {
-					category.buttons.forEach((button) => {
-						acc[button.id] = button;
-					});
-					return acc;
-				},
-				{} as Record<string, Button>
-			);
-		});
-		//#endregion
 	}
 
 	getState() {
@@ -150,11 +132,6 @@ export class Board {
 		this.#errorsForm = {};
 	}
 
-	resetTagsListForm() {
-		this.#tempTagsList = [];
-		this.resetErrorsForm();
-	}
-
 	async updateCategoryPosition(
 		section: CategoryType,
 		categoryId: number,
@@ -182,7 +159,7 @@ export class Board {
 	async addButtonToCategory(
 		section: CategoryType,
 		categoryId: number,
-		button: Button
+		button: Button | Tag
 	): Promise<void> {
 		const repository = BoardRepositoryFactory.getInstance();
 
@@ -191,7 +168,10 @@ export class Board {
 		const cat = currState[section].find((c) => c.id === categoryId);
 
 		if (cat) {
-			const buttonId = await repository.addButtonToCategory(categoryId, button);
+			const buttonId =
+				section === CategoryType.Event
+					? await repository.addButtonToCategory(categoryId, button as Button)
+					: await repository.addTagToCategory(categoryId, button as Tag);
 
 			this.#state = {
 				...this.#state,
@@ -203,8 +183,7 @@ export class Board {
 								...c.buttons,
 								{
 									...button,
-									id: buttonId,
-									temp: false
+									id: buttonId
 								}
 							]
 						};
@@ -221,8 +200,8 @@ export class Board {
 		if (categoryId) {
 			if (section === CategoryType.Event) {
 				this.#tempCategory = $state.snapshot(this.eventCategoriesById[categoryId]);
-			} else {
-				this.#tempCategory = $state.snapshot(this.actionCategoriesById[categoryId]);
+			} else if (section === CategoryType.Tag) {
+				this.#tempCategory = $state.snapshot(this.tagCategoriesById[categoryId]);
 			}
 		} else {
 			this.resetCategoryForm(section);
@@ -243,9 +222,9 @@ export class Board {
 			}
 		}
 
-		this.#tempCategory.buttons.forEach((button, idx) => {
+		this.#tempCategory.buttons.forEach((button: Button | Tag, idx: number) => {
 			for (const rule of buttonValidationSchema) {
-				if (rule.validate(button)) {
+				if (rule.validate(button, idx, this.#tempCategory.buttons as Button[] | Tag[])) {
 					errorObject[idx] = { message: rule.message };
 					break;
 				}
@@ -297,6 +276,7 @@ export class Board {
 					...this.#state[section],
 					{
 						id: categoryId,
+						type: section,
 						name: name,
 						color: color,
 						position: { x: 0, y: 0 },
@@ -329,30 +309,34 @@ export class Board {
 			const repository = BoardRepositoryFactory.getInstance();
 
 			await repository.updateCategory(category.id!, category.name, category.color);
-			const buttonsIds = await repository.updateCategoryButtons(category.id!, category.buttons);
+			const buttonsIds =
+				section === CategoryType.Event
+					? await repository.updateCategoryButtons(category.id!, category.buttons as Button[])
+					: await repository.updateCategoryTags(category.id!, category.buttons as Tag[]);
 
 			this.#state = {
 				...this.#state,
-				[section]: this.#state[section].map((c) =>
-					c.id === category.id
-						? {
-								...category,
-								buttons: category.buttons.map((b) => {
-									if (b.id && b.id > 0) {
-										return {
-											...b,
-											temp: false
-										};
-									} else {
-										return {
-											...b,
-											id: buttonsIds.shift(),
-											temp: false
-										};
-									}
-								})
-							}
-						: c
+				[section]: this.#state[section].map(
+					(c): Category =>
+						c.id === category.id
+							? {
+									...c,
+									name: category.name,
+									color: category.color,
+									buttons: category.buttons.map((b) => {
+										if (b.id && b.id > 0 && buttonsIds.includes(b.id)) {
+											return {
+												...b
+											};
+										} else {
+											return {
+												...b,
+												id: buttonsIds.shift()!
+											};
+										}
+									}) as Button[] | Tag[]
+								}
+							: c
 				)
 			};
 			await emit('project:dirty');
@@ -392,60 +376,6 @@ export class Board {
 		}
 	}
 
-	onValidateTagsList(): Record<number, { message: string }> | void {
-		const errorObject: Record<number, { message: string }> = {};
-
-		this.#tempTagsList.forEach((tag, idx, tags) => {
-			for (const rule of tagValidationSchema) {
-				if (rule.validate(tag, idx, tags)) {
-					errorObject[idx] = { message: rule.message };
-					break;
-				}
-			}
-		});
-
-		if (Object.keys(errorObject).length > 0) {
-			this.#errorsForm = errorObject;
-			throw 'validation-failed';
-		}
-
-		return this.resetErrorsForm();
-	}
-
-	async addTagsList(): Promise<void> {
-		try {
-			const section = 'tagsRelatedToEvents';
-			const tags = this.#tempTagsList;
-
-			await this.onValidateTagsList();
-
-			const repository = BoardRepositoryFactory.getInstance();
-
-			const result = await repository.addTagsList(tags);
-
-			this.#state = {
-				...this.#state,
-				[section]: [...result]
-			};
-
-			await emit('project:dirty');
-
-			projectActions.closeAndResetModal();
-
-			projectActions.setSnackbar(feedbackMessages.ACTION_SUCCESS);
-			this.resetTagsListForm();
-		} catch (error) {
-			if (error === 'validation-failed') {
-				return projectActions.setSnackbar(feedbackMessages.VALIDATION_ERROR);
-			}
-
-			return projectActions.setSnackbar({
-				...feedbackMessages.ACTION_FAILED,
-				message: error instanceof Error ? error.message : String(error)
-			});
-		}
-	}
-
 	wrapForUndo() {
 		Object.assign(
 			this,
@@ -474,10 +404,6 @@ export class Board {
 		return this.#tempCategory;
 	}
 
-	get tagsListToCreate() {
-		return this.#tempTagsList;
-	}
-
 	get errorsForm() {
 		return this.#errorsForm;
 	}
@@ -486,12 +412,8 @@ export class Board {
 		this.#tempCategory = value;
 	}
 
-	get actionCategories() {
-		return this.#state[CategoryType.Action];
-	}
-
-	get actionCategoriesById() {
-		return this.#actionCategoriesById;
+	get tagCategories() {
+		return this.#state[CategoryType.Tag];
 	}
 
 	get eventCategories() {
@@ -502,20 +424,16 @@ export class Board {
 		return this.#eventCategoriesById;
 	}
 
-	get tagsRelatedToEvents() {
-		return this.#state.tagsRelatedToEvents;
-	}
-
-	get tagsById() {
-		return this.#tagsById;
+	get tagCategoriesById() {
+		return this.#tagCategoriesById;
 	}
 
 	get eventButtonsById() {
 		return this.#eventButtonsById;
 	}
 
-	get actionButtonsById() {
-		return this.#actionButtonsById;
+	get tagsById() {
+		return this.#tagsById;
 	}
 	//#endregion
 }

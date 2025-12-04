@@ -164,10 +164,7 @@ export async function loadBoardFromDatabase(
 	board: Board
 ): Promise<void> {
 	board.getState()[CategoryType.Event] = await repository.getSectionCategories(CategoryType.Event);
-	board.getState()[CategoryType.Action] = await repository.getSectionCategories(
-		CategoryType.Action
-	);
-	board.getState().tagsRelatedToEvents = await repository.getTagsRelatedToEvents();
+	board.getState()[CategoryType.Tag] = await repository.getSectionCategories(CategoryType.Tag);
 }
 
 export async function loadTimelineFromDatabase(
@@ -175,7 +172,6 @@ export async function loadTimelineFromDatabase(
 	timeline: Timeline
 ): Promise<void> {
 	timeline.getState().eventTimeline = await repository.getEvents();
-	timeline.getState().actionTimeline = await repository.getActions();
 }
 
 export async function backupDatabase(backupId: string): Promise<string> {

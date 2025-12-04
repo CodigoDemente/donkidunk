@@ -4,4 +4,5 @@ export type DatabaseButton = {
 	range: string;
 	duration: number;
 	before: number;
+	color: string;
 };
