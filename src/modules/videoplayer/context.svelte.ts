@@ -1,12 +1,10 @@
 import { Context, StateHistory } from 'runed';
 import type { TimelineData } from './types/Timeline';
-import type { RangeData, RangeDataWithTags } from './types/RangeData';
+import type { RangeDataWithTags } from './types/RangeData';
 import { TimelineRepositoryFactory } from '../../factories/TimelineRepositoryFactory';
 import { emit } from '@tauri-apps/api/event';
 import { wrapObjectForUndo } from '../../persistence/undo/UndoStateWrapper';
 import { Scope } from '../../persistence/undo/types/Scope';
-import { CategoryType } from '../../components/box/types';
-import { ButtonRange, type Button } from '../board/types/Button';
 
 const initialState: TimelineData = {
 	eventTimeline: [],
@@ -19,12 +17,10 @@ export class Timeline {
 	#history!: StateHistory<TimelineData>;
 	#state = $state<TimelineData>(initialState);
 	#eventPlaying = $state<RangeDataWithTags | null>(null);
-	#actionPlaying = $state<RangeData | null>(null);
 	#currentTime: number = $state(0);
 	#duration: number = $state(0);
 	#eventSelected = $state<number | null>(null);
 	#timelineEventsByCategory!: Record<string, RangeDataWithTags[]>;
-	#timelineActionsByCategory!: Record<string, RangeData[]>;
 
 	constructor() {
 		this.#history = new StateHistory<TimelineData>(
@@ -43,19 +39,6 @@ export class Timeline {
 					return acc;
 				},
 				{} as Record<string, RangeDataWithTags[]>
-			);
-		});
-
-		this.#timelineActionsByCategory = $derived.by(() => {
-			return this.#state.actionTimeline.reduce(
-				(acc, action) => {
-					if (!acc[action.categoryId]) {
-						acc[action.categoryId] = [];
-					}
-					acc[action.categoryId].push(action);
-					return acc;
-				},
-				{} as Record<string, RangeData[]>
 			);
 		});
 		//#endregion
@@ -88,29 +71,30 @@ export class Timeline {
 	private createNewEvent(
 		buttonId: number,
 		categoryId: number,
-		timeCursor: number
+		timeCursor: number,
+		duration?: number,
+		before?: number
 	): RangeDataWithTags {
+		let start = timeCursor;
+		let end = undefined; // Assuming end is undefined for new dynamic events
+
+		if (duration) {
+			end = timeCursor + duration;
+		}
+
+		if (before) {
+			start = timeCursor - before;
+		}
+
 		return {
 			id: Math.floor(Math.random() * 1000),
 			buttonId: buttonId,
 			categoryId: categoryId,
 			timestamp: {
-				start: timeCursor,
-				end: undefined // Assuming end is undefined for new events
+				start: start,
+				end: end
 			},
 			tagsRelated: []
-		};
-	}
-
-	private createNewAction(buttonId: number, categoryId: number, timeCursor: number): RangeData {
-		return {
-			id: Math.floor(Math.random() * 1000),
-			buttonId: buttonId,
-			categoryId: categoryId,
-			timestamp: {
-				start: timeCursor,
-				end: undefined // Assuming end is undefined for new actions
-			}
 		};
 	}
 
@@ -120,7 +104,6 @@ export class Timeline {
 		const newEventId = await repository.addEntry(
 			event.buttonId,
 			event.categoryId,
-			CategoryType.Event,
 			event.timestamp.start,
 			event.timestamp.end
 		);
@@ -139,38 +122,28 @@ export class Timeline {
 		await emit('project:dirty');
 	}
 
-	private async persistAction(action: RangeData) {
-		const repository = TimelineRepositoryFactory.getInstance();
-
-		const actionId = await repository.addEntry(
-			action.buttonId,
-			action.categoryId,
-			CategoryType.Action,
-			action.timestamp.start,
-			action.timestamp.end
-		);
-
-		action.id = actionId;
-
-		this.#state = {
-			...this.#state,
-			actionTimeline: [...this.#state.actionTimeline, action]
-		};
-
-		this.#actionPlaying = null;
-
-		await emit('project:dirty');
-	}
-
 	//#region Actions
-	async addEvent(buttonId: number, categoryId: number, timeCursor: number) {
-		const newEvent = this.createNewEvent(buttonId, categoryId, timeCursor);
+	async addEvent(
+		buttonId: number,
+		categoryId: number,
+		timeCursor: number,
+		duration?: number,
+		before?: number
+	) {
+		const newEvent = this.createNewEvent(buttonId, categoryId, timeCursor, duration, before);
 
 		if (this.#eventPlaying === null) {
+			if (duration === undefined) {
+				this.#eventPlaying = newEvent;
+				this.#eventSelected = null; // Clear any selected event
+				return;
+			}
+
 			this.#eventPlaying = newEvent;
 			this.#eventSelected = null; // Clear any selected event
-			return;
+			return await this.persistEvent(this.#eventPlaying);
 		}
+
 		if (
 			this.#eventPlaying &&
 			this.#eventPlaying.buttonId === buttonId &&
@@ -178,34 +151,7 @@ export class Timeline {
 		) {
 			this.#eventPlaying.timestamp.end = timeCursor;
 
-			this.persistEvent(this.#eventPlaying);
-		}
-	}
-
-	async addAction(button: Button, categoryId: number, timeCursor: number) {
-		let newAction: RangeData;
-
-		if (button.range === ButtonRange.DYNAMIC) {
-			newAction = this.createNewAction(button.id, categoryId, timeCursor);
-		} else {
-			newAction = this.createNewAction(button.id, categoryId, timeCursor - (button.before || 0));
-			newAction.timestamp.end = newAction.timestamp.start + button.duration!;
-		}
-
-		if (this.#actionPlaying === null && newAction.timestamp.end === undefined) {
-			this.#actionPlaying = newAction;
-			return;
-		}
-
-		if (
-			this.#actionPlaying &&
-			this.#actionPlaying.buttonId === button.id &&
-			this.#actionPlaying.categoryId === categoryId
-		) {
-			this.#actionPlaying.timestamp.end = timeCursor;
-			this.persistAction(this.#actionPlaying);
-		} else if (this.#actionPlaying === null) {
-			this.persistAction(newAction);
+			await this.persistEvent(this.#eventPlaying);
 		}
 	}
 
@@ -276,30 +222,14 @@ export class Timeline {
 		await emit('project:dirty');
 	}
 
-	async removeAction(actionId: number) {
-		const repository = TimelineRepositoryFactory.getInstance();
-
-		const newActionTimeline = this.#state.actionTimeline.filter((a) => a.id !== actionId);
-		this.#state = {
-			...this.#state,
-			actionTimeline: newActionTimeline
-		};
-
-		await repository.removeEntry(actionId);
-
-		await emit('project:dirty');
-	}
-
 	wrapForUndo() {
 		Object.assign(
 			this,
 			wrapObjectForUndo(
 				{
-					addAction: this.addAction.bind(this),
 					persistEvent: this.persistEvent.bind(this),
 					addRelatedTagToEvent: this.addRelatedTagToEvent.bind(this),
-					removeEvent: this.removeEvent.bind(this),
-					removeAction: this.removeAction.bind(this)
+					removeEvent: this.removeEvent.bind(this)
 				},
 				Scope.Timeline
 			)
@@ -314,20 +244,12 @@ export class Timeline {
 		return this.#eventPlaying;
 	}
 
-	get actionPlaying() {
-		return this.#actionPlaying;
-	}
-
 	get eventSelected() {
 		return this.#eventSelected;
 	}
 
 	get eventsByCategory() {
 		return this.#timelineEventsByCategory;
-	}
-
-	get actionsByCategory() {
-		return this.#timelineActionsByCategory;
 	}
 
 	get currentTime() {

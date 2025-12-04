@@ -4,12 +4,24 @@
 		end: number | null;
 		timelineStart: number;
 		timelineEnd: number;
+		isSelected?: boolean;
 		color: string;
+		borderColor?: string;
 		name: string;
 		onClick: () => void;
 	}
 
-	let { start, end, timelineStart, timelineEnd, color, name, onClick }: Props = $props();
+	let {
+		start,
+		end,
+		timelineStart,
+		timelineEnd,
+		isSelected,
+		color,
+		borderColor,
+		name,
+		onClick
+	}: Props = $props();
 
 	let total = $derived(timelineEnd - timelineStart);
 
@@ -23,8 +35,9 @@
 </script>
 
 <div
-	class="absolute h-full rounded-xs opacity-80 hover:opacity-100"
-	style="left: {leftPercentage * 100}%; width: {widthPercentage * 100}%; background-color: {color};"
+	class={`border-rounded-xs absolute h-full rounded-xs border-2 opacity-80 hover:opacity-100 ${isSelected ? 'opacity-100' : ''}`}
+	style="left: {leftPercentage * 100}%; width: {widthPercentage *
+		100}%; background-color: {color}; border-color: {borderColor || color};"
 	aria-label={name}
 	title={name}
 	role="button"

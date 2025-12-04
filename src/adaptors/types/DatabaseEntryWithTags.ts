@@ -1,10 +1,7 @@
-import type { CategoryType } from '../../components/box/types';
-
 export type DatabaseEntry = {
 	id: number;
 	button_id: number;
 	category_id: number;
-	type: CategoryType;
 	timestamp_start: number;
 	timestamp_end?: number;
 };

@@ -22,15 +22,11 @@
 		value: button.id,
 		label: button.name
 	}));
-	const allActionOptions = Object.values(board.actionButtonsById).map((button) => ({
-		value: button.id,
-		label: button.name
-	}));
+
 	const allTags = Object.values(board.tagsById).map((tag) => ({
 		id: tag.id!,
 		value: tag.id!,
-		label: tag.name,
-		color: tag.color
+		label: tag.name
 	}));
 
 	const initialRule: ExportingRule = {
@@ -98,7 +94,6 @@
 	<table>
 		<thead>
 			<tr>
-				<th>Type</th>
 				<th>Include</th>
 				<th>Tagged with</th>
 			</tr>
@@ -107,7 +102,6 @@
 			{#each exportingRules as rule, idx (idx)}
 				{#if !rule.temp}
 					<tr>
-						<td>{rule.type}</td>
 						<td>{rule.include}</td>
 						<td>{rule.taggedWith.join(', ')}</td>
 					</tr>
@@ -117,18 +111,8 @@
 				<tr>
 					<td class="p-2">
 						<Dropdown
-							placeholder="Category type"
-							options={Object.values(CategoryType).map((type) => ({ value: type, label: type }))}
-							size="full"
-							selectClass="bg-gray-800"
-							noErrors
-							bind:value={newRule.type}
-						/>
-					</td>
-					<td class="p-2">
-						<Dropdown
-							placeholder="Event or action"
-							options={newRule.type === CategoryType.Event ? allEventOptions : allActionOptions}
+							placeholder="Event"
+							options={allEventOptions}
 							size="full"
 							selectClass="bg-gray-800"
 							noErrors
@@ -141,7 +125,6 @@
 							size="full"
 							selectClass="bg-gray-800"
 							noErrors
-							disabled={newRule.type === CategoryType.Action}
 							bind:selectedValues={newRule.taggedWith}
 						/>
 					</td>

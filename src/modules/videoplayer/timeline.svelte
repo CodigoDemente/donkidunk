@@ -158,13 +158,10 @@
 			{handleDragStart}
 			{handleDragEnd}
 			eventCategoriesById={board.eventCategoriesById}
-			actionCategoriesById={board.actionCategoriesById}
 			eventsByCategory={timeline.eventsByCategory}
-			actionsByCategory={timeline.actionsByCategory}
 			eventButtonsById={board.eventButtonsById}
-			actionButtonsById={board.actionButtonsById}
 			eventPlaying={timeline.eventPlaying}
-			actionPlaying={timeline.actionPlaying}
+			eventSelected={timeline.eventSelected}
 			onEventClick={timeline.setEventSelected.bind(timeline)}
 			onTimeChange={handleTimeChange}
 		/>

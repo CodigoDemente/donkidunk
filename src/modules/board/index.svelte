@@ -6,9 +6,9 @@
 
 	const context = boardContext.get();
 
-	let boxHeight = 50; // Default height percentage for boxes
+	let boxHeight = 100; // Default height percentage for boxes
 	let eventsOpen = true;
-	let actionsOpen = true;
+	let tagsOpen = true;
 </script>
 
 <div id="boards-container" class="flex h-full min-h-0 flex-1 flex-col">
@@ -21,20 +21,19 @@
 	<!-- Events Section -->
 	<Box
 		categories={context.eventCategories}
-		tags={context.tagsRelatedToEvents}
 		title="Events Board"
 		{boxHeight}
 		type={CategoryType.Event}
 		isOpened={eventsOpen}
-		otherIsOpened={actionsOpen}
+		otherIsOpened={tagsOpen}
 	/>
-	<!-- Actions Section -->
+	<!-- Tags Section -->
 	<Box
-		categories={context.actionCategories}
-		title="Actions Board"
+		categories={context.tagCategories}
+		title="Tags"
 		{boxHeight}
-		type={CategoryType.Action}
-		isOpened={actionsOpen}
+		type={CategoryType.Tag}
+		isOpened={tagsOpen}
 		otherIsOpened={eventsOpen}
 	/>
 </div>

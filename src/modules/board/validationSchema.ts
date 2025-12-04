@@ -2,22 +2,6 @@ import type { Category } from './types/Category';
 import type { Tag } from './types/Tag';
 import type { Button } from './types/Button';
 
-export const tagValidationSchema = [
-	{
-		validate: (tag: Tag) => tag.name.trim() === '',
-		message: 'Tag name cannot be empty'
-	},
-	{
-		validate: (tag: Tag, idx: number, tags: Tag[]) => {
-			const name = tag.name.trim().toLowerCase();
-			return (
-				name && tags.filter((t, i) => t.name.trim().toLowerCase() === name && i !== idx).length > 0
-			);
-		},
-		message: 'Tag names must be unique'
-	}
-];
-
 export const categoryValidationSchema = [
 	{
 		validate: (category: Category) => category.name.trim() === '',
@@ -31,7 +15,17 @@ export const categoryValidationSchema = [
 
 export const buttonValidationSchema = [
 	{
-		validate: (button: Button) => button.name.trim() === '',
-		message: 'Button name cannot be empty'
+		validate: (button: Button | Tag) => button.name.trim() === '',
+		message: 'Name cannot be empty'
+	},
+	{
+		validate: (button: Button | Tag, idx: number, buttons: Button[] | Tag[]) => {
+			const name = button.name.trim().toLowerCase();
+			return (
+				name &&
+				buttons.filter((b, i) => b.name.trim().toLowerCase() === name && i !== idx).length > 0
+			);
+		},
+		message: 'Names must be unique'
 	}
 ];

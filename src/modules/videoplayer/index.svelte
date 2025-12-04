@@ -105,7 +105,7 @@
 	}
 </script>
 
-<div class="flex h-screen flex-col bg-gray-900 p-2">
+<div class="flex h-screen flex-col bg-gray-900 p-2 pl-8">
 	<p class="mb-2 inline-block py-1 text-xs">Video / Timeline</p>
 	<video
 		id="video-player"
