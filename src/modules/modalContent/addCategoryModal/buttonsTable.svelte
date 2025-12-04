@@ -8,6 +8,7 @@
 	import { CategoryType } from '../../../components/box/types';
 	import { ButtonRange, type Button as ButtonType } from '../../board/types/Button';
 	import { secondsOptions, typeOptions } from './utils';
+	import type { Tag } from '../../board/types/Tag';
 
 	const context = boardContext.get();
 
@@ -36,20 +37,21 @@
 		if (isEventType) {
 			newButton.color = context.categoryToCreate.color;
 			const button = { ...newButton };
-			context.categoryToCreate.buttons = [...context.categoryToCreate.buttons, button] as any;
+			context.categoryToCreate.buttons = [
+				...context.categoryToCreate.buttons,
+				button
+			] as ButtonType[];
 			newButton = initialButton;
 		} else if (isTagType) {
 			newTag.color = context.categoryToCreate.color;
 			const tag = { ...newTag };
-			context.categoryToCreate.buttons = [...context.categoryToCreate.buttons, tag] as any;
+			context.categoryToCreate.buttons = [...context.categoryToCreate.buttons, tag] as Tag[];
 			newTag = initialTag;
 		}
 	}
 
 	function removeButton(idx: number) {
-		context.categoryToCreate.buttons = context.categoryToCreate.buttons.filter(
-			(_, i) => i !== idx
-		) as any;
+		context.categoryToCreate.buttons = context.categoryToCreate.buttons.filter((_, i) => i !== idx);
 	}
 </script>
 

@@ -8,7 +8,7 @@
 	import type { Button } from '../../board/types/Button';
 	import type { Category } from '../../board/types/Category';
 	import { mapClickToVisibleTime } from '../timelineZoom';
-	import type { RangeData, RangeDataWithTags } from '../types/RangeData';
+	import type { RangeDataWithTags } from '../types/RangeData';
 
 	type Props = {
 		currentTime: number;
