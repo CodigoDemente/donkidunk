@@ -1,0 +1,42 @@
+{
+    "button_categories": [
+        {
+            "id": 1,
+            "name": "Button Category 1",
+            "color": "#000000",
+            "position": {
+                "x": 0,
+                "y": 0
+            }
+        }
+    ],
+    "buttons": [
+        {
+            "id": 1,
+            "name": "Button 1",
+            "range": "FIXED",
+            "duration": 1000,
+            "before": 0,
+            "category_id": 1
+        }
+    ],
+    "tag_categories": [
+        {
+            "id": 1,
+            "name": "Tag Category 1",
+            "color": "#000000",
+            "position": {
+                "x": 0,
+                "y": 0
+            }
+        }
+    ],
+    "tags": [
+        {
+            "id": 1,
+            "name": "Tag 1",
+            "color": "#000000",
+            "category_id": 1
+        }
+    ]
+}
