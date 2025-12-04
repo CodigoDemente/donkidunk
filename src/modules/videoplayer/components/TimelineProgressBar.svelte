@@ -22,7 +22,7 @@
 		eventCategoriesById: Record<string, Category>;
 		eventsByCategory: Record<string, RangeDataWithTags[]>;
 		eventButtonsById: Record<string, Button>;
-		eventPlaying: RangeDataWithTags | null;
+		eventsPlaying: RangeDataWithTags[];
 		eventSelected: number | null;
 		onEventClick: (eventId: number) => void;
 		onTimeChange: (time: number) => void;
@@ -40,7 +40,7 @@
 		eventCategoriesById,
 		eventsByCategory,
 		eventButtonsById,
-		eventPlaying,
+		eventsPlaying,
 		eventSelected,
 		onEventClick,
 		onTimeChange
@@ -99,7 +99,7 @@
 						{timelineEnd}
 						boardCategoriesById={eventCategoriesById}
 						buttonsListById={eventButtonsById}
-						playingObject={eventPlaying}
+						playingObjects={eventsPlaying}
 						{eventSelected}
 						{currentTime}
 						onClick={onEventClick}

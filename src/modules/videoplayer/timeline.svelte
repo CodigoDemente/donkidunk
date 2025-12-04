@@ -160,7 +160,7 @@
 			eventCategoriesById={board.eventCategoriesById}
 			eventsByCategory={timeline.eventsByCategory}
 			eventButtonsById={board.eventButtonsById}
-			eventPlaying={timeline.eventPlaying}
+			eventsPlaying={timeline.eventsPlaying as RangeDataWithTags[]}
 			eventSelected={timeline.eventSelected}
 			onEventClick={timeline.setEventSelected.bind(timeline)}
 			onTimeChange={handleTimeChange}

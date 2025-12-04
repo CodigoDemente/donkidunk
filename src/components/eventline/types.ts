@@ -9,7 +9,7 @@ export type Props = {
 	timelineEnd: number;
 	boardCategoriesById: Record<string, Category>;
 	buttonsListById: Record<string, Button>;
-	playingObject?: RangeDataWithTags | RangeData | null;
+	playingObjects?: RangeDataWithTags[];
 	eventSelected?: number | null;
 	currentTime: number;
 	onClick?: (id: number) => void;

@@ -17,6 +17,7 @@ export class Timeline {
 	#history!: StateHistory<TimelineData>;
 	#state = $state<TimelineData>(initialState);
 	#eventPlaying = $state<RangeDataWithTags | null>(null);
+	#eventsPlaying = $state<RangeDataWithTags[]>([]);
 	#currentTime: number = $state(0);
 	#duration: number = $state(0);
 	#eventSelected = $state<number | null>(null);
@@ -109,7 +110,9 @@ export class Timeline {
 		);
 
 		event.id = newEventId;
-		this.#eventPlaying!.id = newEventId;
+		if (this.#eventsPlaying.length > 0) {
+			this.#eventsPlaying[this.#eventsPlaying.length - 1].id = newEventId;
+		}
 
 		this.#state = {
 			...this.#state,
@@ -117,7 +120,6 @@ export class Timeline {
 		};
 
 		this.#eventSelected = newEventId;
-		this.#eventPlaying = null;
 
 		await emit('project:dirty');
 	}
@@ -132,26 +134,36 @@ export class Timeline {
 	) {
 		const newEvent = this.createNewEvent(buttonId, categoryId, timeCursor, duration, before);
 
-		if (this.#eventPlaying === null) {
+		if (
+			this.#eventsPlaying.length === 0 ||
+			!this.#eventsPlaying.some((event) => event.buttonId === buttonId)
+		) {
 			if (duration === undefined) {
-				this.#eventPlaying = newEvent;
+				this.#eventsPlaying.push(newEvent);
 				this.#eventSelected = null; // Clear any selected event
 				return;
 			}
 
-			this.#eventPlaying = newEvent;
+			this.#eventsPlaying.push(newEvent);
 			this.#eventSelected = null; // Clear any selected event
-			return await this.persistEvent(this.#eventPlaying);
+			return await this.persistEvent(newEvent);
 		}
 
 		if (
-			this.#eventPlaying &&
-			this.#eventPlaying.buttonId === buttonId &&
-			this.#eventPlaying.categoryId === categoryId
+			this.#eventsPlaying.length > 0 &&
+			this.#eventsPlaying.some((event) => event.buttonId === buttonId)
 		) {
-			this.#eventPlaying.timestamp.end = timeCursor;
+			this.#eventsPlaying = this.#eventsPlaying.map((event) =>
+				event.buttonId === buttonId
+					? { ...event, timestamp: { ...event.timestamp, end: timeCursor } }
+					: event
+			);
 
-			await this.persistEvent(this.#eventPlaying);
+			const eventPlaying = this.#eventsPlaying.find((event) => event.buttonId === buttonId)!;
+
+			await this.persistEvent(eventPlaying);
+			this.#eventsPlaying = this.#eventsPlaying.filter((event) => event.buttonId !== buttonId);
+			return;
 		}
 	}
 
@@ -179,11 +191,11 @@ export class Timeline {
 			return [...tags, tagId];
 		};
 
-		if (this.#eventPlaying) {
-			this.#eventPlaying = {
-				...this.#eventPlaying,
-				tagsRelated: toggleTag(this.#eventPlaying.tagsRelated)
-			};
+		if (this.#eventsPlaying.length > 0) {
+			this.#eventsPlaying[this.#eventsPlaying.length - 1].tagsRelated = toggleTag(
+				this.#eventsPlaying[this.#eventsPlaying.length - 1].tagsRelated
+			);
+			return;
 		} else if (this.#eventSelected) {
 			const newEventTimeline = this.#state.eventTimeline.map((event) =>
 				event.id === this.#eventSelected
@@ -197,11 +209,17 @@ export class Timeline {
 			};
 		}
 
-		if (this.#eventPlaying || this.#eventSelected) {
+		if (this.#eventsPlaying.length > 0 || this.#eventSelected) {
 			if (op === 'add') {
-				await repository.addTagToEntry(this.#eventSelected || this.#eventPlaying!.id, tagId);
+				await repository.addTagToEntry(
+					this.#eventSelected || this.#eventsPlaying[this.#eventsPlaying.length - 1].id,
+					tagId
+				);
 			} else {
-				await repository.removeTagFromEntry(this.#eventSelected || this.#eventPlaying!.id, tagId);
+				await repository.removeTagFromEntry(
+					this.#eventSelected || this.#eventsPlaying[this.#eventsPlaying.length - 1].id,
+					tagId
+				);
 			}
 		}
 
@@ -242,6 +260,10 @@ export class Timeline {
 	//#region Selectors
 	get eventPlaying() {
 		return this.#eventPlaying;
+	}
+
+	get eventsPlaying() {
+		return this.#eventsPlaying;
 	}
 
 	get eventSelected() {

@@ -12,7 +12,7 @@
 		timelineEnd,
 		boardCategoriesById,
 		buttonsListById,
-		playingObject,
+		playingObjects,
 		eventSelected,
 		currentTime,
 		onClick
@@ -42,20 +42,27 @@
 					color={boardCategoriesById[categoryId]?.color}
 					borderColor={buttonsListById[event.buttonId]?.color}
 					name={buttonsListById[event.buttonId]?.name}
-					onClick={() => onClick && playingObject === null && onClick(event.id)}
+					onClick={() =>
+						onClick &&
+						!playingObjects?.some((playingObject) => playingObject.buttonId === event.buttonId) &&
+						onClick(event.id)}
 				/>
 			{/if}
 		{/each}
 	{/if}
-	{#if playingObject && categoryId === playingObject.categoryId && isEventVisible(playingObject.timestamp.start, currentTime)}
-		<Clip
-			start={playingObject.timestamp.start}
-			end={currentTime}
-			timelineStart={leftLimit}
-			timelineEnd={rightLimit}
-			color={boardCategoriesById[categoryId]?.color}
-			name={buttonsListById[playingObject.buttonId]?.name}
-			onClick={() => {}}
-		/>
+	{#if playingObjects && playingObjects.length > 0}
+		{#each playingObjects as playingObject}
+			{#if playingObject && categoryId === playingObject.categoryId && isEventVisible(playingObject.timestamp.start, currentTime)}
+				<Clip
+					start={playingObject.timestamp.start}
+					end={currentTime}
+					timelineStart={leftLimit}
+					timelineEnd={rightLimit}
+					color={boardCategoriesById[categoryId]?.color}
+					name={buttonsListById[playingObject.buttonId]?.name}
+					onClick={() => {}}
+				/>
+			{/if}
+		{/each}
 	{/if}
 </div>
