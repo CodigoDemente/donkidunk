@@ -16,7 +16,7 @@
 </script>
 
 <button
-	class={`inline-flex items-center rounded-xl px-2 py-1 text-xs font-medium ${className} ${!disabled && 'hover:cursor-pointer hover:brightness-120'}`}
+	class={`inline-flex items-center rounded-xl px-2 py-1 text-sm font-medium ${className} ${!disabled && 'hover:cursor-pointer hover:brightness-120'}`}
 	style={`background-color: ${color}; color: ${buttonTextColor};`}
 	onclick={handleClick}
 	{disabled}

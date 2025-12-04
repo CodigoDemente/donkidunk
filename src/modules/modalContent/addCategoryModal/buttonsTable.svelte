@@ -55,7 +55,7 @@
 	}
 </script>
 
-<div class="max-h-[400px] overflow-y-auto rounded bg-gray-700">
+<div class="max-h-[400px] overflow-x-hidden overflow-y-auto rounded bg-gray-700">
 	<table class="w-full table-fixed text-sm text-white">
 		<thead class="sticky top-0 z-2 bg-gray-700">
 			<tr>
@@ -155,7 +155,7 @@
 							{/if}
 						{/if}
 
-						<td class="w-[60px] p-2 pr-4 text-right">
+						<td class="w-[60px] p-2 pr-10 text-right">
 							<button
 								class="text-gray-200 hover:cursor-pointer hover:text-white"
 								onclick={() => removeButton(idx)}

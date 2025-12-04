@@ -55,7 +55,7 @@
 
 <!-- Draggable element absolutely positioned by percentage -->
 <div
-	class="absolute z-10 inline-block min-h-10 cursor-move rounded border border-gray-900 bg-gray-700 px-1 pb-1 text-blue-950 shadow select-none"
+	class="absolute z-10 inline-block min-h-10 cursor-move rounded border border-gray-900 bg-gray-700 text-blue-950 shadow select-none"
 	style="
 	left: {category.position.x}%;
 	top: {category.position.y}%;"
@@ -65,8 +65,8 @@
 	aria-grabbed="true"
 	tabindex="0"
 >
-	<div class="flex items-center justify-between gap-2">
-		<p class="flex items-center gap-1 text-xs font-semibold text-gray-200">
+	<div class="flex items-center justify-between gap-2 border-b border-gray-800 px-2 py-1">
+		<p class="flex items-center gap-1 text-sm font-semibold text-gray-200">
 			<span
 				class="rounded-full"
 				style="background-color: {category.color}; width: 0.75rem; height: 0.75rem; display: inline-block; margin-right: 0.25rem;"
@@ -84,7 +84,7 @@
 			{/if}
 		</div>
 	</div>
-	<div class="flex flex-wrap gap-2">
+	<div class="flex flex-wrap gap-2 p-2">
 		{#if type === CategoryType.Event}
 			{#each category.buttons as button, idx (button.id ?? `temp-${category.id}-${idx}`)}
 				<button
@@ -94,7 +94,7 @@
 				`}
 					class="rounded-xs border border-gray-800 px-2
 				py-1
-				text-xs shadow-sm
+				text-sm shadow-sm
 				hover:cursor-pointer
 				hover:brightness-120"
 					onclick={() => addEvent(button as Button)}

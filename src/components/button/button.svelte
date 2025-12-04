@@ -48,12 +48,11 @@
     ${textColor}
     ${sizeToWidth[size]}
     ${sizeToText[size]}
-	${size !== 'mini' ? 'p-2' : ''}
+	${size !== 'mini' ? 'p-2 pb-1' : ''}
 	flex
 	items-center
 	justify-center
     rounded-[4px]
-	pb-1
 	leading-none
 	hover:cursor-pointer
 	${disabled ? 'cursor-not-allowed opacity-70' : ''}

@@ -94,7 +94,6 @@
 	<table>
 		<thead>
 			<tr>
-				<th>Type</th>
 				<th>Include</th>
 				<th>Tagged with</th>
 			</tr>
@@ -103,7 +102,6 @@
 			{#each exportingRules as rule, idx (idx)}
 				{#if !rule.temp}
 					<tr>
-						<td>{rule.type}</td>
 						<td>{rule.include}</td>
 						<td>{rule.taggedWith.join(', ')}</td>
 					</tr>
@@ -113,17 +111,7 @@
 				<tr>
 					<td class="p-2">
 						<Dropdown
-							placeholder="Category type"
-							options={Object.values(CategoryType).map((type) => ({ value: type, label: type }))}
-							size="full"
-							selectClass="bg-gray-800"
-							noErrors
-							bind:value={newRule.type}
-						/>
-					</td>
-					<td class="p-2">
-						<Dropdown
-							placeholder="Event or action"
+							placeholder="Event"
 							options={allEventOptions}
 							size="full"
 							selectClass="bg-gray-800"
