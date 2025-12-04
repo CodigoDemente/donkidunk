@@ -7,10 +7,15 @@ mod menu;
 #[cfg(not(target_os = "windows"))]
 mod server;
 
+use commands::config::*;
 use commands::menu::*;
 use commands::video::*;
-#[cfg(debug_assertions)]
+use lib::configmanager::ConfigManager;
 use tauri::Manager;
+
+pub struct AppState {
+    config_manager: ConfigManager,
+}
 
 fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
     builder
@@ -19,12 +24,17 @@ fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
             server::get_linux_file_url,
             set_menu_item_enabling_status,
             cut_video,
+            get_user_config,
         ])
         .setup(|app| {
             #[cfg(not(target_os = "windows"))]
             tokio::spawn(server::setup_webserver());
 
             menu::setup_menu(app)?;
+
+            app.manage(AppState {
+                config_manager: ConfigManager::new(app)?,
+            });
 
             #[cfg(debug_assertions)]
             app.get_webview_window("main").unwrap().open_devtools();
@@ -44,7 +54,7 @@ async fn main() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(
             tauri_plugin_log::Builder::new()
-                .level(log::LevelFilter::Info)
+                .level(log::LevelFilter::Debug)
                 .build(),
         )
         .plugin(tauri_plugin_opener::init())
@@ -53,7 +63,9 @@ async fn main() {
     let app = create_app(builder);
 
     app.run(|_, event| {
-        log::debug!("Tauri event: {event:?}");
+        if !matches!(event, tauri::RunEvent::MainEventsCleared) {
+            log::debug!("Tauri event: {event:?}");
+        }
 
         if let tauri::RunEvent::Ready = event {
             log::debug!("Tauri is ready");

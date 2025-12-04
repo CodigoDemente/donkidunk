@@ -1,30 +1,32 @@
-import { homeDir } from '@tauri-apps/api/path';
-import { save } from '@tauri-apps/plugin-dialog';
 import { debug } from '@tauri-apps/plugin-log';
 import { v4 as uuidv4 } from 'uuid';
 import { createBackupDatabase } from '../../../persistence/database/actions';
 import { enableImportVideo } from './enableItems';
 import { projectActions } from '../../../persistence/stores/project/actions';
+import { selectProjectPath } from './selectProjectPath';
 
-export async function createNewProject() {
+export async function createNewProject(providedPath?: string) {
 	debug('New project action triggered');
 
-	const homePath = await homeDir();
-
-	const path = await save({
-		canCreateDirectories: true,
-		defaultPath: homePath,
-		title: 'Save Donkidunk project',
-		filters: [
-			{
-				extensions: ['dnk'],
-				name: 'Donkidunk project file'
-			}
-		]
-	});
+	let path = providedPath;
 
 	if (!path) {
-		debug('No path selected');
+		const selectedPath = await selectProjectPath();
+
+		if (!selectedPath) {
+			debug('No path selected');
+			return;
+		}
+
+		path = selectedPath;
+	}
+
+	if (path && !path.endsWith('.dnk')) {
+		path = `${path}.dnk`;
+	}
+
+	if (!path) {
+		debug('No valid path available');
 		return;
 	}
 

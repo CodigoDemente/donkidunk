@@ -5,6 +5,9 @@ pub enum AppError {
     #[error("{0}")]
     Ffmpeg(#[from] FfmpegError),
 
+    #[error("{0}")]
+    ConfigManager(#[from] ConfigError),
+
     #[error(transparent)]
     ApplicationError(#[from] tauri::Error),
 
@@ -40,4 +43,19 @@ pub enum FfmpegError {
 
     #[error("[ffmpeg-cleanup] ERROR FMMPEG cleanup failed: {0}")]
     FfmpegCleanupFailed(String),
+}
+
+#[derive(Debug, Error)]
+pub enum ConfigError {
+    #[error("[config-manager] ERROR getting config value, not found: {0}")]
+    ConfigValueNotFound(String),
+
+    #[error("[config-manager] ERROR reading or writing configuration: {0}")]
+    ConfigIOError(#[from] std::io::Error),
+
+    #[error("[config-manager] ERROR serializing or deserializing config: {0}")]
+    ConfigSerializationError(#[from] serde_json::Error),
+
+    #[error("[config-manager] ERROR getting config dir: {0}")]
+    ConfigGenericError(#[from] tauri::Error),
 }

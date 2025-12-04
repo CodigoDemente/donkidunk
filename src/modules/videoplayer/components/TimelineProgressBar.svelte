@@ -67,7 +67,12 @@
 		}
 
 		// Map click position to time within visible range
-		const newTime = mapClickToVisibleTime(event.offsetX, fullWidth, leftLimitTime, visibleDuration);
+		let newTime = mapClickToVisibleTime(event.offsetX, fullWidth, leftLimitTime, visibleDuration);
+
+		if (newTime < 0.1) {
+			newTime = 0.1;
+		}
+
 		currentTime = newTime;
 		onTimeChange(newTime);
 	}

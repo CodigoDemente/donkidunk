@@ -6,9 +6,12 @@
 	import { destroyEvents, initEvents } from '../events';
 	import { boardContext, Board } from '../modules/board/context.svelte';
 	import { Timeline, timelineContext } from '../modules/videoplayer/context.svelte';
+	import { Config, configContext } from '../modules/config/context.svelte';
+	import { getConfig } from '../modules/config/commands/GetConfig';
 
 	const board = boardContext.set(new Board());
 	const timeline = timelineContext.set(new Timeline());
+	const config = configContext.set(new Config());
 
 	// Has to be done after creating *both* contexts, since the wrapForUndo method
 	// uses the undo manager internally, who accesses both contexts
@@ -19,6 +22,12 @@
 		// Initialize the menu
 		await bindMenuEvents(board, timeline);
 		await initEvents();
+
+		const configData = await getConfig();
+
+		console.log(configData);
+
+		config.state = configData;
 	});
 
 	onDestroy(() => {

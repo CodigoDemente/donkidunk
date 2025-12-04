@@ -3,6 +3,11 @@ import type { Component } from 'svelte';
 
 export type ModalSize = 'medium' | 'small' | 'large' | 'extralarge';
 
+export type NewProjectFormData = {
+	projectPath: string;
+	videoPath: string;
+};
+
 export type ProjectData = {
 	metadata: {
 		timestamp: string;
@@ -34,4 +39,5 @@ export type ProjectData = {
 		mode: 'auto' | 'manual';
 	};
 	database: Database | null;
+	newProjectFormData: NewProjectFormData | null;
 };

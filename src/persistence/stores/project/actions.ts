@@ -2,7 +2,7 @@ import type Database from '@tauri-apps/plugin-sql';
 import { ProjectRepositoryFactory } from '../../../factories/ProjectRepositoryFactory';
 import ProjectStore from './store.svelte';
 import { emit } from '@tauri-apps/api/event';
-import type { ProjectData } from './types/Project';
+import type { ProjectData, NewProjectFormData } from './types/Project';
 import type { FeedbackType } from '../../../utils/messages';
 
 const projectStore = ProjectStore.getState();
@@ -97,5 +97,13 @@ export const projectActions = {
 		projectStore.video.path = path;
 
 		await emit('project:dirty');
+	},
+
+	setNewProjectFormData(formData: NewProjectFormData | null): void {
+		projectStore.newProjectFormData = formData;
+	},
+
+	getNewProjectFormData(): NewProjectFormData | null {
+		return projectStore.newProjectFormData;
 	}
 };

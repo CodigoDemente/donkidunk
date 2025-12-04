@@ -5,6 +5,7 @@
 	import '../styles/page.css';
 	import Modal from '../components/modal/modal.svelte';
 	import Snackbar from '../components/snackbar/snackbar.svelte';
+	import EmptyProjectState from '../modules/launch/emptyProjectState.svelte';
 
 	let leftWidth = 50;
 	let isResizing = false;
@@ -42,7 +43,11 @@
 		aria-orientation="horizontal"
 	></div>
 	<div class="grow">
-		<Board />
+		{#if projectStore.file?.originalPath}
+			<Board />
+		{:else}
+			<EmptyProjectState />
+		{/if}
 	</div>
 </div>
 <Modal bind:modalStore={projectStore.modal} />
