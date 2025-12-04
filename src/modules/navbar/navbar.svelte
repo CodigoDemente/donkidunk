@@ -1,7 +1,14 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
 	import { resolve } from '$app/paths';
 	import type { RouteId } from '$app/types';
+	import {
+		IconChevronLeft,
+		IconChevronRight,
+		IconFileScissors,
+		IconTag
+	} from '@tabler/icons-svelte';
 
 	let isNavbarOpen = false;
 	function toggleNavbar() {
@@ -11,18 +18,41 @@
 	function navigateTo(page: RouteId) {
 		goto(resolve(page)); // Navigate to the specified route
 	}
+
+	const isActive = (pageRoute: RouteId) => {
+		return $page.route.id === pageRoute;
+	};
 </script>
 
-<navbar class="navbarEffects overflow-hidden {isNavbarOpen ? 'w-16' : 'w-4'}">
-	<button onclick={toggleNavbar} aria-label="Toggle Navbar">
-		{isNavbarOpen ? '<' : '>'}
-	</button>
-	<ul class="contentEffects {isNavbarOpen ? 'visible opacity-100' : 'invisible opacity-0'}">
-		<li>
-			<button type="button" onclick={() => navigateTo('/')}>Board</button>
+<navbar
+	class="navbarEffects relative overflow-hidden border-r-3 border-black bg-gray-900 {isNavbarOpen
+		? 'w-28'
+		: 'w-14'}"
+>
+	<ul class="contentEffects flex flex-col items-center gap-5 pt-26">
+		<li class="border-b border-black">
+			<button
+				class={`flex items-center justify-center gap-2 rounded-sm p-2 hover:cursor-pointer ${isActive('/') ? 'bg-tertiary text-white' : 'text-tertiary'}`}
+				type="button"
+				onclick={() => navigateTo('/')}
+			>
+				<IconTag class="h-5 w-5" />
+				{#if isNavbarOpen}
+					<p class="buttonEffects text-sm">Board</p>
+				{/if}
+			</button>
 		</li>
-		<li>
-			<button type="button" onclick={() => navigateTo('/export')}>Export</button>
+		<li class="border-b border-black">
+			<button
+				class={`flex items-center justify-center gap-2 rounded-sm p-2 hover:cursor-pointer ${isActive('/export') ? 'bg-tertiary text-white' : 'text-tertiary'}`}
+				type="button"
+				onclick={() => navigateTo('/export')}
+			>
+				<IconFileScissors class="h-6 w-6" />
+				{#if isNavbarOpen}
+					<p class="buttonEffects text-sm">Export</p>
+				{/if}
+			</button>
 		</li>
 		<!-- 
 		This is commented out because this route doesn't exists yet and eslint complains about it
@@ -32,6 +62,19 @@
 		-->
 	</ul>
 </navbar>
+<button
+	class="buttonEffects absolute top-15 {isNavbarOpen
+		? 'left-22'
+		: 'left-11'} rounded-lg border border-white bg-black p-1 text-gray-200 hover:cursor-pointer hover:text-white"
+	onclick={toggleNavbar}
+	aria-label="Toggle Navbar"
+>
+	{#if isNavbarOpen}
+		<IconChevronLeft class="h-3 w-3" />
+	{:else}
+		<IconChevronRight class="h-3 w-3" />
+	{/if}
+</button>
 
 <style>
 	.navbarEffects {
@@ -43,5 +86,9 @@
 		transition:
 			opacity 0.3s ease,
 			visibility 0.3s ease; /* Smooth transition for visibility and opacity */
+	}
+
+	.buttonEffects {
+		transition: left 0.3s ease; /* Smooth transition for left position */
 	}
 </style>
