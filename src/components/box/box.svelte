@@ -64,7 +64,7 @@
 
 <div
 	class={`relative flex flex-col rounded-lg border border-gray-600 bg-gray-800 transition-all duration-200
-    ${!isOpened ? 'h-10 min-h-0 flex-shrink-0' : otherIsOpened ? '' : 'min-h-[40px] flex-1'}`}
+    ${!isOpened ? 'h-10 min-h-0 shrink-0' : otherIsOpened ? '' : 'min-h-[40px] flex-1'}`}
 	style={isOpened && otherIsOpened ? `height: ${boxHeight}%; min-height: 40px;` : ''}
 >
 	<div class="flex h-10 items-center justify-between border-b border-gray-600 bg-gray-800 px-4">
@@ -110,7 +110,7 @@
 {#if isOpened}
 	<button
 		type="button"
-		class="h-1 w-full flex-shrink-0 cursor-row-resize bg-gray-900"
+		class="h-1 w-full shrink-0 cursor-row-resize bg-gray-900"
 		onmousedown={() => startResize(setBoxHeight)}
 		style="z-index: 20;"
 		aria-label="Resize section"

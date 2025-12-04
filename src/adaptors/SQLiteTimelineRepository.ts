@@ -10,8 +10,7 @@ export class SQLiteTimelineRepository implements TimelineRepository {
 	async getEvents(): Promise<RangeDataWithTags[]> {
 		const entries = await this.db.select<DatabaseEntryWithTag[]>(
 			`SELECT te.id, te.button_id, te.category_id, te.timestamp_start, te.timestamp_end, tet.tag_id
-			 FROM timeline_entry te LEFT JOIN timeline_entry_tag tet ON te.id = tet.timeline_entry_id
-			 WHERE te.type = 'event'`
+			 FROM timeline_entry te LEFT JOIN timeline_entry_tag tet ON te.id = tet.timeline_entry_id`
 		);
 
 		const categoriesAndButtons: Record<string, RangeDataWithTags> = entries.reduce(

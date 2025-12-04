@@ -35,7 +35,7 @@
 </script>
 
 <div
-	class={`border-rounded-xs absolute h-full rounded-xs border border-2 opacity-80 hover:opacity-100 ${isSelected ? 'opacity-100' : ''}`}
+	class={`border-rounded-xs absolute h-full rounded-xs border-2 opacity-80 hover:opacity-100 ${isSelected ? 'opacity-100' : ''}`}
 	style="left: {leftPercentage * 100}%; width: {widthPercentage *
 		100}%; background-color: {color}; border-color: {borderColor || color};"
 	aria-label={name}

@@ -1,22 +1,31 @@
 import type Database from '@tauri-apps/plugin-sql';
 import type { BoardRepository } from '../ports/BoardRepository';
 import type { Category } from '../modules/board/types/Category';
-import type { DatabaseCategory } from './types/DatabaseCategory';
 import type { Tag } from '../modules/board/types/Tag';
 import type { DatabaseTag } from './types/DatabaseTag';
 import { ButtonRange, type Button } from '../modules/board/types/Button';
-import type { CategoryType } from '../components/box/types';
+import { CategoryType } from '../components/box/types';
+import type { DatabaseEventCategory, DatabaseTagCategory } from './types/DatabaseCategory';
 
 export class SQLiteBoardRepository implements BoardRepository {
 	constructor(private readonly db: Database) {}
 
 	async getSectionCategories(section: CategoryType): Promise<Category[]> {
-		const categories = await this.db.select<DatabaseCategory[]>(
-			`SELECT category.id, type, category.name, color, grid_position_x, grid_position_y, button.id AS button_id, button.name AS button_name, button.range as button_range, button.duration as button_duration, button.before as button_before, button.color as button_color
+		if (section === CategoryType.Event) {
+			return this.getEventCategories();
+		} else if (section === CategoryType.Tag) {
+			return this.getTagCategories();
+		}
+		throw new Error(`Invalid section: ${section}`);
+	}
+
+	private async getEventCategories(): Promise<Category[]> {
+		const categories = await this.db.select<DatabaseEventCategory[]>(
+			`SELECT category.id, type, category.name, category.color, grid_position_x, grid_position_y, button.id AS button_id, button.name AS button_name, button.range as button_range, button.duration as button_duration, button.before as button_before, button.color as button_color
 			FROM category LEFT JOIN button ON category.id = button.category_id
              WHERE type = $1
              ORDER BY grid_position_y, grid_position_x`,
-			[section]
+			[CategoryType.Event]
 		);
 
 		const categoriesAndButtons: Record<string, Category> = categories.reduce(
@@ -55,6 +64,47 @@ export class SQLiteBoardRepository implements BoardRepository {
 		);
 
 		return Object.values(categoriesAndButtons);
+	}
+
+	private async getTagCategories(): Promise<Category[]> {
+		const categories = await this.db.select<DatabaseTagCategory[]>(
+			`SELECT category.id, type, category.name, category.color, grid_position_x, grid_position_y, tag.id AS tag_id, tag.name AS tag_name, tag.color as tag_color
+			FROM category LEFT JOIN tag ON category.id = tag.category_id
+             WHERE type = $1
+             ORDER BY grid_position_y, grid_position_x`,
+			[CategoryType.Tag]
+		);
+
+		const categoriesAndTags: Record<string, Category> = categories.reduce(
+			(acc, category) => {
+				if (!acc[category.id]) {
+					acc[category.id] = {
+						id: category.id,
+						type: category.type as CategoryType,
+						name: category.name,
+						color: category.color,
+						position: { x: category.grid_position_x, y: category.grid_position_y },
+						buttons: [
+							{
+								id: category.tag_id,
+								name: category.tag_name,
+								color: category.tag_color
+							} as Tag
+						]
+					};
+				} else {
+					(acc[category.id].buttons as Tag[]).push({
+						id: category.tag_id,
+						name: category.tag_name,
+						color: category.tag_color
+					});
+				}
+				return acc;
+			},
+			{} as Record<string, Category>
+		);
+
+		return Object.values(categoriesAndTags);
 	}
 
 	async getTagsRelatedToEvents(): Promise<Tag[]> {

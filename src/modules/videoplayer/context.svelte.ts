@@ -71,15 +71,28 @@ export class Timeline {
 	private createNewEvent(
 		buttonId: number,
 		categoryId: number,
-		timeCursor: number
+		timeCursor: number,
+		duration?: number,
+		before?: number
 	): RangeDataWithTags {
+		let start = timeCursor;
+		let end = undefined; // Assuming end is undefined for new dynamic events
+
+		if (duration) {
+			end = timeCursor + duration;
+		}
+
+		if (before) {
+			start = timeCursor - before;
+		}
+
 		return {
 			id: Math.floor(Math.random() * 1000),
 			buttonId: buttonId,
 			categoryId: categoryId,
 			timestamp: {
-				start: timeCursor,
-				end: undefined // Assuming end is undefined for new events
+				start: start,
+				end: end
 			},
 			tagsRelated: []
 		};
@@ -110,14 +123,27 @@ export class Timeline {
 	}
 
 	//#region Actions
-	async addEvent(buttonId: number, categoryId: number, timeCursor: number) {
-		const newEvent = this.createNewEvent(buttonId, categoryId, timeCursor);
+	async addEvent(
+		buttonId: number,
+		categoryId: number,
+		timeCursor: number,
+		duration?: number,
+		before?: number
+	) {
+		const newEvent = this.createNewEvent(buttonId, categoryId, timeCursor, duration, before);
 
 		if (this.#eventPlaying === null) {
+			if (duration === undefined) {
+				this.#eventPlaying = newEvent;
+				this.#eventSelected = null; // Clear any selected event
+				return;
+			}
+
 			this.#eventPlaying = newEvent;
 			this.#eventSelected = null; // Clear any selected event
-			return;
+			return await this.persistEvent(this.#eventPlaying);
 		}
+
 		if (
 			this.#eventPlaying &&
 			this.#eventPlaying.buttonId === buttonId &&
@@ -125,7 +151,7 @@ export class Timeline {
 		) {
 			this.#eventPlaying.timestamp.end = timeCursor;
 
-			this.persistEvent(this.#eventPlaying);
+			await this.persistEvent(this.#eventPlaying);
 		}
 	}
 

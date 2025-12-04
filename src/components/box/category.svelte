@@ -35,7 +35,13 @@
 	}
 
 	function addEvent(button: Button): Promise<void> {
-		return timeline.addEvent(button.id, category.id, timeline.currentTime);
+		return timeline.addEvent(
+			button.id,
+			category.id,
+			timeline.currentTime,
+			button.duration ?? undefined,
+			button.before ?? undefined
+		);
 	}
 
 	function removeCategory() {
