@@ -1,8 +1,9 @@
 import type Database from '@tauri-apps/plugin-sql';
 import type { TimelineRepository } from '../ports/TimelineRepository';
 import type { DatabaseEntryWithTag } from './types/DatabaseEntryWithTags';
-import type { RangeDataWithTags } from '../modules/videoplayer/types/RangeData';
+import type { RangeData, RangeDataWithTags } from '../modules/videoplayer/types/RangeData';
 import type { ExportingRule } from '../modules/export/types';
+import { EntryMapper } from './mappers/EntryMapper';
 
 export class SQLiteTimelineRepository implements TimelineRepository {
 	constructor(private readonly db: Database) {}
@@ -16,21 +17,7 @@ export class SQLiteTimelineRepository implements TimelineRepository {
 		const categoriesAndButtons: Record<string, RangeDataWithTags> = entries.reduce(
 			(acc, entry) => {
 				if (!acc[entry.id]) {
-					let tagsRelated: number[] = [];
-					if (entry.tag_id) {
-						tagsRelated = [entry.tag_id];
-					}
-
-					acc[entry.id] = {
-						id: entry.id,
-						buttonId: entry.button_id,
-						categoryId: entry.category_id,
-						timestamp: {
-							start: entry.timestamp_start,
-							end: entry.timestamp_end ?? undefined
-						},
-						tagsRelated: tagsRelated
-					};
+					acc[entry.id] = EntryMapper.toDomainWithTags(entry);
 				} else if (entry.tag_id) {
 					acc[entry.id].tagsRelated.push(entry.tag_id);
 				}
@@ -68,43 +55,46 @@ export class SQLiteTimelineRepository implements TimelineRepository {
 		return entries.map((entry) => [entry.timestamp_start, entry.timestamp_end]);
 	}
 
-	async addEntry(
-		buttonId: number,
-		categoryId: number,
-		startTime: number,
-		endTime: number
-	): Promise<number> {
-		const result = await this.db.execute(
-			`INSERT INTO timeline_entry (button_id, category_id, timestamp_start, timestamp_end)
-             VALUES ($1, $2, $3, $4)`,
-			[buttonId, categoryId, startTime, endTime]
+	async addEntry(entry: RangeData): Promise<void> {
+		const databaseEntry = EntryMapper.toPersistence(entry);
+
+		await this.db.execute(
+			`INSERT INTO timeline_entry (id, button_id, category_id, timestamp_start, timestamp_end)
+             VALUES ($1, $2, $3, $4, $5)`,
+			[
+				databaseEntry.id,
+				databaseEntry.button_id,
+				databaseEntry.category_id,
+				databaseEntry.timestamp_start,
+				databaseEntry.timestamp_end
+			]
 		);
-
-		return result.lastInsertId!;
 	}
 
-	async updateEntryEndTime(entryId: number, endTime: number): Promise<void> {
-		await this.db.execute(`UPDATE timeline_entry SET timestamp_end = $1 WHERE id = $2`, [
-			endTime,
-			entryId
-		]);
+	async updateEntry(entry: RangeData): Promise<void> {
+		const databaseEntry = EntryMapper.toPersistence(entry);
+
+		await this.db.execute(
+			`UPDATE timeline_entry SET timestamp_start = $1, timestamp_end = $2 WHERE id = $3`,
+			[databaseEntry.timestamp_start, databaseEntry.timestamp_end, databaseEntry.id]
+		);
 	}
 
-	async addTagToEntry(entryId: number, tagId: number): Promise<void> {
+	async addTagToEntry(entryId: string, tagId: string): Promise<void> {
 		await this.db.execute(
 			`INSERT INTO timeline_entry_tag (timeline_entry_id, tag_id) VALUES ($1, $2)`,
 			[entryId, tagId]
 		);
 	}
 
-	async removeTagFromEntry(entryId: number, tagId: number): Promise<void> {
+	async removeTagFromEntry(entryId: string, tagId: string): Promise<void> {
 		await this.db.execute(
 			`DELETE FROM timeline_entry_tag WHERE timeline_entry_id = $1 AND tag_id = $2`,
 			[entryId, tagId]
 		);
 	}
 
-	async removeEntry(entryId: number): Promise<void> {
+	async removeEntry(entryId: string): Promise<void> {
 		await this.db.execute(`DELETE FROM timeline_entry WHERE id = $1`, [entryId]);
 	}
 }

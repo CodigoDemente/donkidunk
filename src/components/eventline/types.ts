@@ -1,16 +1,17 @@
+import type { SvelteMap } from 'svelte/reactivity';
 import type { Button } from '../../modules/board/types/Button';
 import type { Category } from '../../modules/board/types/Category';
 import type { RangeData, RangeDataWithTags } from '../../modules/videoplayer/types/RangeData';
 
 export type Props = {
-	categoryId: number;
+	categoryId: string;
 	allTagsByCategory: Record<string, RangeDataWithTags[] | RangeData[]>;
 	timelineStart: number;
 	timelineEnd: number;
 	boardCategoriesById: Record<string, Category>;
 	buttonsListById: Record<string, Button>;
-	playingObjects?: RangeDataWithTags[];
-	eventSelected?: number | null;
+	playingObjects?: SvelteMap<string, RangeDataWithTags>;
+	eventSelected?: string | null;
 	currentTime: number;
-	onClick?: (id: number) => void;
+	onClick?: (id: string) => void;
 };

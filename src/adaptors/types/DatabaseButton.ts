@@ -1,8 +1,8 @@
 export type DatabaseButton = {
-	id: number;
+	id: string;
 	name: string;
 	range: string;
-	duration: number;
-	before: number;
+	duration: number | null;
+	before: number | null;
 	color: string;
 };

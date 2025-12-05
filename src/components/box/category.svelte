@@ -15,7 +15,7 @@
 		type: CategoryType;
 		category: Category;
 		draggedCategory: DraggedCategory;
-		handleModalOpen: (type: CategoryType, categoryId?: number) => void;
+		handleModalOpen: (type: CategoryType, categoryId?: string) => void;
 	};
 
 	let { type, category, handleModalOpen, draggedCategory = $bindable() }: Props = $props();

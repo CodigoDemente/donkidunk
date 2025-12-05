@@ -1,12 +1,12 @@
 export type DatabaseEntry = {
-	id: number;
-	button_id: number;
-	category_id: number;
+	id: string;
+	button_id: string;
+	category_id: string;
 	timestamp_start: number;
 	timestamp_end?: number;
 };
 
 export type DatabaseEntryWithTag = DatabaseEntry & {
-	timeline_entry_id: number;
-	tag_id: number;
+	timeline_entry_id: string;
+	tag_id: string;
 };

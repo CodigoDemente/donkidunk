@@ -11,7 +11,7 @@ export const migrations: Migration[] = [
 		name: 'CreateConfigurationTable',
 		sql: `
         CREATE TABLE IF NOT EXISTS configuration (
-            id INTEGER PRIMARY KEY,
+            id TEXT PRIMARY KEY,
             name TEXT NOT NULL UNIQUE,
             value TEXT NOT NULL
         );`
@@ -21,7 +21,7 @@ export const migrations: Migration[] = [
 		name: 'CreateCategoryTable',
 		sql: `
 		CREATE TABLE IF NOT EXISTS category (
-			id INTEGER PRIMARY KEY,
+			id TEXT PRIMARY KEY,
 			type TEXT CHECK( type in ('event', 'tag') ) NOT NULL,
 			name TEXT NOT NULL,
 			color TEXT NOT NULL,
@@ -32,15 +32,14 @@ export const migrations: Migration[] = [
 	{
 		id: 3,
 		name: 'CreateButtonTable',
-		sql: `
-		CREATE TABLE IF NOT EXISTS button (
-			id INTEGER PRIMARY KEY,
+		sql: `CREATE TABLE IF NOT EXISTS button (
+			id TEXT PRIMARY KEY,
 			name TEXT NOT NULL,
 			range TEXT,
 			duration INTEGER,
 			color TEXT NOT NULL,
 			before INTEGER,
-			category_id INTEGER NOT NULL,
+			category_id TEXT NOT NULL,
 			FOREIGN KEY (category_id) REFERENCES category(id) ON DELETE CASCADE
 		);`
 	},
@@ -49,10 +48,10 @@ export const migrations: Migration[] = [
 		name: 'CreateTagTable',
 		sql: `
 		CREATE TABLE IF NOT EXISTS tag (
-			id INTEGER PRIMARY KEY,
+			id TEXT PRIMARY KEY,
 			name TEXT NOT NULL,
 			color TEXT NOT NULL,
-			category_id INTEGER NOT NULL,
+			category_id TEXT NOT NULL,
 			FOREIGN KEY (category_id) REFERENCES category(id) ON DELETE CASCADE
 		);`
 	},
@@ -61,9 +60,9 @@ export const migrations: Migration[] = [
 		name: 'CreateTimelineEntryTable',
 		sql: `
 		CREATE TABLE IF NOT EXISTS timeline_entry (
-			id INTEGER PRIMARY KEY,
-			button_id INTEGER NOT NULL,
-			category_id INTEGER NOT NULL,
+			id TEXT PRIMARY KEY,
+			button_id TEXT NOT NULL,
+			category_id TEXT NOT NULL,
 			timestamp_start REAL NOT NULL,
 			timestamp_end REAL,
 			FOREIGN KEY (button_id) REFERENCES button(id) ON DELETE CASCADE,
@@ -75,8 +74,8 @@ export const migrations: Migration[] = [
 		name: 'CreateTimelineEntryTagTable',
 		sql: `
 		CREATE TABLE IF NOT EXISTS timeline_entry_tag (
-			timeline_entry_id INTEGER NOT NULL,
-			tag_id INTEGER NOT NULL,
+			timeline_entry_id TEXT NOT NULL,
+			tag_id TEXT NOT NULL,
 			FOREIGN KEY (timeline_entry_id) REFERENCES timeline_entry(id) ON DELETE CASCADE,
 			FOREIGN KEY (tag_id) REFERENCES tag(id) ON DELETE CASCADE,
 			PRIMARY KEY (timeline_entry_id, tag_id)

@@ -7,13 +7,14 @@
 	import { boardContext } from '../../modules/board/context.svelte';
 	import { startResize } from './utils';
 	import Category from './category.svelte';
+	import { v7 as uuidv7 } from 'uuid';
 
 	const board = boardContext.get();
 
 	let { boxHeight, isOpened, otherIsOpened, title, type, categories }: Props = $props();
 
 	let draggedCategory: DraggedCategory = $state({
-		id: -1,
+		id: uuidv7(),
 		offset: {
 			x: 0,
 			y: 0
@@ -49,7 +50,7 @@
 		e.preventDefault();
 	}
 
-	function handleModalOpen(type: CategoryType, categoryId?: number) {
+	function handleModalOpen(type: CategoryType, categoryId?: string) {
 		board.loadCategoryToAddOrEdit(type, categoryId);
 		projectActions.setModal({
 			content: addCategoryModal,

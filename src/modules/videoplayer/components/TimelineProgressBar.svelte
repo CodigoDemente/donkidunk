@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { SvelteMap } from 'svelte/reactivity';
 	/**
 	 * Timeline Progress Bar Component
 	 * Displays events and actions on the timeline with a time marker
@@ -22,9 +23,9 @@
 		eventCategoriesById: Record<string, Category>;
 		eventsByCategory: Record<string, RangeDataWithTags[]>;
 		eventButtonsById: Record<string, Button>;
-		eventsPlaying: RangeDataWithTags[];
-		eventSelected: number | null;
-		onEventClick: (eventId: number) => void;
+		eventsPlaying: SvelteMap<string, RangeDataWithTags>;
+		eventSelected: string | null;
+		onEventClick: (eventId: string) => void;
 		onTimeChange: (time: number) => void;
 	};
 
@@ -93,7 +94,7 @@
 			<div class="mt-2 mb-4 flex flex-col items-start gap-2">
 				{#each Object.keys(eventCategoriesById) as categoryId (categoryId)}
 					<Eventline
-						categoryId={+categoryId}
+						{categoryId}
 						allTagsByCategory={eventsByCategory}
 						{timelineStart}
 						{timelineEnd}

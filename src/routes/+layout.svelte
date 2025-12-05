@@ -25,8 +25,6 @@
 
 		const configData = await getConfig();
 
-		console.log(configData);
-
 		config.state = configData;
 	});
 

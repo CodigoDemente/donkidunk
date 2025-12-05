@@ -1,10 +1,12 @@
 import { Context, StateHistory } from 'runed';
+import { v7 as uuidv7 } from 'uuid';
 import type { TimelineData } from './types/Timeline';
 import type { RangeDataWithTags } from './types/RangeData';
 import { TimelineRepositoryFactory } from '../../factories/TimelineRepositoryFactory';
 import { emit } from '@tauri-apps/api/event';
 import { wrapObjectForUndo } from '../../persistence/undo/UndoStateWrapper';
 import { Scope } from '../../persistence/undo/types/Scope';
+import { SvelteMap } from 'svelte/reactivity';
 
 const initialState: TimelineData = {
 	eventTimeline: [],
@@ -17,10 +19,10 @@ export class Timeline {
 	#history!: StateHistory<TimelineData>;
 	#state = $state<TimelineData>(initialState);
 	#eventPlaying = $state<RangeDataWithTags | null>(null);
-	#eventsPlaying = $state<RangeDataWithTags[]>([]);
+	#eventsPlaying = $state<SvelteMap<string, RangeDataWithTags>>(new SvelteMap());
 	#currentTime: number = $state(0);
 	#duration: number = $state(0);
-	#eventSelected = $state<number | null>(null);
+	#eventSelected = $state<string | null>(null);
 	#timelineEventsByCategory!: Record<string, RangeDataWithTags[]>;
 
 	constructor() {
@@ -70,8 +72,8 @@ export class Timeline {
 	}
 
 	private createNewEvent(
-		buttonId: number,
-		categoryId: number,
+		buttonId: string,
+		categoryId: string,
 		timeCursor: number,
 		duration?: number,
 		before?: number
@@ -88,7 +90,7 @@ export class Timeline {
 		}
 
 		return {
-			id: Math.floor(Math.random() * 1000),
+			id: uuidv7(),
 			buttonId: buttonId,
 			categoryId: categoryId,
 			timestamp: {
@@ -102,72 +104,51 @@ export class Timeline {
 	private async persistEvent(event: RangeDataWithTags) {
 		const repository = TimelineRepositoryFactory.getInstance();
 
-		const newEventId = await repository.addEntry(
-			event.buttonId,
-			event.categoryId,
-			event.timestamp.start,
-			event.timestamp.end
-		);
-
-		event.id = newEventId;
-		if (this.#eventsPlaying.length > 0) {
-			this.#eventsPlaying[this.#eventsPlaying.length - 1].id = newEventId;
-		}
+		await repository.addEntry(event);
 
 		this.#state = {
 			...this.#state,
 			eventTimeline: [...this.#state.eventTimeline, event]
 		};
 
-		this.#eventSelected = newEventId;
+		this.#eventSelected = event.id;
+		this.#eventsPlaying.delete(event.buttonId);
 
 		await emit('project:dirty');
 	}
 
 	//#region Actions
 	async addEvent(
-		buttonId: number,
-		categoryId: number,
+		buttonId: string,
+		categoryId: string,
 		timeCursor: number,
 		duration?: number,
 		before?: number
 	) {
 		const newEvent = this.createNewEvent(buttonId, categoryId, timeCursor, duration, before);
 
-		if (
-			this.#eventsPlaying.length === 0 ||
-			!this.#eventsPlaying.some((event) => event.buttonId === buttonId)
-		) {
+		if (!this.#eventsPlaying.has(buttonId)) {
 			if (duration === undefined) {
-				this.#eventsPlaying.push(newEvent);
+				this.#eventsPlaying.set(buttonId, newEvent);
 				this.#eventSelected = null; // Clear any selected event
 				return;
 			}
 
-			this.#eventsPlaying.push(newEvent);
+			// Here we don't add it to eventsPlaying because it's a fixed duration event and it will be persisted
+			// right away.
 			this.#eventSelected = null; // Clear any selected event
 			return await this.persistEvent(newEvent);
 		}
 
-		if (
-			this.#eventsPlaying.length > 0 &&
-			this.#eventsPlaying.some((event) => event.buttonId === buttonId)
-		) {
-			this.#eventsPlaying = this.#eventsPlaying.map((event) =>
-				event.buttonId === buttonId
-					? { ...event, timestamp: { ...event.timestamp, end: timeCursor } }
-					: event
-			);
+		const eventPlaying = this.#eventsPlaying.get(buttonId);
+		if (eventPlaying) {
+			eventPlaying.timestamp.end = timeCursor;
 
-			const eventPlaying = this.#eventsPlaying.find((event) => event.buttonId === buttonId)!;
-
-			await this.persistEvent(eventPlaying);
-			this.#eventsPlaying = this.#eventsPlaying.filter((event) => event.buttonId !== buttonId);
-			return;
+			return await this.persistEvent(eventPlaying);
 		}
 	}
 
-	setEventSelected(eventId: number) {
+	setEventSelected(eventId: string) {
 		if (this.#eventSelected === eventId) {
 			this.#eventSelected = null;
 		} else {
@@ -175,13 +156,13 @@ export class Timeline {
 		}
 	}
 
-	async addRelatedTagToEvent(tagId: number) {
+	async addRelatedTagToEvent(tagId: string) {
 		const repository = TimelineRepositoryFactory.getInstance();
 
 		let op = 'add';
 
 		// Helper to toggle a tag in a tagsRelated array
-		const toggleTag = (tags: number[]) => {
+		const toggleTag = (tags: string[]) => {
 			if (tags.includes(tagId)) {
 				op = 'remove';
 
@@ -191,9 +172,12 @@ export class Timeline {
 			return [...tags, tagId];
 		};
 
-		if (this.#eventsPlaying.length > 0) {
-			this.#eventsPlaying[this.#eventsPlaying.length - 1].tagsRelated = toggleTag(
-				this.#eventsPlaying[this.#eventsPlaying.length - 1].tagsRelated
+		const eventsPlaying = Array.from(this.#eventsPlaying);
+		const lastEvent = eventsPlaying[eventsPlaying.length - 1];
+
+		if (eventsPlaying.length > 0) {
+			this.#eventsPlaying.get(lastEvent[0])!.tagsRelated = toggleTag(
+				this.#eventsPlaying.get(lastEvent[0])!.tagsRelated
 			);
 			return;
 		} else if (this.#eventSelected) {
@@ -209,24 +193,18 @@ export class Timeline {
 			};
 		}
 
-		if (this.#eventsPlaying.length > 0 || this.#eventSelected) {
+		if (eventsPlaying.length > 0 || this.#eventSelected) {
 			if (op === 'add') {
-				await repository.addTagToEntry(
-					this.#eventSelected || this.#eventsPlaying[this.#eventsPlaying.length - 1].id,
-					tagId
-				);
+				await repository.addTagToEntry(this.#eventSelected || lastEvent[0], tagId);
 			} else {
-				await repository.removeTagFromEntry(
-					this.#eventSelected || this.#eventsPlaying[this.#eventsPlaying.length - 1].id,
-					tagId
-				);
+				await repository.removeTagFromEntry(this.#eventSelected || lastEvent[0], tagId);
 			}
 		}
 
 		await emit('project:dirty');
 	}
 
-	async removeEvent(eventId: number) {
+	async removeEvent(eventId: string) {
 		const repository = TimelineRepositoryFactory.getInstance();
 
 		const newEventTimeline = this.#state.eventTimeline.filter((e) => e.id !== eventId);

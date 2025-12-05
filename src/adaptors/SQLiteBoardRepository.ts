@@ -5,7 +5,14 @@ import type { Tag } from '../modules/board/types/Tag';
 import type { DatabaseTag } from './types/DatabaseTag';
 import { ButtonRange, type Button } from '../modules/board/types/Button';
 import { CategoryType } from '../components/box/types';
-import type { DatabaseEventCategory, DatabaseTagCategory } from './types/DatabaseCategory';
+import type {
+	DatabaseCategory,
+	DatabaseCategoryWithEvent,
+	DatabaseCategoryWithTag
+} from './types/DatabaseCategory';
+import { CategoryMapper } from './mappers/CategoryMapper';
+import { ButtonMapper } from './mappers/ButtonMapper';
+import { TagMapper } from './mappers/TagMapper';
 
 export class SQLiteBoardRepository implements BoardRepository {
 	constructor(private readonly db: Database) {}
@@ -19,8 +26,17 @@ export class SQLiteBoardRepository implements BoardRepository {
 		throw new Error(`Invalid section: ${section}`);
 	}
 
+	async categoryExists(categoryId: string): Promise<boolean> {
+		const category = await this.db.select<DatabaseCategory[]>(
+			`SELECT id FROM category WHERE id = $1`,
+			[categoryId]
+		);
+
+		return category.length > 0;
+	}
+
 	private async getEventCategories(): Promise<Category[]> {
-		const categories = await this.db.select<DatabaseEventCategory[]>(
+		const categories = await this.db.select<DatabaseCategoryWithEvent[]>(
 			`SELECT category.id, type, category.name, category.color, grid_position_x, grid_position_y, button.id AS button_id, button.name AS button_name, button.range as button_range, button.duration as button_duration, button.before as button_before, button.color as button_color
 			FROM category LEFT JOIN button ON category.id = button.category_id
              WHERE type = $1
@@ -67,7 +83,7 @@ export class SQLiteBoardRepository implements BoardRepository {
 	}
 
 	private async getTagCategories(): Promise<Category[]> {
-		const categories = await this.db.select<DatabaseTagCategory[]>(
+		const categories = await this.db.select<DatabaseCategoryWithTag[]>(
 			`SELECT category.id, type, category.name, category.color, grid_position_x, grid_position_y, tag.id AS tag_id, tag.name AS tag_name, tag.color as tag_color
 			FROM category LEFT JOIN tag ON category.id = tag.category_id
              WHERE type = $1
@@ -120,38 +136,48 @@ export class SQLiteBoardRepository implements BoardRepository {
 		}));
 	}
 
-	async addCategory(section: CategoryType, name: string, color: string): Promise<number> {
-		const result = await this.db.execute(
-			`INSERT INTO category (type, name, color, grid_position_x, grid_position_y)
-             VALUES ($1, $2, $3, 0, 0)`,
-			[section, name, color]
-		);
+	async addCategory(category: Category): Promise<void> {
+		const databaseCategory = CategoryMapper.toPersistence(category);
 
-		return result.lastInsertId!;
+		await this.db.execute(
+			`INSERT INTO category (id, type, name, color, grid_position_x, grid_position_y)
+             VALUES ($1, $2, $3, $4, 0, 0)`,
+			[databaseCategory.id, databaseCategory.type, databaseCategory.name, databaseCategory.color]
+		);
 	}
 
-	async deleteCategory(categoryId: number): Promise<void> {
+	async deleteCategory(categoryId: string): Promise<void> {
 		await this.db.execute(`DELETE FROM category WHERE id = $1`, [categoryId]);
 	}
 
-	async addButtonToCategory(categoryId: number, button: Button): Promise<number> {
-		const result = await this.db.execute(
-			`INSERT INTO button (name, range, duration, before, color, category_id)
-             VALUES ($1, $2, $3, $4, $5, $6)`,
-			[button.name, button.range, button.duration, button.before, button.color, categoryId]
+	async addButtonToCategory(categoryId: string, button: Button): Promise<void> {
+		const databaseButton = ButtonMapper.toPersistence(button);
+
+		await this.db.execute(
+			`INSERT INTO button (id, name, range, duration, before, color, category_id)
+             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+			[
+				databaseButton.id,
+				databaseButton.name,
+				databaseButton.range,
+				databaseButton.duration,
+				databaseButton.before,
+				databaseButton.color,
+				categoryId
+			]
 		);
-		return result.lastInsertId!;
 	}
 
-	async addTagToCategory(categoryId: number, tag: Tag): Promise<number> {
-		const result = await this.db.execute(
-			`INSERT INTO tag (name, color, category_id) VALUES ($1, $2, $3)`,
-			[tag.name, tag.color, categoryId]
+	async addTagToCategory(categoryId: string, tag: Tag): Promise<void> {
+		const databaseTag = TagMapper.toPersistence(tag);
+
+		await this.db.execute(
+			`INSERT INTO tag (id, name, color, category_id) VALUES ($1, $2, $3, $4)`,
+			[databaseTag.id, databaseTag.name, databaseTag.color, categoryId]
 		);
-		return result.lastInsertId!;
 	}
 
-	async updateCategoryPosition(categoryId: number, x: number, y: number): Promise<void> {
+	async updateCategoryPosition(categoryId: string, x: number, y: number): Promise<void> {
 		await this.db.execute(
 			`UPDATE category
              SET grid_position_x = $1, grid_position_y = $2
@@ -169,49 +195,43 @@ export class SQLiteBoardRepository implements BoardRepository {
 		);
 	}
 
-	async updateCategory(categoryId: number, categoryName: string, color: string): Promise<void> {
+	async updateCategory(category: Category): Promise<void> {
+		const databaseCategory = CategoryMapper.toPersistence(category);
+
 		await this.db.execute(
 			`UPDATE category
-			 SET name = $1, color = $2
-			 WHERE id = $3`,
-			[categoryName, color, categoryId]
+			 SET name = $1, color = $2, grid_position_x = $3, grid_position_y = $4
+			 WHERE id = $5`,
+			[
+				databaseCategory.name,
+				databaseCategory.color,
+				databaseCategory.grid_position_x,
+				databaseCategory.grid_position_y,
+				databaseCategory.id
+			]
 		);
 	}
 
-	async updateCategoryButtons(categoryId: number, buttons: Button[]): Promise<number[]> {
+	async updateCategoryButtons(categoryId: string, buttons: Button[]): Promise<void> {
 		// Start a transaction to ensure data integrity
 		await this.db.execute('BEGIN TRANSACTION');
 
-		const insertedIds: number[] = [];
-
 		try {
 			const fullInsertQuery =
-				'INSERT INTO button (name, range, duration, before, color, category_id) VALUES ($1, $2, $3, $4, $5, $6)';
-			const fullUpdateQuery =
-				'UPDATE button SET name = $1, range = $2, duration = $3, before = $4, color = $5 WHERE id = $6';
+				'INSERT INTO button (id, name, range, duration, before, color, category_id) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (id) DO UPDATE SET name = $2, range = $3, duration = $4, before = $5, color = $6';
 
 			for (const button of buttons) {
-				if (button.id && button.id > -1) {
-					await this.db.execute(fullUpdateQuery, [
-						button.name,
-						'range' in button ? button.range : null,
-						'duration' in button ? button.duration : null,
-						'before' in button ? button.before : null,
-						button.color,
-						button.id
-					]);
-				} else {
-					const result = await this.db.execute(fullInsertQuery, [
-						button.name,
-						'range' in button ? button.range!.valueOf() : null,
-						'duration' in button ? button.duration : null,
-						'before' in button ? button.before : null,
-						button.color,
-						categoryId
-					]);
+				const databaseButton = ButtonMapper.toPersistence(button);
 
-					insertedIds.push(result.lastInsertId!);
-				}
+				await this.db.execute(fullInsertQuery, [
+					databaseButton.id,
+					databaseButton.name,
+					databaseButton.range,
+					databaseButton.duration,
+					databaseButton.before,
+					databaseButton.color,
+					categoryId
+				]);
 			}
 		} catch (error) {
 			// If an error occurs, rollback the transaction
@@ -221,26 +241,24 @@ export class SQLiteBoardRepository implements BoardRepository {
 
 		// If everything is successful, commit the transaction
 		await this.db.execute('COMMIT');
-
-		return insertedIds;
 	}
 
-	async updateCategoryTags(categoryId: number, tags: Tag[]): Promise<number[]> {
+	async updateCategoryTags(categoryId: string, tags: Tag[]): Promise<void> {
 		await this.db.execute('BEGIN TRANSACTION');
 
-		const insertedIds: number[] = [];
-
 		try {
-			const fullInsertQuery = 'INSERT INTO tag (name, color, category_id) VALUES ($1, $2, $3)';
-			const fullUpdateQuery = 'UPDATE tag SET name = $1, color = $2 WHERE id = $3';
+			const fullInsertQuery =
+				'INSERT INTO tag (id, name, color, category_id) VALUES ($1, $2, $3, $4) ON CONFLICT (id) DO UPDATE SET name = $2, color = $3';
 
 			for (const tag of tags) {
-				if (tag.id && tag.id > -1) {
-					await this.db.execute(fullUpdateQuery, [tag.name, tag.color, tag.id]);
-				} else {
-					const result = await this.db.execute(fullInsertQuery, [tag.name, tag.color, categoryId]);
-					insertedIds.push(result.lastInsertId!);
-				}
+				const databaseTag = TagMapper.toPersistence(tag);
+
+				await this.db.execute(fullInsertQuery, [
+					databaseTag.id,
+					databaseTag.name,
+					databaseTag.color,
+					categoryId
+				]);
 			}
 		} catch (error) {
 			await this.db.execute('ROLLBACK');
@@ -248,6 +266,5 @@ export class SQLiteBoardRepository implements BoardRepository {
 		}
 
 		await this.db.execute('COMMIT');
-		return insertedIds;
 	}
 }
