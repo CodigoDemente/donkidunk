@@ -12,7 +12,7 @@
 		timelineEnd,
 		boardCategoriesById,
 		buttonsListById,
-		playingObject,
+		playingObjects,
 		eventSelected,
 		currentTime,
 		onClick
@@ -21,10 +21,12 @@
 	const leftLimit = $derived(timeline.duration * timelineStart);
 	const rightLimit = $derived(timeline.duration * timelineEnd);
 
-	// Función para verificar si un evento está visible en el rango del timeline
+	$inspect(playingObjects);
+
+	// Function to check if an event is visible in the timeline range
 	function isEventVisible(start: number, end: number | null | undefined): boolean {
 		const eventEnd = end ?? currentTime;
-		// El evento es visible si hay algún solapamiento con el rango visible
+		// The event is visible if there is any overlap with the visible range
 		return start < rightLimit && eventEnd > leftLimit;
 	}
 </script>
@@ -42,20 +44,24 @@
 					color={boardCategoriesById[categoryId]?.color}
 					borderColor={buttonsListById[event.buttonId]?.color}
 					name={buttonsListById[event.buttonId]?.name}
-					onClick={() => onClick && playingObject === null && onClick(event.id)}
+					onClick={() => onClick && !playingObjects?.has(event.buttonId) && onClick(event.id)}
 				/>
 			{/if}
 		{/each}
 	{/if}
-	{#if playingObject && categoryId === playingObject.categoryId && isEventVisible(playingObject.timestamp.start, currentTime)}
-		<Clip
-			start={playingObject.timestamp.start}
-			end={currentTime}
-			timelineStart={leftLimit}
-			timelineEnd={rightLimit}
-			color={boardCategoriesById[categoryId]?.color}
-			name={buttonsListById[playingObject.buttonId]?.name}
-			onClick={() => {}}
-		/>
+	{#if playingObjects && playingObjects.size > 0}
+		{#each playingObjects.entries() as [eventId, playingObject] (eventId)}
+			{#if playingObject && categoryId === playingObject.categoryId && isEventVisible(playingObject.timestamp.start, currentTime)}
+				<Clip
+					start={playingObject.timestamp.start}
+					end={currentTime}
+					timelineStart={leftLimit}
+					timelineEnd={rightLimit}
+					color={boardCategoriesById[categoryId]?.color}
+					name={buttonsListById[playingObject.buttonId]?.name}
+					onClick={() => {}}
+				/>
+			{/if}
+		{/each}
 	{/if}
 </div>

@@ -1,4 +1,5 @@
 import { Context, StateHistory } from 'runed';
+import { v7 as uuidv7 } from 'uuid';
 import { projectActions } from '../../persistence/stores/project/actions';
 import { CategoryType } from '../../components/box/types';
 import { feedbackMessages } from '../../utils/messages';
@@ -18,7 +19,7 @@ const initialState: BoardData = {
 };
 
 const initialCategory = (section: CategoryType): Category => ({
-	id: -1,
+	id: uuidv7(),
 	name: '',
 	type: section,
 	position: {
@@ -134,31 +135,41 @@ export class Board {
 
 	async updateCategoryPosition(
 		section: CategoryType,
-		categoryId: number,
+		categoryId: string,
 		x: number,
 		y: number
 	): Promise<void> {
 		const repository = BoardRepositoryFactory.getInstance();
 
-		const cat = this.#state[section].find((c) => c.id === categoryId);
+		const cat = this.#state[section].find((c) => c.id === categoryId)!;
 
-		if (cat) {
-			cat.position = { x, y };
-		}
+		cat.position = { x, y };
 
-		await repository.updateCategoryPosition(categoryId, x, y);
+		await repository.updateCategory(cat);
 		await emit('project:dirty');
 	}
 
-	async updateCategoryName(categoryId: number, categoryName: string): Promise<void> {
+	async updateCategoryName(
+		categoryId: string,
+		section: CategoryType,
+		categoryName: string
+	): Promise<void> {
 		const repository = BoardRepositoryFactory.getInstance();
 
-		await repository.updateCategoryName(categoryId, categoryName);
+		const cat = this.#state[section].find((c) => c.id === categoryId);
+
+		if (!cat) {
+			return;
+		}
+
+		cat.name = categoryName;
+
+		await repository.updateCategory(cat);
 	}
 
 	async addButtonToCategory(
 		section: CategoryType,
-		categoryId: number,
+		categoryId: string,
 		button: Button | Tag
 	): Promise<void> {
 		const repository = BoardRepositoryFactory.getInstance();
@@ -167,36 +178,38 @@ export class Board {
 
 		const cat = currState[section].find((c) => c.id === categoryId);
 
-		if (cat) {
-			const buttonId =
-				section === CategoryType.Event
-					? await repository.addButtonToCategory(categoryId, button as Button)
-					: await repository.addTagToCategory(categoryId, button as Tag);
-
-			this.#state = {
-				...this.#state,
-				[section]: this.#state[section].map((c) => {
-					if (c.id === categoryId) {
-						return {
-							...c,
-							buttons: [
-								...c.buttons,
-								{
-									...button,
-									id: buttonId
-								}
-							]
-						};
-					}
-					return c;
-				})
-			};
+		if (!cat) {
+			return;
 		}
+
+		const buttonId =
+			section === CategoryType.Event
+				? await repository.addButtonToCategory(categoryId, button as Button)
+				: await repository.addTagToCategory(categoryId, button as Tag);
+
+		this.#state = {
+			...this.#state,
+			[section]: this.#state[section].map((c) => {
+				if (c.id === categoryId) {
+					return {
+						...c,
+						buttons: [
+							...c.buttons,
+							{
+								...button,
+								id: buttonId
+							}
+						]
+					};
+				}
+				return c;
+			})
+		};
 
 		await emit('project:dirty');
 	}
 
-	async loadCategoryToAddOrEdit(section: CategoryType, categoryId?: number): Promise<void> {
+	async loadCategoryToAddOrEdit(section: CategoryType, categoryId?: string): Promise<void> {
 		if (categoryId) {
 			if (section === CategoryType.Event) {
 				this.#tempCategory = $state.snapshot(this.eventCategoriesById[categoryId]);
@@ -241,13 +254,16 @@ export class Board {
 
 	async addOrUpdateCategory(section: CategoryType): Promise<void> {
 		try {
-			await this.onValidateCategory();
-			if (this.#tempCategory.id && this.#tempCategory.id > 0) {
-				// Update existing category
+			this.onValidateCategory();
+
+			const repository = BoardRepositoryFactory.getInstance();
+
+			const categoryExists = await repository.categoryExists(this.#tempCategory.id);
+
+			if (categoryExists) {
 				await this.updateCategory(section);
 			} else {
-				// Add new category
-				await this.addCategory(section);
+				await this.addCategory();
 			}
 			return;
 		} catch (error) {
@@ -262,31 +278,29 @@ export class Board {
 		}
 	}
 
-	async addCategory(section: CategoryType): Promise<void> {
+	async addCategory(): Promise<void> {
 		try {
-			const { name, color, buttons } = this.#tempCategory;
-
 			const repository = BoardRepositoryFactory.getInstance();
 
-			const categoryId = await repository.addCategory(section, name, color);
+			await repository.addCategory(this.#tempCategory);
 
 			this.#state = {
 				...this.#state,
-				[section]: [
-					...this.#state[section],
+				[this.#tempCategory.type]: [
+					...this.#state[this.#tempCategory.type],
 					{
-						id: categoryId,
-						type: section,
-						name: name,
-						color: color,
+						id: this.#tempCategory.id,
+						type: this.#tempCategory.type,
+						name: this.#tempCategory.name,
+						color: this.#tempCategory.color,
 						position: { x: 0, y: 0 },
 						buttons: []
 					}
 				]
 			};
 
-			for (const button of buttons) {
-				await this.addButtonToCategory(section, categoryId, button);
+			for (const button of this.#tempCategory.buttons) {
+				await this.addButtonToCategory(this.#tempCategory.type, this.#tempCategory.id, button);
 			}
 
 			await emit('project:dirty');
@@ -294,7 +308,7 @@ export class Board {
 			projectActions.closeAndResetModal();
 
 			projectActions.setSnackbar(feedbackMessages.ACTION_SUCCESS);
-			this.resetCategoryForm(section);
+			this.resetCategoryForm(this.#tempCategory.type);
 		} catch (error) {
 			projectActions.setSnackbar({
 				...feedbackMessages.ACTION_FAILED,
@@ -308,11 +322,13 @@ export class Board {
 		try {
 			const repository = BoardRepositoryFactory.getInstance();
 
-			await repository.updateCategory(category.id!, category.name, category.color);
-			const buttonsIds =
-				section === CategoryType.Event
-					? await repository.updateCategoryButtons(category.id!, category.buttons as Button[])
-					: await repository.updateCategoryTags(category.id!, category.buttons as Tag[]);
+			await repository.updateCategory(category);
+
+			if (section === CategoryType.Event) {
+				await repository.updateCategoryButtons(category.id, category.buttons as Button[]);
+			} else {
+				await repository.updateCategoryTags(category.id, category.buttons as Tag[]);
+			}
 
 			this.#state = {
 				...this.#state,
@@ -323,18 +339,9 @@ export class Board {
 									...c,
 									name: category.name,
 									color: category.color,
-									buttons: category.buttons.map((b) => {
-										if (b.id && b.id > 0 && buttonsIds.includes(b.id)) {
-											return {
-												...b
-											};
-										} else {
-											return {
-												...b,
-												id: buttonsIds.shift()!
-											};
-										}
-									}) as Button[] | Tag[]
+									buttons: category.buttons.map((b) => ({
+										...b
+									}))
 								}
 							: c
 				)
@@ -353,7 +360,7 @@ export class Board {
 		}
 	}
 
-	async deleteCategory(section: CategoryType, categoryId: number): Promise<void> {
+	async deleteCategory(section: CategoryType, categoryId: string): Promise<void> {
 		// <!-- TODO: When deleting category, if there is already events created with this categoryId, we should delete them as well, setModal are you sure you want to erase -->
 		try {
 			const repository = BoardRepositoryFactory.getInstance();

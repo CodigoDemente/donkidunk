@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { IconTrash } from '@tabler/icons-svelte';
+	import { v7 as uuidv7 } from 'uuid';
 	import Button from '../../../components/button/button.svelte';
 	import Dropdown from '../../../components/dropdown/dropdown.svelte';
 	import Input from '../../../components/input/input.svelte';
@@ -15,23 +16,24 @@
 	const isEventType = context.categoryToCreate.type === CategoryType.Event;
 	const isTagType = context.categoryToCreate.type === CategoryType.Tag;
 
-	const initialButton: ButtonType = {
-		id: -1,
+	// These two are functions so that the id is generated every time a new button or tag is added
+	const initialButton = (): ButtonType => ({
+		id: uuidv7(),
 		name: '',
 		color: '',
 		range: ButtonRange.DYNAMIC,
 		duration: null,
 		before: null
-	};
+	});
 
-	const initialTag = {
-		id: -1,
+	const initialTag = (): Tag => ({
+		id: uuidv7(),
 		name: '',
 		color: ''
-	};
+	});
 
-	let newButton = $state(initialButton);
-	let newTag = $state(initialTag);
+	let newButton = $state(initialButton());
+	let newTag = $state(initialTag());
 
 	function addButton() {
 		if (isEventType) {
@@ -41,12 +43,12 @@
 				...context.categoryToCreate.buttons,
 				button
 			] as ButtonType[];
-			newButton = initialButton;
+			newButton = initialButton();
 		} else if (isTagType) {
 			newTag.color = context.categoryToCreate.color;
 			const tag = { ...newTag };
 			context.categoryToCreate.buttons = [...context.categoryToCreate.buttons, tag] as Tag[];
-			newTag = initialTag;
+			newTag = initialTag();
 		}
 	}
 

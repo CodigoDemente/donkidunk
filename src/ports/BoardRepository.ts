@@ -5,14 +5,13 @@ import type { Tag } from '../modules/board/types/Tag';
 
 export interface BoardRepository {
 	getSectionCategories(section: CategoryType): Promise<Category[]>;
+	categoryExists(categoryId: string): Promise<boolean>;
 	getTagsRelatedToEvents(): Promise<Tag[]>;
-	addCategory(section: CategoryType, name: string, color: string): Promise<number>;
-	deleteCategory(categoryId: number): Promise<void>;
-	addTagToCategory(categoryId: number, tag: Tag): Promise<number>;
-	addButtonToCategory(categoryId: number, button: Button): Promise<number>;
-	updateCategoryPosition(categoryId: number, x: number, y: number): Promise<void>;
-	updateCategoryName(categoryId: number, categoryName: string): Promise<void>;
-	updateCategory(categoryId: number, categoryName: string, color: string): Promise<void>;
-	updateCategoryButtons(categoryId: number, buttons: Button[]): Promise<number[]>;
-	updateCategoryTags(categoryId: number, tags: Tag[]): Promise<number[]>;
+	addCategory(category: Category): Promise<void>;
+	deleteCategory(categoryId: string): Promise<void>;
+	addTagToCategory(categoryId: string, tag: Tag): Promise<void>;
+	addButtonToCategory(categoryId: string, button: Button): Promise<void>;
+	updateCategory(category: Category): Promise<void>;
+	updateCategoryButtons(categoryId: string, buttons: Button[]): Promise<void>;
+	updateCategoryTags(categoryId: string, tags: Tag[]): Promise<void>;
 }

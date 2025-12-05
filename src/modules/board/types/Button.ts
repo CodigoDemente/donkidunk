@@ -4,7 +4,7 @@ export enum ButtonRange {
 }
 
 export interface Button {
-	id: number;
+	id: string;
 	color: string;
 	name: string;
 	range?: ButtonRange;
