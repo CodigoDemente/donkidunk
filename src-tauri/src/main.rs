@@ -26,6 +26,7 @@ fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
             cut_video,
             get_user_config,
             get_button_boards,
+            save_button_board,
         ])
         .setup(|app| {
             #[cfg(not(target_os = "windows"))]

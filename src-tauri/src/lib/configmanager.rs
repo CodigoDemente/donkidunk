@@ -1,5 +1,6 @@
 use std::{
     fs::{self, create_dir_all, File},
+    io::Write,
     path::PathBuf,
 };
 
@@ -58,6 +59,11 @@ pub trait ConfigManagerTrait {
     fn set_config(&mut self, new_config: Config) -> Result<(), ConfigError>;
     fn initialize_button_boards<R: Runtime>(&mut self, app: &App<R>) -> Result<(), ConfigError>;
     fn get_button_board_paths(&self) -> Vec<ButtonBoardWithPath>;
+    fn save_button_board(
+        &self,
+        board_id: String,
+        board_content: String,
+    ) -> Result<PathBuf, ConfigError>;
 }
 
 impl ConfigManager {
@@ -181,5 +187,19 @@ impl ConfigManagerTrait for ConfigManager {
             .collect();
 
         button_board_paths
+    }
+
+    fn save_button_board(
+        &self,
+        board_id: String,
+        board_content: String,
+    ) -> Result<PathBuf, ConfigError> {
+        let board_path = self.button_board_dir.join(format!("{board_id}.json"));
+
+        let mut board_file = fs::File::create_new(&board_path)?;
+
+        board_file.write_all(board_content.as_bytes())?;
+
+        Ok(board_path)
     }
 }

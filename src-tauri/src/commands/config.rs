@@ -20,3 +20,16 @@ pub fn get_button_boards(
 
     Ok(config_manager.get_button_board_paths())
 }
+
+#[tauri::command]
+pub fn save_button_board(
+    state: tauri::State<'_, AppState>,
+    board_id: String,
+    board_content: String,
+) -> Result<String, AppError> {
+    let config_manager = &state.config_manager;
+
+    let new_board_path = config_manager.save_button_board(board_id, board_content)?;
+
+    Ok(new_board_path.to_string_lossy().to_string())
+}

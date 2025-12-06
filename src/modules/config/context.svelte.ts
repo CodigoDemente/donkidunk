@@ -1,5 +1,6 @@
 import { Context } from 'runed';
 import { Locale, UIMode, type ConfigData } from './types/Config';
+import type { ButtonBoard } from './types/ButtonBoard';
 
 const initialState: ConfigData = {
 	locale: Locale.EN,
@@ -10,6 +11,7 @@ export const configContext = new Context<Config>('');
 
 export class Config {
 	#state = $state<ConfigData>(initialState);
+	#buttonBoards = $state<ButtonBoard[]>([]);
 
 	constructor() {}
 
@@ -27,6 +29,10 @@ export class Config {
 		return this.#state.uiMode;
 	}
 
+	get buttonBoards() {
+		return this.#buttonBoards;
+	}
+
 	// region Setters
 	set state(value: ConfigData) {
 		this.#state = value;
@@ -38,6 +44,10 @@ export class Config {
 
 	set uiMode(value: UIMode) {
 		this.#state.uiMode = value;
+	}
+
+	set buttonBoards(value: ButtonBoard[]) {
+		this.#buttonBoards = value;
 	}
 
 	// endregion

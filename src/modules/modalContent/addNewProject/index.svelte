@@ -4,15 +4,26 @@
 	import { projectActions } from '../../../persistence/stores/project/actions';
 	import { selectProjectPath } from '../../menu/operations/selectProjectPath';
 	import { selectVideoFile } from '../../menu/operations/selectVideoFile';
+	import { configContext } from '../../config/context.svelte';
+	import type { ButtonBoard } from '../../config/types/ButtonBoard';
+	import Dropdown from '../../../components/dropdown/dropdown.svelte';
 
 	let projectPath = $state('');
 	let videoPath = $state('');
+	let buttonBoard = $state<ButtonBoard>({
+		path: '',
+		id: '',
+		name: ''
+	});
+
+	const config = configContext.get();
 
 	// Sync local state with projectStore
 	$effect(() => {
 		projectActions.setNewProjectFormData({
 			projectPath,
-			videoPath
+			videoPath,
+			buttonBoard
 		});
 	});
 
@@ -63,5 +74,38 @@
 			noErrors
 		/>
 		<Button tertiary onClick={handleSelectVideoFile} size="small">Browse</Button>
+	</div>
+
+	<div class="flex items-end gap-2">
+		<Dropdown
+			label="Button board"
+			options={[
+				...config.buttonBoards.map((buttonBoard) => ({
+					label: buttonBoard.name,
+					value: buttonBoard.id
+				})),
+				{
+					label: 'New board',
+					value: ''
+				}
+			]}
+			bind:value={buttonBoard.id}
+			size="large"
+			selectClass="bg-gray-700"
+			noErrors
+			horizontal
+		/>
+
+		{#if buttonBoard.id === ''}
+			<Input
+				label="Board name"
+				placeholder="Enter board name"
+				type="text"
+				bind:value={buttonBoard.name}
+				size="large"
+				inputClass="bg-gray-700"
+				noErrors
+			/>
+		{/if}
 	</div>
 </div>

@@ -1,9 +1,9 @@
 {
     "categories": [
         {
-            "id": 1,
-            "name": "Event Category 1",
-            "color": "#000000",
+            "id": "019aefdc-9892-77b8-9d41-55c210c3d4e2",
+            "name": "Attacks",
+            "color": "#FF0000",
             "type": "EVENT",
             "position": {
                 "x": 0,
@@ -11,32 +11,130 @@
             }
         },
         {
-            "id": 2,
-            "name": "Tag Category 1",
-            "color": "#000000",
+            "id": "019aefe2-0eed-7602-b69b-3b1d8014fb08",
+            "name": "Defenses",
+            "color": "#00FF00",
+            "type": "EVENT",
+            "position": {
+                "x": 50,
+                "y": 0
+            }
+        },
+        {
+            "id": "019aefe4-1856-75a7-8c96-fb13717fc0eb",
+            "name": "Players",
+            "color": "#FF00FF",
             "type": "TAG",
             "position": {
                 "x": 0,
                 "y": 0
             }
+        },
+        {
+            "id": "019aefe5-5d5e-720c-9127-644d815b28b6",
+            "name": "Shots",
+            "color": "#00FFFF",
+            "type": "TAG",
+            "position": {
+                "x": 0,
+                "y": 50
+            }
+        },
+        {
+            "id": "019aefe5-787d-70d8-b80d-e08bc2c91fa3",
+            "name": "Results",
+            "color": "#FFA500",
+            "type": "TAG",
+            "position": {
+                "x": 0,
+                "y": 50
+            }
         }
     ],
     "buttons": [
         {
-            "id": 1,
-            "name": "Event 1",
-            "range": "FIXED",
-            "duration": 1000,
-            "before": 0,
-            "category_id": 1
+            "id": "019aefe6-2ab5-72f8-9fa3-e1d4778c6927",
+            "category_id": "019aefdc-9892-77b8-9d41-55c210c3d4e2",
+            "name": "1-4 Quick Floppy",
+            "range": "DYNAMIC",
+            "color": "#FF0000"
+        },
+        {
+            "id": "019aefed-f854-759c-a068-872dd69e0560",
+            "category_id": "019aefdc-9892-77b8-9d41-55c210c3d4e2",
+            "name": "Back Screen Post",
+            "range": "DYNAMIC",
+            "color": "#FF0000"
+        },
+        {
+            "id": "019aeff0-0d06-7698-a6cd-b020286a67cc",
+            "category_id": "019aefe2-0eed-7602-b69b-3b1d8014fb08",
+            "name": "Triangle Defense",
+            "range": "DYNAMIC",
+            "color": "#00FF00"
+        },
+        {
+            "id": "019aeff1-6167-71ec-8593-dcde6e74e70c",
+            "category_id": "019aefe2-0eed-7602-b69b-3b1d8014fb08",
+            "name": "Zone Defense",
+            "range": "DYNAMIC",
+            "color": "#00FF00"
         }
     ],
     "tags": [
         {
-            "id": 1,
-            "name": "Tag 1",
-            "color": "#000000",
-            "category_id": 2
+            "id": "019aeffa-01d7-756c-acfc-08e41b59ef11",
+            "name": "Player 1",
+            "category_id": "019aefe4-1856-75a7-8c96-fb13717fc0eb",
+            "color": "#FF00FF"
+        },
+        {
+            "id": "019aeffc-8c27-74c9-b11e-6daac4b509af",
+            "name": "Player 2",
+            "category_id": "019aefe4-1856-75a7-8c96-fb13717fc0eb",
+            "color": "#FF00FF"
+        },
+        {
+            "id": "019aeffc-bc8d-73c7-b4f2-ba7bf48ff8e5",
+            "name": "Player 3",
+            "category_id": "019aefe4-1856-75a7-8c96-fb13717fc0eb",
+            "color": "#FF00FF"
+        },
+        {
+            "id": "019aeffc-d1cb-75fc-9c1f-40bba7c061b9",
+            "name": "Player 4",
+            "category_id": "019aefe4-1856-75a7-8c96-fb13717fc0eb",
+            "color": "#FF00FF"
+        },
+        {
+            "id": "019aeffe-a9d7-76a3-b845-078219515227",
+            "name": "Player 5",
+            "category_id": "019aefe4-1856-75a7-8c96-fb13717fc0eb",
+            "color": "#FF00FF"
+        },
+        {
+            "id": "019aeffe-fcfd-73e3-8aee-8f6a9d24fd05",
+            "name": "2-points Shot",
+            "category_id": "019aefe5-5d5e-720c-9127-644d815b28b6",
+            "color": "#00FFFF"
+        },
+        {
+            "id": "019aefff-107e-70aa-9390-549e71d90a4a",
+            "name": "3-points Shot",
+            "category_id": "019aefe5-5d5e-720c-9127-644d815b28b6",
+            "color": "#00FFFF"
+        },
+        {
+            "id": "019aefff-c020-7751-ab5d-ca6596899377",
+            "name": "Scored",
+            "category_id": "019aefe5-787d-70d8-b80d-e08bc2c91fa3",
+            "color": "#FFA500"
+        },
+        {
+            "id": "019aefff-f11c-7642-8cca-36980f7cad1d",
+            "name": "Missed",
+            "category_id": "019aefe5-787d-70d8-b80d-e08bc2c91fa3",
+            "color": "#FFA500"
         }
     ]
 }

@@ -1,11 +1,13 @@
 import type Database from '@tauri-apps/plugin-sql';
 import type { Component } from 'svelte';
+import type { ButtonBoard } from '../../../../modules/config/types/ButtonBoard';
 
 export type ModalSize = 'medium' | 'small' | 'large' | 'extralarge';
 
 export type NewProjectFormData = {
 	projectPath: string;
 	videoPath: string;
+	buttonBoard: ButtonBoard;
 };
 
 export type ProjectData = {

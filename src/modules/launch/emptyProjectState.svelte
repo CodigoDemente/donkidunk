@@ -17,7 +17,7 @@
 			return;
 		}
 
-		await createNewProject(formData.projectPath);
+		await createNewProject(formData.buttonBoard, formData.projectPath);
 
 		if (formData.videoPath) {
 			await projectActions.setVideoPath(formData.videoPath);

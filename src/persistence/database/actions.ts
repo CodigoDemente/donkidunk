@@ -1,6 +1,6 @@
 import Database from '@tauri-apps/plugin-sql';
 import { debug } from '@tauri-apps/plugin-log';
-import { v4 as uuidv4 } from 'uuid';
+import { v7 as uuidv7 } from 'uuid';
 import ProjectStore from '../stores/project/store.svelte';
 import { migrations } from './migrations';
 import { appLocalDataDir, BaseDirectory, join } from '@tauri-apps/api/path';
@@ -118,7 +118,7 @@ export async function openDatabase(
 	if (!backupId) {
 		debug('No backup ID found, generating a new one');
 
-		backupId = preexistingBackupId || uuidv4();
+		backupId = preexistingBackupId || uuidv7();
 
 		await projectActions.setBackupId(backupId);
 	}
