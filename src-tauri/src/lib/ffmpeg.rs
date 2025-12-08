@@ -128,7 +128,7 @@ impl Ffmpeg {
 
         let parts_dir = match app.path().temp_dir() {
             Ok(temp_dir) => {
-                let unique_id = Uuid::new_v4();
+                let unique_id = Uuid::now_v7();
                 let dir = temp_dir.join(format!("donkidunk_video_parts_{unique_id}"));
 
                 if !dir.exists() {
@@ -253,7 +253,7 @@ impl Ffmpeg {
     async fn merge_clips(&self, clips_paths: &[PathBuf]) -> Result<PathBuf, FfmpegError> {
         log::debug!("Starting concat...");
 
-        let output_name = format!("merged_{}.mp4", Uuid::new_v4());
+        let output_name = format!("merged_{}.mp4", Uuid::now_v7());
 
         let merged_path = self.temp_dir.join(output_name);
 

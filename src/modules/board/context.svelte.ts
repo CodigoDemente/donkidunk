@@ -383,6 +383,16 @@ export class Board {
 		}
 	}
 
+	async loadBoard(boardData: BoardData): Promise<void> {
+		const eventCategories = boardData[CategoryType.Event];
+		const tagCategories = boardData[CategoryType.Tag];
+
+		for (const category of [...eventCategories, ...tagCategories]) {
+			this.#tempCategory = category;
+			await this.addCategory();
+		}
+	}
+
 	wrapForUndo() {
 		Object.assign(
 			this,

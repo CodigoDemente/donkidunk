@@ -1,6 +1,7 @@
 import { Context } from 'runed';
 import { Locale, UIMode, type ConfigData } from './types/Config';
 import type { ButtonBoard } from './types/ButtonBoard';
+import type { NewButtonBoardFormData } from './types/NewButtonBoardFormData';
 
 const initialState: ConfigData = {
 	locale: Locale.EN,
@@ -12,6 +13,7 @@ export const configContext = new Context<Config>('');
 export class Config {
 	#state = $state<ConfigData>(initialState);
 	#buttonBoards = $state<ButtonBoard[]>([]);
+	#newButtonBoardFormData = $state<NewButtonBoardFormData | null>(null);
 
 	constructor() {}
 
@@ -29,8 +31,16 @@ export class Config {
 		return this.#state.uiMode;
 	}
 
+	get defaultButtonBoard() {
+		return this.#buttonBoards.find((buttonBoard) => buttonBoard.isDefault) ?? this.#buttonBoards[0];
+	}
+
 	get buttonBoards() {
 		return this.#buttonBoards;
+	}
+
+	get newButtonBoardFormData() {
+		return this.#newButtonBoardFormData;
 	}
 
 	// region Setters
@@ -50,5 +60,8 @@ export class Config {
 		this.#buttonBoards = value;
 	}
 
+	set newButtonBoardFormData(value: NewButtonBoardFormData | null) {
+		this.#newButtonBoardFormData = value;
+	}
 	// endregion
 }

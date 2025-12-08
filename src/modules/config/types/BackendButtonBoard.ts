@@ -3,5 +3,6 @@ export type BackendButtonBoard = {
 	button_board: {
 		id: string;
 		name: string;
+		is_default: boolean;
 	};
 };

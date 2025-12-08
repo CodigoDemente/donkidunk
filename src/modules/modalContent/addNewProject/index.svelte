@@ -10,13 +10,10 @@
 
 	let projectPath = $state('');
 	let videoPath = $state('');
-	let buttonBoard = $state<ButtonBoard>({
-		path: '',
-		id: '',
-		name: ''
-	});
 
 	const config = configContext.get();
+
+	let buttonBoard = $state<ButtonBoard>(config.defaultButtonBoard);
 
 	// Sync local state with projectStore
 	$effect(() => {
@@ -85,27 +82,15 @@
 					value: buttonBoard.id
 				})),
 				{
-					label: 'New board',
+					label: 'Empty board',
 					value: ''
 				}
 			]}
 			bind:value={buttonBoard.id}
-			size="large"
+			size="medium"
 			selectClass="bg-gray-700"
 			noErrors
 			horizontal
 		/>
-
-		{#if buttonBoard.id === ''}
-			<Input
-				label="Board name"
-				placeholder="Enter board name"
-				type="text"
-				bind:value={buttonBoard.name}
-				size="large"
-				inputClass="bg-gray-700"
-				noErrors
-			/>
-		{/if}
 	</div>
 </div>

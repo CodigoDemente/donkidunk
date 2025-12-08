@@ -6,7 +6,8 @@ export class ButtonBoardMapper {
 		return {
 			path: backendButtonBoard.path,
 			id: backendButtonBoard.button_board.id,
-			name: backendButtonBoard.button_board.name
+			name: backendButtonBoard.button_board.name,
+			isDefault: backendButtonBoard.button_board.is_default
 		};
 	}
 }

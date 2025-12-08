@@ -1,47 +1,38 @@
-import { debug } from '@tauri-apps/plugin-log';
-import { v7 as uuidv7 } from 'uuid';
-import { createBackupDatabase } from '../../../persistence/database/actions';
-import { enableImportVideo } from './enableItems';
 import { projectActions } from '../../../persistence/stores/project/actions';
-import { selectProjectPath } from './selectProjectPath';
-import type { ButtonBoard } from '../../config/types/ButtonBoard';
+import type { Board } from '../../board/context.svelte';
+import { createNewProject as createNewProjectModal } from '../../modalContent/addNewProject/createProject';
+import AddNewProjectModal from '../../modalContent/addNewProject/index.svelte';
 
-export async function createNewProject(buttonBoard: ButtonBoard, providedPath?: string) {
-	debug('New project action triggered');
+export async function createNewProject(board: Board) {
+	projectActions.setNewProjectFormData(null);
+	projectActions.setModal({
+		content: AddNewProjectModal,
+		title: 'Create New Project',
+		onCancel: handleCancel,
+		onSubmit: () => handleSubmit(board),
+		show: true,
+		size: 'large'
+	});
+}
 
-	let path = providedPath;
+async function handleSubmit(board: Board) {
+	const formData = projectActions.getNewProjectFormData();
 
-	if (!path) {
-		const selectedPath = await selectProjectPath();
-
-		if (!selectedPath) {
-			debug('No path selected');
-			return;
-		}
-
-		path = selectedPath;
-	}
-
-	if (path && !path.endsWith('.dnk')) {
-		path = `${path}.dnk`;
-	}
-
-	if (!path) {
-		debug('No valid path available');
+	if (!formData || !formData.projectPath) {
 		return;
 	}
 
-	projectActions.setFilePath(path);
+	await createNewProjectModal(formData.buttonBoard, board, formData.projectPath);
 
-	const backupId = uuidv7();
-
-	await createBackupDatabase(backupId);
-
-	await projectActions.setLastSavedTimestamp(new Date().toISOString());
-
-	if (!buttonBoard.id) {
-		buttonBoard.id = uuidv7();
+	if (formData.videoPath) {
+		await projectActions.setVideoPath(formData.videoPath);
 	}
 
-	await enableImportVideo();
+	projectActions.setNewProjectFormData(null);
+	projectActions.closeAndResetModal();
+}
+
+function handleCancel() {
+	projectActions.setNewProjectFormData(null);
+	projectActions.closeAndResetModal();
 }

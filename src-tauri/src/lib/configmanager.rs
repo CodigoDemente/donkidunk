@@ -1,5 +1,5 @@
 use std::{
-    fs::{self, create_dir_all, File},
+    fs::{self, File, create_dir_all},
     io::Write,
     path::PathBuf,
 };
@@ -32,6 +32,7 @@ enum UIMode {
 pub struct ButtonBoard {
     id: String,
     name: String,
+    is_default: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -60,8 +61,10 @@ pub trait ConfigManagerTrait {
     fn initialize_button_boards<R: Runtime>(&mut self, app: &App<R>) -> Result<(), ConfigError>;
     fn get_button_board_paths(&self) -> Vec<ButtonBoardWithPath>;
     fn save_button_board(
-        &self,
+        &mut self,
         board_id: String,
+        board_name: String,
+        is_default: bool,
         board_content: String,
     ) -> Result<PathBuf, ConfigError>;
 }
@@ -155,7 +158,7 @@ impl ConfigManagerTrait for ConfigManager {
             .path()
             .resolve("assets/default_board_button.json", BaseDirectory::Resource)?;
 
-        let default_board_button_id = uuid::Uuid::new_v4();
+        let default_board_button_id = uuid::Uuid::now_v7();
 
         let default_board_button_path = self
             .button_board_dir
@@ -166,6 +169,7 @@ impl ConfigManagerTrait for ConfigManager {
         self.config.button_boards.push(ButtonBoard {
             id: default_board_button_id.to_string(),
             name: "Default".to_string(),
+            is_default: true,
         });
 
         self.write_config_to_file()?;
@@ -190,15 +194,25 @@ impl ConfigManagerTrait for ConfigManager {
     }
 
     fn save_button_board(
-        &self,
+        &mut self,
         board_id: String,
+        board_name: String,
+        is_default: bool,
         board_content: String,
     ) -> Result<PathBuf, ConfigError> {
         let board_path = self.button_board_dir.join(format!("{board_id}.json"));
 
-        let mut board_file = fs::File::create_new(&board_path)?;
+        let mut board_file = fs::File::create(&board_path)?;
 
         board_file.write_all(board_content.as_bytes())?;
+
+        self.config.button_boards.push(ButtonBoard {
+            id: board_id,
+            name: board_name,
+            is_default,
+        });
+
+        self.write_config_to_file()?;
 
         Ok(board_path)
     }

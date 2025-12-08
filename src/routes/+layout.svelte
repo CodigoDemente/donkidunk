@@ -19,13 +19,13 @@
 	timeline.wrapForUndo();
 
 	onMount(async () => {
-		// Initialize the menu
-		await bindMenuEvents(board, timeline);
-		await initEvents();
-
 		const configData = await getConfig();
 
 		config.state = configData;
+
+		// Initialize the menu
+		await bindMenuEvents(board, timeline, config);
+		await initEvents();
 	});
 
 	onDestroy(() => {
