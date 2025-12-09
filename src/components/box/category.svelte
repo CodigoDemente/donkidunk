@@ -31,35 +31,7 @@
 	let resizeStartLeft = 0;
 	let resizeStartTop = 0;
 	let containerElement: HTMLElement | null = null;
-	let persistTimeout: ReturnType<typeof setTimeout> | null = null;
-	let cachedMinWidth = 0;
 	let cachedMinHeight = 0;
-
-	function getMinimumContentSize(): { width: number; height: number } {
-		if (!categoryElement || !containerElement || !headerElement || !contentElement) {
-			return { width: 10, height: 5 }; // Fallback to fixed minimums
-		}
-
-		const containerRect = containerElement.getBoundingClientRect();
-
-		// Measure header height
-		const headerHeight = headerElement.offsetHeight;
-
-		// For height, use the scrollHeight which accounts for content wrapping
-		// This gives us the actual height needed to display all content
-		const contentHeight = contentElement.scrollHeight;
-		const minHeightPx = headerHeight + contentHeight;
-
-		// Convert height to percentage
-		const minHeightPercent = (minHeightPx / containerRect.height) * 100;
-
-		// For width, we don't set a minimum - let CSS/Tailwind handle it with w-fit
-		// Just return a small fallback
-		return {
-			width: 10, // This won't be used since we'll use w-fit
-			height: Math.max(5, minHeightPercent)
-		};
-	}
 
 	function handleDragStart(e: DragEvent) {
 		// Prevent drag if clicking on a resize handle or if resize is active
@@ -113,9 +85,15 @@
 		}
 
 		// Cache minimum content height at the start of resize
-		// Width is handled by CSS, so we only need to cache height
-		const minSize = getMinimumContentSize();
-		cachedMinHeight = minSize.height;
+		// Calculate based on actual content height
+		if (headerElement && contentElement) {
+			const headerHeight = headerElement.offsetHeight;
+			const contentHeight = contentElement.scrollHeight;
+			const minHeightPx = headerHeight + contentHeight;
+			cachedMinHeight = (minHeightPx / containerRect.height) * 100;
+		} else {
+			cachedMinHeight = 5; // Fallback minimum
+		}
 	}
 
 	function handleResizeMove(e: MouseEvent) {
@@ -150,14 +128,12 @@
 		}
 
 		// Apply minimum height constraint based on content (use cached value)
-		// Width is handled by CSS with w-fit, so we don't constrain it here
-		const minHeightPercent = cachedMinHeight || 5;
-
-		if (newHeight < minHeightPercent) {
+		// Width is handled by Tailwind min-w-fit, so we don't constrain it here
+		if (cachedMinHeight > 0 && newHeight < cachedMinHeight) {
 			if (resizeHandle.includes('top')) {
-				newTop = resizeStartTop + startHeightPercent - minHeightPercent;
+				newTop = resizeStartTop + startHeightPercent - cachedMinHeight;
 			}
-			newHeight = minHeightPercent;
+			newHeight = cachedMinHeight;
 		}
 
 		// Prevent overflow
@@ -223,15 +199,14 @@
 <!-- Draggable element absolutely positioned by percentage -->
 <div
 	bind:this={categoryElement}
-	class="absolute z-10 inline-block min-h-10 rounded border border-gray-900 bg-gray-700 text-blue-950 shadow select-none"
+	class="absolute z-10 inline-block min-h-10 min-w-fit rounded border border-gray-900 bg-gray-700 text-blue-950 shadow select-none"
 	class:cursor-move={!resizeHandle}
 	class:w-fit={!category.size?.width}
 	style="
 	left: {category.position.x}%;
 	top: {category.position.y}%;
-	width: {category.size?.width ? category.size.width + '%' : 'fit-content'};
-	height: {category.size?.height ? category.size.height + '%' : 'auto'};
-	min-width: fit-content;"
+	width: {category.size?.width ? category.size.width + '%' : undefined};
+	height: {category.size?.height ? category.size.height + '%' : 'auto'};"
 	draggable={!resizeHandle}
 	ondragstart={(e) => handleDragStart(e)}
 	role="button"
