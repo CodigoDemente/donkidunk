@@ -91,7 +91,7 @@
 			<IconPlus class="text-white" />
 		</Button>
 		<div
-			class="relative min-h-0 min-w-0 flex-1 overflow-hidden"
+			class="relative min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto"
 			ondrop={(e) => handleDrop(e)}
 			ondragover={allowDrop}
 			id={`drop-area-categories-${type}`}

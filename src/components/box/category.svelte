@@ -112,8 +112,8 @@
 	style="
 	left: {category.position.x}%;
 	top: {category.position.y}%;
-	width: {category.size?.width ? category.size.width + '%' : undefined};
-	height: {category.size?.height ? category.size.height + '%' : 'auto'};
+	width: {category.size?.width ? category.size.width + 'px' : undefined};
+	height: {category.size?.height ? category.size.height + 'px' : 'auto'};
 	min-height: min-content;
 	min-width: min-content"
 	draggable={!resizeState.resizeHandle}
