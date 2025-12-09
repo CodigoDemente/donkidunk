@@ -39,6 +39,7 @@
 			title: 'Create New Project',
 			onCancel: handleCancel,
 			onSubmit: handleSubmit,
+			onSubmitText: 'Create',
 			show: true,
 			size: 'large'
 		});
