@@ -9,6 +9,8 @@ export class CategoryMapper {
 			color: category.color,
 			grid_position_x: category.position.x,
 			grid_position_y: category.position.y,
+			width: category.size?.width ?? null,
+			height: category.size?.height ?? null,
 			type: category.type
 		};
 	}

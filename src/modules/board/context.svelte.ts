@@ -149,6 +149,22 @@ export class Board {
 		await emit('project:dirty');
 	}
 
+	async updateCategorySize(
+		section: CategoryType,
+		categoryId: string,
+		width: number,
+		height: number
+	): Promise<void> {
+		const repository = BoardRepositoryFactory.getInstance();
+
+		const cat = this.#state[section].find((c) => c.id === categoryId)!;
+
+		cat.size = { width, height };
+
+		await repository.updateCategory(cat);
+		await emit('project:dirty');
+	}
+
 	async updateCategoryName(
 		categoryId: string,
 		section: CategoryType,

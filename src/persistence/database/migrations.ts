@@ -80,5 +80,13 @@ export const migrations: Migration[] = [
 			FOREIGN KEY (tag_id) REFERENCES tag(id) ON DELETE CASCADE,
 			PRIMARY KEY (timeline_entry_id, tag_id)
 		);`
+	},
+	{
+		id: 7,
+		name: 'AddCategorySizeColumns',
+		sql: `
+		ALTER TABLE category ADD COLUMN width REAL;
+		ALTER TABLE category ADD COLUMN height REAL;
+		`
 	}
 ];

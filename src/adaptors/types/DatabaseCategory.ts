@@ -8,6 +8,8 @@ export type DatabaseCategory = {
 	color: string;
 	grid_position_x: number;
 	grid_position_y: number;
+	width?: number | null;
+	height?: number | null;
 	type: CategoryType;
 };
 
@@ -17,6 +19,8 @@ export type DatabaseCategoryWithEvent = {
 	color: string;
 	grid_position_x: number;
 	grid_position_y: number;
+	width?: number | null;
+	height?: number | null;
 	type: CategoryType;
 	button_id: DatabaseButton['id'];
 	button_name: DatabaseButton['name'];
@@ -32,6 +36,8 @@ export type DatabaseCategoryWithTag = {
 	color: string;
 	grid_position_x: number;
 	grid_position_y: number;
+	width?: number | null;
+	height?: number | null;
 	type: CategoryType;
 	tag_id: DatabaseTag['id'];
 	tag_name: DatabaseTag['name'];

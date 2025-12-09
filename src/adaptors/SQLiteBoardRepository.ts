@@ -37,7 +37,7 @@ export class SQLiteBoardRepository implements BoardRepository {
 
 	private async getEventCategories(): Promise<Category[]> {
 		const categories = await this.db.select<DatabaseCategoryWithEvent[]>(
-			`SELECT category.id, type, category.name, category.color, grid_position_x, grid_position_y, button.id AS button_id, button.name AS button_name, button.range as button_range, button.duration as button_duration, button.before as button_before, button.color as button_color
+			`SELECT category.id, type, category.name, category.color, grid_position_x, grid_position_y, category.width, category.height, button.id AS button_id, button.name AS button_name, button.range as button_range, button.duration as button_duration, button.before as button_before, button.color as button_color
 			FROM category LEFT JOIN button ON category.id = button.category_id
              WHERE type = $1
              ORDER BY grid_position_y, grid_position_x`,
@@ -53,6 +53,10 @@ export class SQLiteBoardRepository implements BoardRepository {
 						name: category.name,
 						color: category.color,
 						position: { x: category.grid_position_x, y: category.grid_position_y },
+						size:
+							category.width != null && category.height != null
+								? { width: category.width, height: category.height }
+								: undefined,
 						buttons: [
 							{
 								id: category.button_id,
@@ -84,7 +88,7 @@ export class SQLiteBoardRepository implements BoardRepository {
 
 	private async getTagCategories(): Promise<Category[]> {
 		const categories = await this.db.select<DatabaseCategoryWithTag[]>(
-			`SELECT category.id, type, category.name, category.color, grid_position_x, grid_position_y, tag.id AS tag_id, tag.name AS tag_name, tag.color as tag_color
+			`SELECT category.id, type, category.name, category.color, grid_position_x, grid_position_y, category.width, category.height, tag.id AS tag_id, tag.name AS tag_name, tag.color as tag_color
 			FROM category LEFT JOIN tag ON category.id = tag.category_id
              WHERE type = $1
              ORDER BY grid_position_y, grid_position_x`,
@@ -100,6 +104,10 @@ export class SQLiteBoardRepository implements BoardRepository {
 						name: category.name,
 						color: category.color,
 						position: { x: category.grid_position_x, y: category.grid_position_y },
+						size:
+							category.width != null && category.height != null
+								? { width: category.width, height: category.height }
+								: undefined,
 						buttons: [
 							{
 								id: category.tag_id,
@@ -140,9 +148,18 @@ export class SQLiteBoardRepository implements BoardRepository {
 		const databaseCategory = CategoryMapper.toPersistence(category);
 
 		await this.db.execute(
-			`INSERT INTO category (id, type, name, color, grid_position_x, grid_position_y)
-             VALUES ($1, $2, $3, $4, 0, 0)`,
-			[databaseCategory.id, databaseCategory.type, databaseCategory.name, databaseCategory.color]
+			`INSERT INTO category (id, type, name, color, grid_position_x, grid_position_y, width, height)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+			[
+				databaseCategory.id,
+				databaseCategory.type,
+				databaseCategory.name,
+				databaseCategory.color,
+				databaseCategory.grid_position_x,
+				databaseCategory.grid_position_y,
+				databaseCategory.width ?? null,
+				databaseCategory.height ?? null
+			]
 		);
 	}
 
@@ -200,13 +217,15 @@ export class SQLiteBoardRepository implements BoardRepository {
 
 		await this.db.execute(
 			`UPDATE category
-			 SET name = $1, color = $2, grid_position_x = $3, grid_position_y = $4
-			 WHERE id = $5`,
+			 SET name = $1, color = $2, grid_position_x = $3, grid_position_y = $4, width = $5, height = $6
+			 WHERE id = $7`,
 			[
 				databaseCategory.name,
 				databaseCategory.color,
 				databaseCategory.grid_position_x,
 				databaseCategory.grid_position_y,
+				databaseCategory.width,
+				databaseCategory.height,
 				databaseCategory.id
 			]
 		);
