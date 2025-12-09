@@ -8,5 +8,6 @@ export interface Category {
 	type: CategoryType;
 	color: string;
 	position: { x: number; y: number };
+	size?: { width: number; height: number };
 	buttons: Button[] | Tag[];
 }
