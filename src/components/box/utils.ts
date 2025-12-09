@@ -1,39 +1,7 @@
 import type { Board } from '../../modules/board/context.svelte';
 import type { Category } from '../../modules/board/types/Category';
 import type { CategoryType } from './types';
-
 let isResizing = false;
-let frame: number | null = null;
-let setBoxHeight: (h: number) => void;
-
-function resize(e: MouseEvent) {
-	if (!isResizing || !setBoxHeight) return;
-	if (frame) cancelAnimationFrame(frame);
-	frame = requestAnimationFrame(() => {
-		const container = document.getElementById('boards-container');
-		if (!container) return;
-		const rect = container.getBoundingClientRect();
-		const y = e.clientY - rect.top;
-		const percent = Math.max(10, Math.min(90, (y / rect.height) * 100));
-		setBoxHeight(percent);
-	});
-}
-
-export function startResize(setter: (h: number) => void) {
-	isResizing = true;
-	setBoxHeight = setter;
-	document.body.style.cursor = 'row-resize';
-	window.addEventListener('mousemove', resize);
-	window.addEventListener('mouseup', stopResize);
-	window.addEventListener('mouseleave', stopResize);
-}
-function stopResize() {
-	isResizing = false;
-	document.body.style.cursor = '';
-	window.removeEventListener('mousemove', resize);
-	window.removeEventListener('mouseup', stopResize);
-	window.removeEventListener('mouseleave', stopResize);
-}
 
 export type ResizeState = {
 	resizeHandle: string | null;
@@ -180,4 +148,50 @@ export function handleResizeEnd(state: ResizeState): void {
 	// Position and size are already updated during resize
 	// The board context methods handle persistence
 	state.resizeHandle = null;
+}
+
+export function startResize(
+	setFirstBoxHeight: (h: number) => void,
+	setSecondBoxHeight: (h: number) => void
+) {
+	isResizing = true;
+	// Disable transitions on boxes during resize for smooth performance
+	const container = document.getElementById('boards-container');
+	if (container) {
+		const boxes = container.querySelectorAll('[data-box]');
+		boxes.forEach((box) => {
+			(box as HTMLElement).style.transition = 'none';
+		});
+	}
+
+	function resize(event: MouseEvent) {
+		if (!isResizing) return;
+		const container = document.getElementById('boards-container');
+		if (!container) return;
+		// Cache rect to avoid multiple calls
+		const rect = container.getBoundingClientRect();
+		const containerHeight = rect.height;
+		const containerTop = rect.top;
+		const y = event.clientY - containerTop;
+		const percent = Math.min(90, Math.max(10, (y / containerHeight) * 100));
+		setFirstBoxHeight(percent);
+		setSecondBoxHeight(100 - percent);
+	}
+
+	function stopResize() {
+		isResizing = false;
+		// Re-enable transitions after resize
+		const container = document.getElementById('boards-container');
+		if (container) {
+			const boxes = container.querySelectorAll('[data-box]');
+			boxes.forEach((box) => {
+				(box as HTMLElement).style.transition = '';
+			});
+		}
+		document.removeEventListener('mousemove', resize);
+		document.removeEventListener('mouseup', stopResize);
+	}
+
+	document.addEventListener('mousemove', resize);
+	document.addEventListener('mouseup', stopResize);
 }
