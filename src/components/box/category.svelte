@@ -126,7 +126,7 @@
 		bind:this={headerElement}
 		class="flex items-start justify-between gap-2 border-b border-gray-800 px-2 py-1 pb-0"
 	>
-		<p class="flex items-start gap-1 text-sm font-semibold text-gray-200">
+		<p class="flex items-start gap-1 text-xs font-semibold text-gray-200">
 			<span
 				class="rounded-full"
 				style="background-color: {category.color}; width: 0.75rem; height: 0.75rem; display: inline-block; margin-right: 0.25rem;"
