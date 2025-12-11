@@ -112,8 +112,8 @@
 	style="
 	left: {category.position.x}%;
 	top: {category.position.y}%;
-	width: {category.size?.width ? category.size.width + '%' : undefined};
-	height: {category.size?.height ? category.size.height + '%' : 'auto'};
+	width: {category.size?.width ? category.size.width + 'px' : undefined};
+	height: {category.size?.height ? category.size.height + 'px' : 'auto'};
 	min-height: min-content;
 	min-width: min-content"
 	draggable={!resizeState.resizeHandle}
@@ -126,7 +126,7 @@
 		bind:this={headerElement}
 		class="flex items-start justify-between gap-2 border-b border-gray-800 px-2 py-1 pb-0"
 	>
-		<p class="flex items-start gap-1 text-sm font-semibold text-gray-200">
+		<p class="flex items-start gap-1 text-xs font-semibold text-gray-200">
 			<span
 				class="rounded-full"
 				style="background-color: {category.color}; width: 0.75rem; height: 0.75rem; display: inline-block; margin-right: 0.25rem;"

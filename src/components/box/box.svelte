@@ -5,7 +5,6 @@
 	import Button from '../button/button.svelte';
 	import { CategoryType, type DraggedCategory, type Props } from './types';
 	import { boardContext } from '../../modules/board/context.svelte';
-	import { startResize } from './utils';
 	import Category from './category.svelte';
 	import { v7 as uuidv7 } from 'uuid';
 
@@ -64,11 +63,12 @@
 </script>
 
 <div
-	class={`relative flex flex-col rounded-lg border border-gray-600 bg-gray-800 transition-all duration-200
+	data-box
+	class={`relative flex flex-col rounded-lg border border-gray-600 bg-gray-800
     ${!isOpened ? 'h-10 min-h-0 shrink-0' : otherIsOpened ? '' : 'min-h-[40px] flex-1'}`}
 	style={isOpened && otherIsOpened ? `height: ${boxHeight}%; min-height: 40px;` : ''}
 >
-	<div class="flex h-10 items-center justify-between border-b border-gray-600 bg-gray-800 px-4">
+	<div class="flex h-6 items-center justify-between border-b border-gray-600 bg-gray-800 px-4">
 		<p class="text-xs font-semibold text-white">{title}</p>
 		<button
 			class="ml-2 rounded p-1 transition hover:text-gray-200"
@@ -91,7 +91,7 @@
 			<IconPlus class="text-white" />
 		</Button>
 		<div
-			class="relative min-h-0 min-w-0 flex-1 overflow-hidden"
+			class="relative min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto"
 			ondrop={(e) => handleDrop(e)}
 			ondragover={allowDrop}
 			id={`drop-area-categories-${type}`}
@@ -104,17 +104,3 @@
 		</div>
 	{/if}
 </div>
-
-<div class="h-1"></div>
-
-<!-- Resize bar -->
-{#if isOpened}
-	<button
-		type="button"
-		class="h-1 w-full shrink-0 cursor-row-resize bg-gray-900"
-		onmousedown={() => startResize(setBoxHeight)}
-		style="z-index: 20;"
-		aria-label="Resize section"
-		tabindex="0"
-	></button>
-{/if}

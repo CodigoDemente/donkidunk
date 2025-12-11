@@ -10,6 +10,7 @@ export async function createNewProject(board: Board) {
 		title: 'Create New Project',
 		onCancel: handleCancel,
 		onSubmit: () => handleSubmit(board),
+		onSubmitText: 'Create',
 		show: true,
 		size: 'large'
 	});

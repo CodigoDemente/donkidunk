@@ -10,7 +10,13 @@
 		IconTag
 	} from '@tabler/icons-svelte';
 
-	let isNavbarOpen = false;
+	type Props = {
+		disabled: boolean;
+	};
+
+	let isNavbarOpen = $state(false);
+	let { disabled }: Props = $props();
+
 	function toggleNavbar() {
 		isNavbarOpen = !isNavbarOpen; // Toggle the navbar state
 	}
@@ -32,8 +38,12 @@
 	<ul class="contentEffects flex flex-col items-center gap-5 pt-26">
 		<li class="border-b border-black">
 			<button
-				class={`flex items-center justify-center gap-2 rounded-sm p-2 hover:cursor-pointer ${isActive('/') ? 'bg-tertiary text-white' : 'text-tertiary'}`}
+				class={`
+				${disabled ? 'cursor-not-allowed opacity-50' : 'hover:cursor-pointer '}
+				flex items-center justify-center gap-2 rounded-sm p-2 
+				${isActive('/') ? 'bg-tertiary text-white' : 'text-tertiary'}`}
 				type="button"
+				{disabled}
 				onclick={() => navigateTo('/')}
 			>
 				<IconTag class="h-5 w-5" />
@@ -44,8 +54,12 @@
 		</li>
 		<li class="border-b border-black">
 			<button
-				class={`flex items-center justify-center gap-2 rounded-sm p-2 hover:cursor-pointer ${isActive('/export') ? 'bg-tertiary text-white' : 'text-tertiary'}`}
+				class={`
+				${disabled ? 'cursor-not-allowed opacity-50' : 'hover:cursor-pointer'}
+				flex items-center justify-center gap-2 rounded-sm p-2  
+				${isActive('/export') ? 'bg-tertiary text-white' : 'text-tertiary'}`}
 				type="button"
+				{disabled}
 				onclick={() => navigateTo('/export')}
 			>
 				<IconFileScissors class="h-6 w-6" />
@@ -65,7 +79,7 @@
 <button
 	class="buttonEffects absolute top-15 {isNavbarOpen
 		? 'left-22'
-		: 'left-11'} rounded-lg border border-white bg-black p-1 text-gray-200 hover:cursor-pointer hover:text-white"
+		: 'left-11'} border-tertiary text-tertiary rounded-lg border bg-black p-1 hover:cursor-pointer hover:border-gray-200 hover:text-gray-200"
 	onclick={toggleNavbar}
 	aria-label="Toggle Navbar"
 >

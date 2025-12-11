@@ -21,8 +21,6 @@
 	const leftLimit = $derived(timeline.duration * timelineStart);
 	const rightLimit = $derived(timeline.duration * timelineEnd);
 
-	$inspect(playingObjects);
-
 	// Function to check if an event is visible in the timeline range
 	function isEventVisible(start: number, end: number | null | undefined): boolean {
 		const eventEnd = end ?? currentTime;

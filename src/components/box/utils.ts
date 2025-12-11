@@ -1,39 +1,7 @@
 import type { Board } from '../../modules/board/context.svelte';
 import type { Category } from '../../modules/board/types/Category';
 import type { CategoryType } from './types';
-
 let isResizing = false;
-let frame: number | null = null;
-let setBoxHeight: (h: number) => void;
-
-function resize(e: MouseEvent) {
-	if (!isResizing || !setBoxHeight) return;
-	if (frame) cancelAnimationFrame(frame);
-	frame = requestAnimationFrame(() => {
-		const container = document.getElementById('boards-container');
-		if (!container) return;
-		const rect = container.getBoundingClientRect();
-		const y = e.clientY - rect.top;
-		const percent = Math.max(10, Math.min(90, (y / rect.height) * 100));
-		setBoxHeight(percent);
-	});
-}
-
-export function startResize(setter: (h: number) => void) {
-	isResizing = true;
-	setBoxHeight = setter;
-	document.body.style.cursor = 'row-resize';
-	window.addEventListener('mousemove', resize);
-	window.addEventListener('mouseup', stopResize);
-	window.addEventListener('mouseleave', stopResize);
-}
-function stopResize() {
-	isResizing = false;
-	document.body.style.cursor = '';
-	window.removeEventListener('mousemove', resize);
-	window.removeEventListener('mouseup', stopResize);
-	window.removeEventListener('mouseleave', stopResize);
-}
 
 export type ResizeState = {
 	resizeHandle: string | null;
@@ -91,21 +59,18 @@ export function handleResizeStart(
 	state.resizeStartLeft = ((rect.left - containerRect.left) / containerRect.width) * 100;
 	state.resizeStartTop = ((rect.top - containerRect.top) / containerRect.height) * 100;
 
-	// Initialize size if it doesn't exist, converting current dimensions to percentages
+	// Initialize size if it doesn't exist, converting current dimensions to pixels
 	if (!category.size) {
-		const currentWidthPercent = (rect.width / containerRect.width) * 100;
-		const currentHeightPercent = (rect.height / containerRect.height) * 100;
-		board.updateCategorySize(type, category.id, currentWidthPercent, currentHeightPercent);
+		board.updateCategorySize(type, category.id, rect.width, rect.height);
 	}
 
-	// Cache minimum content height at the start of resize
+	// Cache minimum content height in pixels
 	if (headerElement && contentElement) {
 		const headerHeight = headerElement.offsetHeight;
 		const contentHeight = contentElement.scrollHeight;
-		const minHeightPx = headerHeight + contentHeight;
-		state.cachedMinHeight = (minHeightPx / containerRect.height) * 100;
+		state.cachedMinHeight = headerHeight + contentHeight;
 	} else {
-		state.cachedMinHeight = 5; // Fallback minimum
+		state.cachedMinHeight = 40; // Fallback minimum in pixels
 	}
 }
 
@@ -120,58 +85,62 @@ export function handleResizeMove(
 	if (!state.resizeHandle || !categoryElement || !state.containerElement) return;
 
 	const containerRect = state.containerElement.getBoundingClientRect();
-	const deltaX = ((e.clientX - state.resizeStartX) / containerRect.width) * 100;
-	const deltaY = ((e.clientY - state.resizeStartY) / containerRect.height) * 100;
+	const deltaX = e.clientX - state.resizeStartX;
+	const deltaY = e.clientY - state.resizeStartY;
 
-	const startWidthPercent = (state.resizeStartWidth / containerRect.width) * 100;
-	const startHeightPercent = (state.resizeStartHeight / containerRect.height) * 100;
-
-	let newWidth = startWidthPercent;
-	let newHeight = startHeightPercent;
+	let newWidth = state.resizeStartWidth;
+	let newHeight = state.resizeStartHeight;
 	let newLeft = state.resizeStartLeft;
 	let newTop = state.resizeStartTop;
 
-	// Handle different resize directions
+	// Handle different resize directions - work in pixels
 	if (state.resizeHandle.includes('right')) {
-		newWidth = startWidthPercent + deltaX;
+		newWidth = state.resizeStartWidth + deltaX;
 	}
 	if (state.resizeHandle.includes('left')) {
-		newWidth = startWidthPercent - deltaX;
-		newLeft = state.resizeStartLeft + deltaX;
+		newWidth = state.resizeStartWidth - deltaX;
+		const deltaXPercent = (deltaX / containerRect.width) * 100;
+		newLeft = state.resizeStartLeft + deltaXPercent;
 	}
 	if (state.resizeHandle.includes('bottom')) {
-		newHeight = startHeightPercent + deltaY;
+		newHeight = state.resizeStartHeight + deltaY;
 	}
 	if (state.resizeHandle.includes('top')) {
-		newHeight = startHeightPercent - deltaY;
-		newTop = state.resizeStartTop + deltaY;
+		newHeight = state.resizeStartHeight - deltaY;
+		const deltaYPercent = (deltaY / containerRect.height) * 100;
+		newTop = state.resizeStartTop + deltaYPercent;
 	}
 
-	// Apply minimum height constraint based on content (use cached value)
+	// Apply minimum height constraint based on content (use cached pixel value)
 	if (state.cachedMinHeight > 0 && newHeight < state.cachedMinHeight) {
 		if (state.resizeHandle.includes('top')) {
-			newTop = state.resizeStartTop + startHeightPercent - state.cachedMinHeight;
+			const heightDiff = state.cachedMinHeight - newHeight;
+			const heightDiffPercent = (heightDiff / containerRect.height) * 100;
+			newTop = state.resizeStartTop - heightDiffPercent;
 		}
 		newHeight = state.cachedMinHeight;
 	}
 
-	// Prevent overflow
+	// Prevent overflow - position is in percentage, size is in pixels
+	const widthPercent = (newWidth / containerRect.width) * 100;
+	const heightPercent = (newHeight / containerRect.height) * 100;
+
 	if (newLeft < 0) {
-		newWidth += newLeft;
+		newWidth = ((100 + newLeft) / 100) * containerRect.width;
 		newLeft = 0;
 	}
 	if (newTop < 0) {
-		newHeight += newTop;
+		newHeight = ((100 + newTop) / 100) * containerRect.height;
 		newTop = 0;
 	}
-	if (newLeft + newWidth > 100) {
-		newWidth = 100 - newLeft;
+	if (newLeft + widthPercent > 100) {
+		newWidth = ((100 - newLeft) / 100) * containerRect.width;
 	}
-	if (newTop + newHeight > 100) {
-		newHeight = 100 - newTop;
+	if (newTop + heightPercent > 100) {
+		newHeight = ((100 - newTop) / 100) * containerRect.height;
 	}
 
-	// Update position and size through board context (avoids mutating props)
+	// Update position (percentage) and size (pixels) through board context
 	board.updateCategoryPosition(type, category.id, newLeft, newTop);
 	board.updateCategorySize(type, category.id, newWidth, newHeight);
 }
@@ -180,4 +149,50 @@ export function handleResizeEnd(state: ResizeState): void {
 	// Position and size are already updated during resize
 	// The board context methods handle persistence
 	state.resizeHandle = null;
+}
+
+export function startResize(
+	setFirstBoxHeight: (h: number) => void,
+	setSecondBoxHeight: (h: number) => void
+) {
+	isResizing = true;
+	// Disable transitions on boxes during resize for smooth performance
+	const container = document.getElementById('boards-container');
+	if (container) {
+		const boxes = container.querySelectorAll('[data-box]');
+		boxes.forEach((box) => {
+			(box as HTMLElement).style.transition = 'none';
+		});
+	}
+
+	function resize(event: MouseEvent) {
+		if (!isResizing) return;
+		const container = document.getElementById('boards-container');
+		if (!container) return;
+		// Cache rect to avoid multiple calls
+		const rect = container.getBoundingClientRect();
+		const containerHeight = rect.height;
+		const containerTop = rect.top;
+		const y = event.clientY - containerTop;
+		const percent = Math.min(90, Math.max(10, (y / containerHeight) * 100));
+		setFirstBoxHeight(percent);
+		setSecondBoxHeight(100 - percent);
+	}
+
+	function stopResize() {
+		isResizing = false;
+		// Re-enable transitions after resize
+		const container = document.getElementById('boards-container');
+		if (container) {
+			const boxes = container.querySelectorAll('[data-box]');
+			boxes.forEach((box) => {
+				(box as HTMLElement).style.transition = '';
+			});
+		}
+		document.removeEventListener('mousemove', resize);
+		document.removeEventListener('mouseup', stopResize);
+	}
+
+	document.addEventListener('mousemove', resize);
+	document.addEventListener('mouseup', stopResize);
 }
