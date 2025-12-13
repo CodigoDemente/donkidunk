@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { projectActions } from '../../persistence/stores/project/actions';
 	import addCategoryModal from '../../modules/modalContent/addCategoryModal/index.svelte';
+	import deleteCategoryModal from '../../modules/modalContent/deleteCategoryModal/index.svelte';
 	import { IconPlus, IconChevronDown } from '@tabler/icons-svelte';
 	import Button from '../button/button.svelte';
 	import { CategoryType, type DraggedCategory, type Props } from './types';
@@ -24,10 +25,6 @@
 		}
 	});
 
-	function setBoxHeight(newHeight: number) {
-		boxHeight = newHeight;
-	}
-
 	function handleDrop(e: DragEvent) {
 		const container = e.currentTarget as HTMLElement;
 
@@ -47,6 +44,18 @@
 
 	function allowDrop(e: DragEvent) {
 		e.preventDefault();
+	}
+
+	function handleModalDelete(categoryId: string) {
+		projectActions.setModal({
+			content: deleteCategoryModal,
+			title: `Delete category`,
+			onCancel: () => projectActions.closeAndResetModal(),
+			onSubmit: () => board.deleteCategory(type, categoryId),
+			onSubmitText: 'Delete',
+			show: true,
+			size: 'small'
+		});
 	}
 
 	function handleModalOpen(type: CategoryType, categoryId?: string) {
@@ -99,7 +108,7 @@
 			aria-label="Drop area"
 		>
 			{#each categories as category (category.id)}
-				<Category {type} {category} {handleModalOpen} bind:draggedCategory />
+				<Category {type} {category} {handleModalOpen} {handleModalDelete} bind:draggedCategory />
 			{/each}
 		</div>
 	{/if}
