@@ -28,6 +28,7 @@ fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
             get_user_config,
             get_button_boards,
             save_button_board,
+            save_board_size,
         ])
         .setup(|app| {
             #[cfg(not(target_os = "windows"))]
@@ -38,7 +39,9 @@ fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
             let mut config_manager = ConfigManager::new(app);
             config_manager.initialize_button_boards(app).unwrap();
 
-            let initial_state = AppState { config_manager: Mutex::new(config_manager) };
+            let initial_state = AppState {
+                config_manager: Mutex::new(config_manager),
+            };
 
             app.manage(initial_state);
 

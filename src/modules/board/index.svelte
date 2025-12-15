@@ -3,12 +3,15 @@
 	import { CategoryType } from '../../components/box/types';
 	import { startResize } from '../../components/box/utils';
 	import Toggle from '../../components/toggle/toggle.svelte';
+	import { saveBoardSizeCommand } from '../config/commands/SaveBoardSize';
+	import { configContext } from '../config/context.svelte';
 	import { boardContext } from './context.svelte';
 
 	const context = boardContext.get();
+	const config = configContext.get();
 
-	let eventsBoxHeight = 30;
-	let tagsBoxHeight = 70;
+	let eventsBoxHeight = config.eventsHeight;
+	let tagsBoxHeight = config.tagsHeight;
 	let eventsOpen = true;
 	let tagsOpen = true;
 </script>
@@ -39,6 +42,7 @@
 					(h) => (eventsBoxHeight = h),
 					(h) => (tagsBoxHeight = h)
 				)}
+			onmouseup={() => saveBoardSizeCommand(eventsBoxHeight, tagsBoxHeight)}
 			aria-label="Resize sections"
 			tabindex="0"
 		></button>

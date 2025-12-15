@@ -24,10 +24,6 @@
 		}
 	});
 
-	function setBoxHeight(newHeight: number) {
-		boxHeight = newHeight;
-	}
-
 	function handleDrop(e: DragEvent) {
 		const container = e.currentTarget as HTMLElement;
 

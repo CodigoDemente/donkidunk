@@ -1,5 +1,5 @@
 use std::{
-    fs::{self, File, create_dir_all},
+    fs::{self, create_dir_all, File},
     io::Write,
     path::PathBuf,
 };
@@ -36,9 +36,16 @@ pub struct ButtonBoard {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BoardSize {
+    events: u8,
+    tags: u8,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
     locale: Locale,
     ui_mode: UIMode,
+    board_size: BoardSize,
     button_boards: Vec<ButtonBoard>,
 }
 
@@ -67,6 +74,7 @@ pub trait ConfigManagerTrait {
         is_default: bool,
         board_content: String,
     ) -> Result<PathBuf, ConfigError>;
+    fn set_board_size(&mut self, events: u8, tags: u8) -> Result<(), ConfigError>;
 }
 
 impl ConfigManager {
@@ -74,6 +82,10 @@ impl ConfigManager {
         let config_data = Config {
             locale: Locale::EN,
             ui_mode: UIMode::Simple,
+            board_size: BoardSize {
+                events: 30,
+                tags: 70,
+            },
             button_boards: vec![],
         };
 
@@ -110,13 +122,13 @@ impl ConfigManagerTrait for ConfigManager {
 
             let config_result = serde_json::from_reader(config_reader);
 
-            if config_result.is_ok() {
-                config_data = Some(config_result.unwrap());
-            } else {
+            if let Err(error) = config_result {
                 // TODO: Alert the user that the config is corrupted and needs to be regenerated
                 // TODO: Instead of deleting the file, rename it to a unique name like "corrupted_config_<timestamp>.json"
-                warn!("Error deserializing config file: {:?}", config_result.err());
+                warn!("Error deserializing config file: {:?}", error);
                 fs::remove_file(&config_file).unwrap();
+            } else {
+                config_data = Some(config_result.unwrap());
             }
         }
 
@@ -215,5 +227,20 @@ impl ConfigManagerTrait for ConfigManager {
         self.write_config_to_file()?;
 
         Ok(board_path)
+    }
+
+    fn set_board_size(&mut self, events: u8, tags: u8) -> Result<(), ConfigError> {
+        if events + tags != 100 {
+            return Err(ConfigError::InvalidBoardSize(format!(
+                "events: {}, tags: {}",
+                events, tags
+            )));
+        }
+
+        self.config.board_size = BoardSize { events, tags };
+
+        self.write_config_to_file()?;
+
+        Ok(())
     }
 }

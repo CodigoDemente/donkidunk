@@ -31,9 +31,29 @@ pub fn save_button_board(
 ) -> Result<String, AppError> {
     let mut config_manager = state.config_manager.lock().unwrap();
 
-    let new_board_path = config_manager.save_button_board(board_id, board_name, is_default, board_content)?;
+    let new_board_path =
+        config_manager.save_button_board(board_id, board_name, is_default, board_content)?;
 
-    log::debug!("Saved button board to: {}", new_board_path.to_string_lossy());
+    log::debug!(
+        "Saved button board to: {}",
+        new_board_path.to_string_lossy()
+    );
 
     Ok(new_board_path.to_string_lossy().to_string())
+}
+
+// remember to call `.manage(MyState::default())`
+#[tauri::command]
+pub fn save_board_size(
+    state: tauri::State<'_, AppState>,
+    event_size: u8,
+    tag_size: u8,
+) -> Result<(), AppError> {
+    state
+        .config_manager
+        .lock()
+        .unwrap()
+        .set_board_size(event_size, tag_size)?;
+
+    Ok(())
 }

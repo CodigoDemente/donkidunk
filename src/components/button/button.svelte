@@ -30,13 +30,15 @@
 		fluid: 'text-base'
 	};
 
-	const bgColor = primary ? 'bg-primary' : tertiary ? 'bg-tertiary' : 'bg-secondary';
-	const hoverBgColor = primary
-		? 'hover:bg-[var(--color-primary-dark)]'
-		: tertiary
-			? 'hover:bg-[var(--color-tertiary-dark)]'
-			: 'hover:bg-[var(--color-secondary-dark)]';
-	const textColor = primary || tertiary ? 'text-supportWhite' : 'text-supportBlack';
+	const bgColor = $derived(primary ? 'bg-primary' : tertiary ? 'bg-tertiary' : 'bg-secondary');
+	const hoverBgColor = $derived(
+		primary
+			? 'hover:bg-[var(--color-primary-dark)]'
+			: tertiary
+				? 'hover:bg-[var(--color-tertiary-dark)]'
+				: 'hover:bg-[var(--color-secondary-dark)]'
+	);
+	const textColor = $derived(primary || tertiary ? 'text-supportWhite' : 'text-supportBlack');
 </script>
 
 <button

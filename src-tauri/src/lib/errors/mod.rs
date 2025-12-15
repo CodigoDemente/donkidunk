@@ -58,4 +58,7 @@ pub enum ConfigError {
 
     #[error("[config-manager] ERROR getting config dir: {0}")]
     ConfigGenericError(#[from] tauri::Error),
+
+    #[error("[config-manager] ERROR invalid board size: {0}")]
+    InvalidBoardSize(String),
 }
