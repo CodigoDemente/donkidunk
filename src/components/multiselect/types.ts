@@ -1,7 +1,7 @@
 import type { InputSizes } from '../input/types';
 
 export interface MultiselectOption {
-	id: number;
+	id: string;
 	value: string | number;
 	label: string;
 	color?: string;

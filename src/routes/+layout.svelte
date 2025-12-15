@@ -8,11 +8,12 @@
 	import { Timeline, timelineContext } from '../modules/videoplayer/context.svelte';
 	import { Config, configContext } from '../modules/config/context.svelte';
 	import { getConfig } from '../modules/config/commands/GetConfig';
+	import ProjectStore from '../persistence/stores/project/store.svelte';
 
 	const board = boardContext.set(new Board());
 	const timeline = timelineContext.set(new Timeline());
 	const config = configContext.set(new Config());
-
+	const projectStore = ProjectStore.getState();
 	// Has to be done after creating *both* contexts, since the wrapForUndo method
 	// uses the undo manager internally, who accesses both contexts
 	board.wrapForUndo();
@@ -24,8 +25,6 @@
 		await initEvents();
 
 		const configData = await getConfig();
-
-		console.log(configData);
 
 		config.state = configData;
 	});
@@ -43,6 +42,6 @@
 </script>
 
 <main class="container">
-	<Navbar />
+	<Navbar disabled={!projectStore.file?.originalPath} />
 	<slot />
 </main>

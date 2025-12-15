@@ -2,12 +2,25 @@ import type { CategoryType } from '../../components/box/types';
 import type { DatabaseButton } from './DatabaseButton';
 import type { DatabaseTag } from './DatabaseTag';
 
-export type DatabaseEventCategory = {
-	id: number;
+export type DatabaseCategory = {
+	id: string;
 	name: string;
 	color: string;
 	grid_position_x: number;
 	grid_position_y: number;
+	width?: number | null;
+	height?: number | null;
+	type: CategoryType;
+};
+
+export type DatabaseCategoryWithEvent = {
+	id: string;
+	name: string;
+	color: string;
+	grid_position_x: number;
+	grid_position_y: number;
+	width?: number | null;
+	height?: number | null;
 	type: CategoryType;
 	button_id: DatabaseButton['id'];
 	button_name: DatabaseButton['name'];
@@ -17,12 +30,14 @@ export type DatabaseEventCategory = {
 	button_color: DatabaseButton['color'];
 };
 
-export type DatabaseTagCategory = {
-	id: number;
+export type DatabaseCategoryWithTag = {
+	id: string;
 	name: string;
 	color: string;
 	grid_position_x: number;
 	grid_position_y: number;
+	width?: number | null;
+	height?: number | null;
 	type: CategoryType;
 	tag_id: DatabaseTag['id'];
 	tag_name: DatabaseTag['name'];

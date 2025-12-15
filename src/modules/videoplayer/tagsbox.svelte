@@ -25,11 +25,11 @@
 {#if isBoxOpen}
 	<div class="rounded-md bg-gray-800 p-2 shadow-md">
 		<div class="flex flex-wrap gap-2">
-			{#if timeline.eventPlaying}
-				{#if timeline.eventPlaying?.tagsRelated.length === 0}
+			{#if timeline.eventsPlaying.size > 0}
+				{#if Array.from(timeline.eventsPlaying)[timeline.eventsPlaying.size - 1][1].tagsRelated.length === 0}
 					<p class="text-sm text-gray-400">No tags related to the current play.</p>
 				{:else}
-					{#each timeline.eventPlaying?.tagsRelated || [] as tag (tag)}
+					{#each Array.from(timeline.eventsPlaying)[timeline.eventsPlaying.size - 1][1].tagsRelated || [] as tag (tag)}
 						<Tag color={board.tagsById[tag]?.color} disabled text={board.tagsById[tag]?.name} />
 					{/each}
 				{/if}

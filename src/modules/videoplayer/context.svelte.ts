@@ -1,10 +1,12 @@
 import { Context, StateHistory } from 'runed';
+import { v7 as uuidv7 } from 'uuid';
 import type { TimelineData } from './types/Timeline';
 import type { RangeDataWithTags } from './types/RangeData';
 import { TimelineRepositoryFactory } from '../../factories/TimelineRepositoryFactory';
 import { emit } from '@tauri-apps/api/event';
 import { wrapObjectForUndo } from '../../persistence/undo/UndoStateWrapper';
 import { Scope } from '../../persistence/undo/types/Scope';
+import { SvelteMap } from 'svelte/reactivity';
 
 const initialState: TimelineData = {
 	eventTimeline: [],
@@ -17,9 +19,10 @@ export class Timeline {
 	#history!: StateHistory<TimelineData>;
 	#state = $state<TimelineData>(initialState);
 	#eventPlaying = $state<RangeDataWithTags | null>(null);
+	#eventsPlaying = $state<SvelteMap<string, RangeDataWithTags>>(new SvelteMap());
 	#currentTime: number = $state(0);
 	#duration: number = $state(0);
-	#eventSelected = $state<number | null>(null);
+	#eventSelected = $state<string | null>(null);
 	#timelineEventsByCategory!: Record<string, RangeDataWithTags[]>;
 
 	constructor() {
@@ -69,8 +72,8 @@ export class Timeline {
 	}
 
 	private createNewEvent(
-		buttonId: number,
-		categoryId: number,
+		buttonId: string,
+		categoryId: string,
 		timeCursor: number,
 		duration?: number,
 		before?: number
@@ -87,7 +90,7 @@ export class Timeline {
 		}
 
 		return {
-			id: Math.floor(Math.random() * 1000),
+			id: uuidv7(),
 			buttonId: buttonId,
 			categoryId: categoryId,
 			timestamp: {
@@ -101,61 +104,51 @@ export class Timeline {
 	private async persistEvent(event: RangeDataWithTags) {
 		const repository = TimelineRepositoryFactory.getInstance();
 
-		const newEventId = await repository.addEntry(
-			event.buttonId,
-			event.categoryId,
-			event.timestamp.start,
-			event.timestamp.end
-		);
-
-		event.id = newEventId;
-		this.#eventPlaying!.id = newEventId;
+		await repository.addEntry(event);
 
 		this.#state = {
 			...this.#state,
 			eventTimeline: [...this.#state.eventTimeline, event]
 		};
 
-		this.#eventSelected = newEventId;
-		this.#eventPlaying = null;
+		this.#eventSelected = event.id;
+		this.#eventsPlaying.delete(event.buttonId);
 
 		await emit('project:dirty');
 	}
 
 	//#region Actions
 	async addEvent(
-		buttonId: number,
-		categoryId: number,
+		buttonId: string,
+		categoryId: string,
 		timeCursor: number,
 		duration?: number,
 		before?: number
 	) {
 		const newEvent = this.createNewEvent(buttonId, categoryId, timeCursor, duration, before);
 
-		if (this.#eventPlaying === null) {
+		if (!this.#eventsPlaying.has(buttonId)) {
 			if (duration === undefined) {
-				this.#eventPlaying = newEvent;
+				this.#eventsPlaying.set(buttonId, newEvent);
 				this.#eventSelected = null; // Clear any selected event
 				return;
 			}
 
-			this.#eventPlaying = newEvent;
+			// Here we don't add it to eventsPlaying because it's a fixed duration event and it will be persisted
+			// right away.
 			this.#eventSelected = null; // Clear any selected event
-			return await this.persistEvent(this.#eventPlaying);
+			return await this.persistEvent(newEvent);
 		}
 
-		if (
-			this.#eventPlaying &&
-			this.#eventPlaying.buttonId === buttonId &&
-			this.#eventPlaying.categoryId === categoryId
-		) {
-			this.#eventPlaying.timestamp.end = timeCursor;
+		const eventPlaying = this.#eventsPlaying.get(buttonId);
+		if (eventPlaying) {
+			eventPlaying.timestamp.end = timeCursor;
 
-			await this.persistEvent(this.#eventPlaying);
+			return await this.persistEvent(eventPlaying);
 		}
 	}
 
-	setEventSelected(eventId: number) {
+	setEventSelected(eventId: string) {
 		if (this.#eventSelected === eventId) {
 			this.#eventSelected = null;
 		} else {
@@ -163,13 +156,13 @@ export class Timeline {
 		}
 	}
 
-	async addRelatedTagToEvent(tagId: number) {
+	async addRelatedTagToEvent(tagId: string) {
 		const repository = TimelineRepositoryFactory.getInstance();
 
 		let op = 'add';
 
 		// Helper to toggle a tag in a tagsRelated array
-		const toggleTag = (tags: number[]) => {
+		const toggleTag = (tags: string[]) => {
 			if (tags.includes(tagId)) {
 				op = 'remove';
 
@@ -179,11 +172,14 @@ export class Timeline {
 			return [...tags, tagId];
 		};
 
-		if (this.#eventPlaying) {
-			this.#eventPlaying = {
-				...this.#eventPlaying,
-				tagsRelated: toggleTag(this.#eventPlaying.tagsRelated)
-			};
+		const eventsPlaying = Array.from(this.#eventsPlaying);
+		const lastEvent = eventsPlaying[eventsPlaying.length - 1];
+
+		if (eventsPlaying.length > 0) {
+			this.#eventsPlaying.get(lastEvent[0])!.tagsRelated = toggleTag(
+				this.#eventsPlaying.get(lastEvent[0])!.tagsRelated
+			);
+			return;
 		} else if (this.#eventSelected) {
 			const newEventTimeline = this.#state.eventTimeline.map((event) =>
 				event.id === this.#eventSelected
@@ -197,18 +193,18 @@ export class Timeline {
 			};
 		}
 
-		if (this.#eventPlaying || this.#eventSelected) {
+		if (eventsPlaying.length > 0 || this.#eventSelected) {
 			if (op === 'add') {
-				await repository.addTagToEntry(this.#eventSelected || this.#eventPlaying!.id, tagId);
+				await repository.addTagToEntry(this.#eventSelected || lastEvent[0], tagId);
 			} else {
-				await repository.removeTagFromEntry(this.#eventSelected || this.#eventPlaying!.id, tagId);
+				await repository.removeTagFromEntry(this.#eventSelected || lastEvent[0], tagId);
 			}
 		}
 
 		await emit('project:dirty');
 	}
 
-	async removeEvent(eventId: number) {
+	async removeEvent(eventId: string) {
 		const repository = TimelineRepositoryFactory.getInstance();
 
 		const newEventTimeline = this.#state.eventTimeline.filter((e) => e.id !== eventId);
@@ -220,6 +216,28 @@ export class Timeline {
 		await repository.removeEntry(eventId);
 
 		await emit('project:dirty');
+	}
+
+	async removeAllEventsFromCategory(categoryId: string) {
+		const events = this.#timelineEventsByCategory[categoryId];
+
+		if (!events) {
+			return;
+		}
+
+		events.forEach(async (event) => {
+			await this.removeEvent(event.id);
+		});
+	}
+
+	async removeAllEventsFromButtons(buttonIds: string[]) {
+		const eventsToRemove = this.#state.eventTimeline.filter((event) =>
+			buttonIds.includes(event.buttonId)
+		);
+
+		for (const event of eventsToRemove) {
+			await this.removeEvent(event.id);
+		}
 	}
 
 	wrapForUndo() {
@@ -242,6 +260,10 @@ export class Timeline {
 	//#region Selectors
 	get eventPlaying() {
 		return this.#eventPlaying;
+	}
+
+	get eventsPlaying() {
+		return this.#eventsPlaying;
 	}
 
 	get eventSelected() {

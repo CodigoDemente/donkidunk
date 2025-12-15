@@ -1,7 +1,7 @@
 export interface RangeData {
-	id: number;
-	buttonId: number;
-	categoryId: number;
+	id: string;
+	buttonId: string;
+	categoryId: string;
 	timestamp: {
 		start: number;
 		end: number | undefined;
@@ -9,5 +9,5 @@ export interface RangeData {
 }
 
 export interface RangeDataWithTags extends RangeData {
-	tagsRelated: number[];
+	tagsRelated: string[];
 }

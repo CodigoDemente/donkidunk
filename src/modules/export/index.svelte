@@ -24,8 +24,8 @@
 	}));
 
 	const allTags = Object.values(board.tagsById).map((tag) => ({
-		id: tag.id!,
-		value: tag.id!,
+		id: tag.id,
+		value: tag.id,
 		label: tag.name
 	}));
 

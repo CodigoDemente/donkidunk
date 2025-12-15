@@ -1,19 +1,22 @@
 <script lang="ts">
 	import { projectActions } from '../../persistence/stores/project/actions';
 	import addCategoryModal from '../../modules/modalContent/addCategoryModal/index.svelte';
+	import deleteCategoryModal from '../../modules/modalContent/deleteCategoryModal/index.svelte';
 	import { IconPlus, IconChevronDown } from '@tabler/icons-svelte';
 	import Button from '../button/button.svelte';
 	import { CategoryType, type DraggedCategory, type Props } from './types';
 	import { boardContext } from '../../modules/board/context.svelte';
-	import { startResize } from './utils';
+	import { timelineContext } from '../../modules/videoplayer/context.svelte';
 	import Category from './category.svelte';
+	import { v7 as uuidv7 } from 'uuid';
 
 	const board = boardContext.get();
+	const timeline = timelineContext.get();
 
 	let { boxHeight, isOpened, otherIsOpened, title, type, categories }: Props = $props();
 
 	let draggedCategory: DraggedCategory = $state({
-		id: -1,
+		id: uuidv7(),
 		offset: {
 			x: 0,
 			y: 0
@@ -23,10 +26,6 @@
 			height: 0
 		}
 	});
-
-	function setBoxHeight(newHeight: number) {
-		boxHeight = newHeight;
-	}
 
 	function handleDrop(e: DragEvent) {
 		const container = e.currentTarget as HTMLElement;
@@ -49,13 +48,25 @@
 		e.preventDefault();
 	}
 
-	function handleModalOpen(type: CategoryType, categoryId?: number) {
+	function handleModalDelete(categoryId: string) {
+		projectActions.setModal({
+			content: deleteCategoryModal,
+			title: `Delete category`,
+			onCancel: () => projectActions.closeAndResetModal(),
+			onSubmit: () => board.deleteCategory(type, categoryId, timeline),
+			onSubmitText: 'Delete',
+			show: true,
+			size: 'small'
+		});
+	}
+
+	function handleModalOpen(type: CategoryType, categoryId?: string) {
 		board.loadCategoryToAddOrEdit(type, categoryId);
 		projectActions.setModal({
 			content: addCategoryModal,
 			title: `Add category to ${title}`,
 			onCancel: () => board.resetCategoryForm(type),
-			onSubmit: () => board.addOrUpdateCategory(type),
+			onSubmit: () => board.addOrUpdateCategory(type, timeline),
 			show: true,
 			size: 'large'
 		});
@@ -63,11 +74,12 @@
 </script>
 
 <div
-	class={`relative flex flex-col rounded-lg border border-gray-600 bg-gray-800 transition-all duration-200
+	data-box
+	class={`relative flex flex-col rounded-lg border border-gray-600 bg-gray-800
     ${!isOpened ? 'h-10 min-h-0 shrink-0' : otherIsOpened ? '' : 'min-h-[40px] flex-1'}`}
 	style={isOpened && otherIsOpened ? `height: ${boxHeight}%; min-height: 40px;` : ''}
 >
-	<div class="flex h-10 items-center justify-between border-b border-gray-600 bg-gray-800 px-4">
+	<div class="flex h-6 items-center justify-between border-b border-gray-600 bg-gray-800 px-4">
 		<p class="text-xs font-semibold text-white">{title}</p>
 		<button
 			class="ml-2 rounded p-1 transition hover:text-gray-200"
@@ -90,7 +102,7 @@
 			<IconPlus class="text-white" />
 		</Button>
 		<div
-			class="relative min-h-0 min-w-0 flex-1 overflow-hidden"
+			class="relative min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto"
 			ondrop={(e) => handleDrop(e)}
 			ondragover={allowDrop}
 			id={`drop-area-categories-${type}`}
@@ -98,22 +110,8 @@
 			aria-label="Drop area"
 		>
 			{#each categories as category (category.id)}
-				<Category {type} {category} {handleModalOpen} bind:draggedCategory />
+				<Category {type} {category} {handleModalOpen} {handleModalDelete} bind:draggedCategory />
 			{/each}
 		</div>
 	{/if}
 </div>
-
-<div class="h-1"></div>
-
-<!-- Resize bar -->
-{#if isOpened}
-	<button
-		type="button"
-		class="h-1 w-full shrink-0 cursor-row-resize bg-gray-900"
-		onmousedown={() => startResize(setBoxHeight)}
-		style="z-index: 20;"
-		aria-label="Resize section"
-		tabindex="0"
-	></button>
-{/if}

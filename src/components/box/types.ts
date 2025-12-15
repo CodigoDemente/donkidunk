@@ -7,7 +7,7 @@ export enum CategoryType {
 }
 
 export type DraggedCategory = {
-	id: number;
+	id: string;
 	offset: {
 		x: number;
 		y: number;

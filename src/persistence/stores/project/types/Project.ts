@@ -23,7 +23,6 @@ export type ProjectData = {
 	};
 	modal: {
 		content: Component | null;
-		props?: Record<string, unknown>;
 		title?: string;
 		onCancel?: () => void;
 		onSubmit?: () => void;

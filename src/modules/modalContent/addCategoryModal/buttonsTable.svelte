@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { IconTrash } from '@tabler/icons-svelte';
+	import { v7 as uuidv7 } from 'uuid';
 	import Button from '../../../components/button/button.svelte';
 	import Dropdown from '../../../components/dropdown/dropdown.svelte';
 	import Input from '../../../components/input/input.svelte';
@@ -7,7 +8,7 @@
 	import { boardContext } from '../../board/context.svelte';
 	import { CategoryType } from '../../../components/box/types';
 	import { ButtonRange, type Button as ButtonType } from '../../board/types/Button';
-	import { secondsOptions, typeOptions } from './utils';
+	import { secondsBeforeOptions, secondsDurationOptions, typeOptions } from './utils';
 	import type { Tag } from '../../board/types/Tag';
 
 	const context = boardContext.get();
@@ -15,23 +16,24 @@
 	const isEventType = context.categoryToCreate.type === CategoryType.Event;
 	const isTagType = context.categoryToCreate.type === CategoryType.Tag;
 
-	const initialButton: ButtonType = {
-		id: -1,
+	// These two are functions so that the id is generated every time a new button or tag is added
+	const initialButton = (): ButtonType => ({
+		id: uuidv7(),
 		name: '',
 		color: '',
 		range: ButtonRange.DYNAMIC,
 		duration: null,
 		before: null
-	};
+	});
 
-	const initialTag = {
-		id: -1,
+	const initialTag = (): Tag => ({
+		id: uuidv7(),
 		name: '',
 		color: ''
-	};
+	});
 
-	let newButton = $state(initialButton);
-	let newTag = $state(initialTag);
+	let newButton = $state(initialButton());
+	let newTag = $state(initialTag());
 
 	function addButton() {
 		if (isEventType) {
@@ -41,12 +43,12 @@
 				...context.categoryToCreate.buttons,
 				button
 			] as ButtonType[];
-			newButton = initialButton;
+			newButton = initialButton();
 		} else if (isTagType) {
 			newTag.color = context.categoryToCreate.color;
 			const tag = { ...newTag };
 			context.categoryToCreate.buttons = [...context.categoryToCreate.buttons, tag] as Tag[];
-			newTag = initialTag;
+			newTag = initialTag();
 		}
 	}
 
@@ -134,7 +136,7 @@
 								<td class="w-[100px] p-2">
 									<Dropdown
 										placeholder="Select duration"
-										options={secondsOptions}
+										options={secondsDurationOptions}
 										size="mini"
 										selectClass="bg-gray-800"
 										bind:value={btn.duration}
@@ -143,7 +145,7 @@
 								<td class="w-[100px] p-2">
 									<Dropdown
 										placeholder="Select before"
-										options={secondsOptions}
+										options={secondsBeforeOptions}
 										size="mini"
 										selectClass="bg-gray-800"
 										bind:value={btn.before}
