@@ -12,6 +12,7 @@ import { Scope } from '../../persistence/undo/types/Scope';
 import type { Category } from './types/Category';
 import type { Button } from './types/Button';
 import type { Tag } from './types/Tag';
+import { timelineContext } from '../videoplayer/context.svelte';
 
 const initialState: BoardData = {
 	[CategoryType.Event]: [],
@@ -24,14 +25,13 @@ const initialCategory = (section: CategoryType): Category => ({
 	type: section,
 	position: {
 		x: 0,
-		y: 0
+		y: Math.random() * 50
 	},
 	buttons: [],
 	color: '#000000'
 });
 
 export const boardContext = new Context<Board>('');
-
 export class Board {
 	#history!: StateHistory<BoardData>;
 	#isEditing = $state(false);
@@ -309,7 +309,7 @@ export class Board {
 						type: this.#tempCategory.type,
 						name: this.#tempCategory.name,
 						color: this.#tempCategory.color,
-						position: { x: 0, y: 0 },
+						position: { x: this.#tempCategory.position.x, y: this.#tempCategory.position.y },
 						buttons: []
 					}
 				]
@@ -377,11 +377,11 @@ export class Board {
 	}
 
 	async deleteCategory(section: CategoryType, categoryId: string): Promise<void> {
-		// <!-- TODO: When deleting category, if there is already events created with this categoryId, we should delete them as well, setModal are you sure you want to erase -->
 		try {
 			const repository = BoardRepositoryFactory.getInstance();
 
 			await repository.deleteCategory(categoryId);
+			await timelineContext.get().removeAllEventsFromCategory(categoryId);
 
 			this.#state = {
 				...this.#state,
