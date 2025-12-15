@@ -39,6 +39,14 @@ export class Config {
 		return this.#state.boardSize;
 	}
 
+	get eventsHeight() {
+		return this.#state.boardSize.events;
+	}
+
+	get tagsHeight() {
+		return this.#state.boardSize.tags;
+	}
+
 	get defaultButtonBoard() {
 		return this.#buttonBoards.find((buttonBoard) => buttonBoard.isDefault) ?? this.#buttonBoards[0];
 	}

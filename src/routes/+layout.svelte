@@ -21,7 +21,6 @@
 
 	onMount(async () => {
 		const configData = await getConfig();
-
 		config.state = configData;
 
 		// Initialize the menu

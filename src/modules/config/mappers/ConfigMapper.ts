@@ -13,7 +13,11 @@ export class ConfigMapper {
 
 		return {
 			locale: config.locale as Locale,
-			uiMode: config.ui_mode as UIMode
+			uiMode: config.ui_mode as UIMode,
+			boardSize: {
+				events: config.board_size.events,
+				tags: config.board_size.tags
+			}
 		};
 	}
 }

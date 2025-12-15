@@ -1,5 +1,6 @@
 import type { Board } from '../../modules/board/context.svelte';
 import type { Category } from '../../modules/board/types/Category';
+import { saveBoardSizeCommand } from '../../modules/config/commands/SaveBoardSize';
 import type { CategoryType } from './types';
 let isResizing = false;
 
@@ -158,6 +159,8 @@ export function startResize(
 	isResizing = true;
 	// Disable transitions on boxes during resize for smooth performance
 	const container = document.getElementById('boards-container');
+	let firstBoxHeight = 0;
+	let secondBoxHeight = 0;
 	if (container) {
 		const boxes = container.querySelectorAll('[data-box]');
 		boxes.forEach((box) => {
@@ -175,8 +178,10 @@ export function startResize(
 		const containerTop = rect.top;
 		const y = event.clientY - containerTop;
 		const percent = Math.min(90, Math.max(10, (y / containerHeight) * 100));
-		setFirstBoxHeight(percent);
-		setSecondBoxHeight(100 - percent);
+		firstBoxHeight = percent;
+		secondBoxHeight = 100 - percent;
+		setFirstBoxHeight(firstBoxHeight);
+		setSecondBoxHeight(secondBoxHeight);
 	}
 
 	function stopResize() {
@@ -189,10 +194,17 @@ export function startResize(
 				(box as HTMLElement).style.transition = '';
 			});
 		}
+
 		document.removeEventListener('mousemove', resize);
 		document.removeEventListener('mouseup', stopResize);
 	}
 
+	async function saveBoardSize() {
+		await saveBoardSizeCommand(firstBoxHeight, secondBoxHeight);
+		document.removeEventListener('mouseup', saveBoardSize);
+	}
+
 	document.addEventListener('mousemove', resize);
 	document.addEventListener('mouseup', stopResize);
+	document.addEventListener('mouseup', saveBoardSize);
 }

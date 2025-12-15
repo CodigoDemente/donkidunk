@@ -42,7 +42,6 @@
 					(h) => (eventsBoxHeight = h),
 					(h) => (tagsBoxHeight = h)
 				)}
-			onmouseup={() => saveBoardSizeCommand(eventsBoxHeight, tagsBoxHeight)}
 			aria-label="Resize sections"
 			tabindex="0"
 		></button>
