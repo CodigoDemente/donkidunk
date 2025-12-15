@@ -5,7 +5,6 @@
 	import { selectProjectPath } from '../../menu/operations/selectProjectPath';
 	import { selectVideoFile } from '../../menu/operations/selectVideoFile';
 	import { configContext } from '../../config/context.svelte';
-	import type { ButtonBoard } from '../../config/types/ButtonBoard';
 	import Dropdown from '../../../components/dropdown/dropdown.svelte';
 
 	let projectPath = $state('');
@@ -13,14 +12,15 @@
 
 	const config = configContext.get();
 
-	let buttonBoard = $state<ButtonBoard>(config.defaultButtonBoard);
+	let selectedBoardId = $state(config.defaultButtonBoard.id);
+	let buttonBoard = $derived(config.buttonBoards.find((b) => b.id === selectedBoardId));
 
 	// Sync local state with projectStore
 	$effect(() => {
 		projectActions.setNewProjectFormData({
 			projectPath,
 			videoPath,
-			buttonBoard
+			buttonBoard: buttonBoard!
 		});
 	});
 
@@ -86,7 +86,7 @@
 					value: ''
 				}
 			]}
-			bind:value={buttonBoard.id}
+			bind:value={selectedBoardId}
 			size="medium"
 			selectClass="bg-gray-700"
 			noErrors

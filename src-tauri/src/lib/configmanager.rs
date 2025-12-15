@@ -180,7 +180,7 @@ impl ConfigManagerTrait for ConfigManager {
 
         self.config.button_boards.push(ButtonBoard {
             id: default_board_button_id.to_string(),
-            name: "Default".to_string(),
+            name: "Professional analysis".to_string(),
             is_default: true,
         });
 

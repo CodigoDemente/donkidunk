@@ -309,7 +309,7 @@ export class Board {
 						type: this.#tempCategory.type,
 						name: this.#tempCategory.name,
 						color: this.#tempCategory.color,
-						position: { x: 0, y: 0 },
+						position: { x: this.#tempCategory.position.x, y: this.#tempCategory.position.y },
 						buttons: []
 					}
 				]

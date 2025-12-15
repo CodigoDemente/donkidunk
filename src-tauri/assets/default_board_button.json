@@ -1,8 +1,8 @@
 {
     "event": [
         {
-            "id": "019aefdc-9892-77b8-9d41-55c210c3d4e2",
-            "name": "Attacks",
+            "id": "019b0212-0e1c-74bb-b39f-5c84ca6116ac",
+            "name": "Posession",
             "color": "#FF0000",
             "type": "event",
             "position": {
@@ -12,39 +12,15 @@
             "buttons": [
                 {
                     "id": "019aefe6-2ab5-72f8-9fa3-e1d4778c6927",
-                    "name": "1-4 Quick Floppy",
+                    "name": "Offense",
                     "range": "DYNAMIC",
                     "color": "#FF0000"
                 },
                 {
                     "id": "019aefed-f854-759c-a068-872dd69e0560",
-                    "name": "Back Screen Post",
+                    "name": "Defense",
                     "range": "DYNAMIC",
                     "color": "#FF0000"
-                }
-            ]
-        },
-        {
-            "id": "019aefe2-0eed-7602-b69b-3b1d8014fb08",
-            "name": "Defenses",
-            "color": "#00FF00",
-            "type": "event",
-            "position": {
-                "x": 50,
-                "y": 0
-            },
-            "buttons": [
-                {
-                    "id": "019aeff0-0d06-7698-a6cd-b020286a67cc",
-                    "name": "Triangle Defense",
-                    "range": "DYNAMIC",
-                    "color": "#00FF00"
-                },
-                {
-                    "id": "019aeff1-6167-71ec-8593-dcde6e74e70c",
-                    "name": "Zone Defense",
-                    "range": "DYNAMIC",
-                    "color": "#00FF00"
                 }
             ]
         }
@@ -52,7 +28,7 @@
     "tag": [
         {
             "id": "019aefe4-1856-75a7-8c96-fb13717fc0eb",
-            "name": "Players",
+            "name": "Posession",
             "color": "#FF00FF",
             "type": "tag",
             "position": {
@@ -62,34 +38,94 @@
             "buttons": [
                 {
                     "id": "019aeffa-01d7-756c-acfc-08e41b59ef11",
-                    "name": "Player 1",
+                    "name": "2PT+",
                     "color": "#FF00FF"
                 },
                 {
                     "id": "019aeffc-8c27-74c9-b11e-6daac4b509af",
-                    "name": "Player 2",
+                    "name": "2PT-",
                     "color": "#FF00FF"
                 },
                 {
                     "id": "019aeffc-bc8d-73c7-b4f2-ba7bf48ff8e5",
-                    "name": "Player 3",
+                    "name": "3PT+",
                     "color": "#FF00FF"
                 },
                 {
                     "id": "019aeffc-d1cb-75fc-9c1f-40bba7c061b9",
-                    "name": "Player 4",
+                    "name": "3PT-",
                     "color": "#FF00FF"
                 },
                 {
                     "id": "019aeffe-a9d7-76a3-b845-078219515227",
-                    "name": "Player 5",
+                    "name": "OREB",
+                    "color": "#FF00FF"
+                },
+                {
+                    "id": "019b0202-7819-773e-ab09-581fe4848d63",
+                    "name": "TOV",
+                    "color": "#FF00FF"
+                },
+                {
+                    "id": "019b0202-c527-70d0-af95-e298db77f8f3",
+                    "name": "OUT OF BOUNDS",
+                    "color": "#FF00FF"
+                },
+                {
+                    "id": "019b0203-5493-7443-9860-99fcf7800eb0",
+                    "name": "FOUL",
+                    "color": "#FF00FF"
+                },
+                {
+                    "id": "019b0203-549b-74dd-bfa3-26c464fa66b7",
+                    "name": "FT FOUL",
+                    "color": "#FF00FF"
+                },
+                {
+                    "id": "019b0203-a3fa-73d0-aa5b-9cc19bdfb32e",
+                    "name": "AND 1",
+                    "color": "#FF00FF"
+                },
+                {
+                    "id": "019b0203-a404-74f9-9f89-2f66aac40bf3",
+                    "name": "0FT+",
+                    "color": "#FF00FF"
+                },
+                {
+                    "id": "019b0204-096e-757c-8209-0b0637c78f16",
+                    "name": "1FT+",
+                    "color": "#FF00FF"
+                },
+                {
+                    "id": "019b0204-097b-778e-a2ac-4814de48a11a",
+                    "name": "2FT+",
+                    "color": "#FF00FF"
+                },
+                {
+                    "id": "019b0204-097e-7780-a0b9-67fc8e776227",
+                    "name": "3FT+",
+                    "color": "#FF00FF"
+                },
+                {
+                    "id": "019b0204-0981-7799-8154-c1c8edabf4b2",
+                    "name": "1FTA",
+                    "color": "#FF00FF"
+                },
+                {
+                    "id": "019b0204-0991-739c-90d1-442c00091c56",
+                    "name": "2FTA",
+                    "color": "#FF00FF"
+                },
+                {
+                    "id": "019b0204-099d-7432-8626-8f945e484c4a",
+                    "name": "3FTA",
                     "color": "#FF00FF"
                 }
             ]
         },
         {
             "id": "019aefe5-5d5e-720c-9127-644d815b28b6",
-            "name": "Shots",
+            "name": "Plays",
             "color": "#00FFFF",
             "type": "tag",
             "position": {
@@ -99,19 +135,44 @@
             "buttons": [
                 {
                     "id": "019aefff-107e-70aa-9390-549e71d90a4a",
-                    "name": "2-points Shot",
+                    "name": "Play 1",
                     "color": "#00FFFF"
                 },
                 {
                     "id": "019aefff-c020-7751-ab5d-ca6596899377",
-                    "name": "3-points Shot",
+                    "name": "Play 2",
+                    "color": "#00FFFF"
+                },
+                {
+                    "id": "019b0206-ef8c-73ca-8156-561e1b6ddff0",
+                    "name": "Play 3",
+                    "color": "#00FFFF"
+                },
+                {
+                    "id": "019b0206-ef99-776f-b5cd-749586367328",
+                    "name": "Play 4",
+                    "color": "#00FFFF"
+                },
+                {
+                    "id": "019b0206-efa1-777f-8f3c-8a23eafc4ee0",
+                    "name": "Play 5",
+                    "color": "#00FFFF"
+                },
+                {
+                    "id": "019b0206-efae-77d9-a4c2-62aa6a62bb6e",
+                    "name": "SOB",
+                    "color": "#00FFFF"
+                },
+                {
+                    "id": "019b0206-efbc-720c-bce1-74bccd2cdaa6",
+                    "name": "BOB",
                     "color": "#00FFFF"
                 }
             ]
         },
         {
             "id": "019aefe5-787d-70d8-b80d-e08bc2c91fa3",
-            "name": "Results",
+            "name": "Playtypes",
             "color": "#FFA500",
             "type": "tag",
             "position": {
@@ -120,14 +181,227 @@
             },
             "buttons": [
                 {
-                    "id": "019af994-fe02-77cc-9889-568eb6d12c28",
-                    "name": "Scored",
+                    "id": "019b0209-bef1-7299-a2b4-1fd7d654b532",
+                    "name": "Fastbreak",
                     "color": "#FFA500"
                 },
                 {
-                    "id": "019aefff-f11c-7642-8cca-36980f7cad1d",
-                    "name": "Missed",
+                    "id": "019b0209-beda-75b8-b805-99bd30bd3479",
+                    "name": "Transition",
                     "color": "#FFA500"
+                },
+                {
+                    "id": "019b0209-bed5-727f-b3a2-de60d699a964",
+                    "name": "Offscreen",
+                    "color": "#FFA500"
+                },
+                {
+                    "id": "019b0209-bebb-714a-a4ec-1dabc006a54f",
+                    "name": "Backpick",
+                    "color": "#FFA500"
+                },
+                {
+                    "id": "019b0209-bea8-7766-8c89-6cebd4bb8810",
+                    "name": "Flarescreen",
+                    "color": "#FFA500"
+                },
+                {
+                    "id": "019b0209-be94-76fb-b7b1-269877c451c7",
+                    "name": "Hand Off",
+                    "color": "#FFA500"
+                },
+                {
+                    "id": "019b0209-be85-72fd-8ee8-df132f4764df",
+                    "name": "PNR",
+                    "color": "#FFA500"
+                },
+                {
+                    "id": "019b0209-be80-77f7-869b-6004d9f966bd",
+                    "name": "StepUp",
+                    "color": "#FFA500"
+                },
+                {
+                    "id": "019b0209-be76-77e2-9d29-4307fc73aef9",
+                    "name": "PNP",
+                    "color": "#FFA500"
+                },
+                {
+                    "id": "019b0209-be6c-77b2-aed0-e5a77ab300ec",
+                    "name": "StepUp PNP",
+                    "color": "#FFA500"
+                },
+                {
+                    "id": "019b0209-be5b-74dc-b1a8-6070171188f8",
+                    "name": "Postup",
+                    "color": "#FFA500"
+                },
+                {
+                    "id": "019b0209-be52-7596-8b1c-ba06a6302bcf",
+                    "name": "1v1",
+                    "color": "#FFA500"
+                },
+                {
+                    "id": "019b0209-be44-74cf-9e0f-c0d2864b107e",
+                    "name": "Backdoor",
+                    "color": "#FFA500"
+                },
+                {
+                    "id": "019b0209-be3c-77ec-a993-5a4ff1f00906",
+                    "name": "Rebound",
+                    "color": "#FFA500"
+                },
+                {
+                    "id": "019b0209-be21-7056-b5de-737c00a99104",
+                    "name": "Zone",
+                    "color": "#FFA500"
+                }
+            ]
+        },
+        {
+            "id": "019b020b-517c-72c9-a5a3-4fa41db310af",
+            "name": "OnBall Screen Spacing",
+            "color": "#00FF00",
+            "type": "tag",
+            "position": {
+                "x": 0,
+                "y": 0
+            },
+            "buttons": [
+                {
+                    "id": "019b020d-4c52-73ef-8e19-646ea1a21c47",
+                    "name": "0 in Front",
+                    "color": "#00FF00"
+                },
+                {
+                    "id": "019b020d-4c68-72c4-84b8-c0b0c30c4820",
+                    "name": "1 in Front",
+                    "color": "#00FF00"
+                },
+                {
+                    "id": "019b020d-4c73-730a-b228-ebd5ade56456",
+                    "name": "2 in Front",
+                    "color": "#00FF00"
+                },
+                {
+                    "id": "019b020d-4c81-73dd-ab79-6cf7f286ca58",
+                    "name": "3 in Front",
+                    "color": "#00FF00"
+                },
+                {
+                    "id": "019b020d-4c88-76cd-9ce0-a303200e21f7",
+                    "name": "3 Baseline",
+                    "color": "#00FF00"
+                }
+            ]
+        },
+        {
+            "id": "019b020e-4bec-733c-9575-5804115ce061",
+            "name": "OnBall Screen Defense",
+            "color": "#00FF00",
+            "type": "tag",
+            "position": {
+                "x": 0,
+                "y": 0
+            },
+            "buttons": [
+                {
+                    "id": "019b020e-f7d7-76aa-b211-c21bd836a218",
+                    "name": "Reject",
+                    "color": "#00FF00"
+                },
+                {
+                    "id": "019b020e-f7e2-741a-a05c-2bfc02fdaf34",
+                    "name": "Step",
+                    "color": "#00FF00"
+                },
+                {
+                    "id": "019b020e-f7ef-7224-b29b-c5696a0e8889",
+                    "name": "Protect",
+                    "color": "#00FF00"
+                },
+                {
+                    "id": "019b020e-f80b-76cd-a6b0-866081ab025d",
+                    "name": "Switch",
+                    "color": "#00FF00"
+                },
+                {
+                    "id": "019b020e-f810-7338-8d25-e65a75a771af",
+                    "name": "Ice",
+                    "color": "#00FF00"
+                },
+                {
+                    "id": "019b020e-f820-70b8-bf7f-3e1f147e118f",
+                    "name": "Weak",
+                    "color": "#00FF00"
+                }
+            ]
+        },
+        {
+            "id": "019b0210-67d6-72c8-8d78-aac08b3eb416",
+            "name": "Shotmap",
+            "color": "#00FF00",
+            "type": "tag",
+            "position": {
+                "x": 0,
+                "y": 0
+            },
+            "buttons": [
+                {
+                    "id": "019b0210-cdca-749f-9803-84969ba71b71",
+                    "name": "Paint",
+                    "color": "#00FF00"
+                },
+                {
+                    "id": "019b0210-cddc-7069-bfc6-70849590fa70",
+                    "name": "Midrange",
+                    "color": "#00FF00"
+                },
+                {
+                    "id": "019b0210-cde0-722c-8a86-f73226a3ee19",
+                    "name": "Front 3",
+                    "color": "#00FF00"
+                },
+                {
+                    "id": "019b0210-cdf0-7562-b725-f08b1a491285",
+                    "name": "Corner 3",
+                    "color": "#00FF00"
+                }
+            ]
+        },
+        {
+            "id": "019b0211-d3ec-716c-8c6f-10fe1018a6fb",
+            "name": "Players",
+            "color": "#00FF00",
+            "type": "tag",
+            "position": {
+                "x": 0,
+                "y": 0
+            },
+            "buttons": [
+                {
+                    "id": "019b0212-0dec-7209-82e0-1f885f477c39",
+                    "name": "Player 1",
+                    "color": "#00FF00"
+                },
+                {
+                    "id": "019b0212-0dfa-7618-aa00-be191afc142c",
+                    "name": "Player 2",
+                    "color": "#00FF00"
+                },
+                {
+                    "id": "019b0212-0dfc-71ca-a5fe-d4f314c3ebd5",
+                    "name": "Player 3",
+                    "color": "#00FF00"
+                },
+                {
+                    "id": "019b0212-0dff-70d8-8271-63c1177b978d",
+                    "name": "Player 4",
+                    "color": "#00FF00"
+                },
+                {
+                    "id": "019b0212-0e12-722e-b2c6-08add33b6937",
+                    "name": "Player 5",
+                    "color": "#00FF00"
                 }
             ]
         }
