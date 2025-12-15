@@ -198,10 +198,11 @@ export class Board {
 			return;
 		}
 
-		const buttonId =
-			section === CategoryType.Event
-				? await repository.addButtonToCategory(categoryId, button as Button)
-				: await repository.addTagToCategory(categoryId, button as Tag);
+		if (section === CategoryType.Event) {
+			await repository.addButtonToCategory(categoryId, button as Button);
+		} else {
+			await repository.addTagToCategory(categoryId, button as Tag);
+		}
 
 		this.#state = {
 			...this.#state,
@@ -212,8 +213,7 @@ export class Board {
 						buttons: [
 							...c.buttons,
 							{
-								...button,
-								id: buttonId
+								...button
 							}
 						]
 					};
