@@ -230,6 +230,16 @@ export class Timeline {
 		});
 	}
 
+	async removeAllEventsFromButtons(buttonIds: string[]) {
+		const eventsToRemove = this.#state.eventTimeline.filter((event) =>
+			buttonIds.includes(event.buttonId)
+		);
+
+		for (const event of eventsToRemove) {
+			await this.removeEvent(event.id);
+		}
+	}
+
 	wrapForUndo() {
 		Object.assign(
 			this,

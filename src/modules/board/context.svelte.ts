@@ -12,7 +12,7 @@ import { Scope } from '../../persistence/undo/types/Scope';
 import type { Category } from './types/Category';
 import type { Button } from './types/Button';
 import type { Tag } from './types/Tag';
-import { timelineContext } from '../videoplayer/context.svelte';
+import type { Timeline } from '../videoplayer/context.svelte';
 
 const initialState: BoardData = {
 	[CategoryType.Event]: [],
@@ -268,7 +268,7 @@ export class Board {
 		return this.resetErrorsForm();
 	}
 
-	async addOrUpdateCategory(section: CategoryType): Promise<void> {
+	async addOrUpdateCategory(section: CategoryType, timeline: Timeline): Promise<void> {
 		try {
 			this.onValidateCategory();
 
@@ -277,7 +277,7 @@ export class Board {
 			const categoryExists = await repository.categoryExists(this.#tempCategory.id);
 
 			if (categoryExists) {
-				await this.updateCategory(section);
+				await this.updateCategory(section, timeline);
 			} else {
 				await this.addCategory();
 			}
@@ -333,10 +333,17 @@ export class Board {
 		}
 	}
 
-	async updateCategory(section: CategoryType): Promise<void> {
+	async updateCategory(section: CategoryType, timeline: Timeline): Promise<void> {
 		const category = this.#tempCategory;
 		try {
 			const repository = BoardRepositoryFactory.getInstance();
+
+			// Get the current category state to compare buttons
+			const currentCategory = this.#state[section].find((c) => c.id === category.id);
+			const currentButtonIds = currentCategory?.buttons.map((button) => button.id) || [];
+			const newButtonIds = category.buttons.map((button) => button.id);
+
+			const deletedButtonIds = currentButtonIds.filter((id) => !newButtonIds.includes(id));
 
 			await repository.updateCategory(category);
 
@@ -344,6 +351,11 @@ export class Board {
 				await repository.updateCategoryButtons(category.id, category.buttons as Button[]);
 			} else {
 				await repository.updateCategoryTags(category.id, category.buttons as Tag[]);
+			}
+
+			// Remove events for deleted buttons
+			if (deletedButtonIds.length > 0) {
+				await timeline.removeAllEventsFromButtons(deletedButtonIds);
 			}
 
 			this.#state = {
@@ -376,12 +388,25 @@ export class Board {
 		}
 	}
 
-	async deleteCategory(section: CategoryType, categoryId: string): Promise<void> {
+	async deleteCategory(
+		section: CategoryType,
+		categoryId: string,
+		timeline: Timeline
+	): Promise<void> {
 		try {
 			const repository = BoardRepositoryFactory.getInstance();
 
+			// Get the category before deleting to access its buttons
+			const category = this.#state[section].find((c) => c.id === categoryId);
+			const buttonIds = category?.buttons.map((button) => button.id) || [];
+
 			await repository.deleteCategory(categoryId);
-			await timelineContext.get().removeAllEventsFromCategory(categoryId);
+			await timeline.removeAllEventsFromCategory(categoryId);
+
+			// Remove all events related to buttons in this category
+			if (buttonIds.length > 0) {
+				await timeline.removeAllEventsFromButtons(buttonIds);
+			}
 
 			this.#state = {
 				...this.#state,
@@ -390,6 +415,7 @@ export class Board {
 
 			await emit('project:dirty');
 
+			projectActions.closeAndResetModal();
 			projectActions.setSnackbar(feedbackMessages.DELETE_SUCCESS);
 		} catch (error) {
 			projectActions.setSnackbar({

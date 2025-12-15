@@ -6,10 +6,12 @@
 	import Button from '../button/button.svelte';
 	import { CategoryType, type DraggedCategory, type Props } from './types';
 	import { boardContext } from '../../modules/board/context.svelte';
+	import { timelineContext } from '../../modules/videoplayer/context.svelte';
 	import Category from './category.svelte';
 	import { v7 as uuidv7 } from 'uuid';
 
 	const board = boardContext.get();
+	const timeline = timelineContext.get();
 
 	let { boxHeight, isOpened, otherIsOpened, title, type, categories }: Props = $props();
 
@@ -51,7 +53,7 @@
 			content: deleteCategoryModal,
 			title: `Delete category`,
 			onCancel: () => projectActions.closeAndResetModal(),
-			onSubmit: () => board.deleteCategory(type, categoryId),
+			onSubmit: () => board.deleteCategory(type, categoryId, timeline),
 			onSubmitText: 'Delete',
 			show: true,
 			size: 'small'
@@ -64,7 +66,7 @@
 			content: addCategoryModal,
 			title: `Add category to ${title}`,
 			onCancel: () => board.resetCategoryForm(type),
-			onSubmit: () => board.addOrUpdateCategory(type),
+			onSubmit: () => board.addOrUpdateCategory(type, timeline),
 			show: true,
 			size: 'large'
 		});
