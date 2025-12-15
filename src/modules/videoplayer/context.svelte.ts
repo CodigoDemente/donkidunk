@@ -218,6 +218,18 @@ export class Timeline {
 		await emit('project:dirty');
 	}
 
+	async removeAllEventsFromCategory(categoryId: string) {
+		const events = this.#timelineEventsByCategory[categoryId];
+
+		if (!events) {
+			return;
+		}
+
+		events.forEach(async (event) => {
+			await this.removeEvent(event.id);
+		});
+	}
+
 	wrapForUndo() {
 		Object.assign(
 			this,
