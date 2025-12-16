@@ -209,10 +209,9 @@ export class SQLiteBoardRepository implements BoardRepository {
 	}
 
 	async updateCategoryButtons(categoryId: string, buttons: Button[]): Promise<void> {
-		// Start a transaction to ensure data integrity
-		await this.db.execute('BEGIN TRANSACTION');
-
 		try {
+			// Start a transaction to ensure data integrity
+			await this.db.execute('BEGIN TRANSACTION');
 			const fullInsertQuery =
 				'INSERT INTO button (id, name, range, duration, before, color, category_id) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (id) DO UPDATE SET name = $2, range = $3, duration = $4, before = $5, color = $6';
 
@@ -240,9 +239,8 @@ export class SQLiteBoardRepository implements BoardRepository {
 	}
 
 	async updateCategoryTags(categoryId: string, tags: Tag[]): Promise<void> {
-		await this.db.execute('BEGIN TRANSACTION');
-
 		try {
+			await this.db.execute('BEGIN TRANSACTION');
 			const fullInsertQuery =
 				'INSERT INTO tag (id, name, color, category_id) VALUES ($1, $2, $3, $4) ON CONFLICT (id) DO UPDATE SET name = $2, color = $3';
 

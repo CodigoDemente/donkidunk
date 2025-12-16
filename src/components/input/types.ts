@@ -18,6 +18,7 @@ export interface InputProps {
 	inputClass?: string;
 	labelClass?: string;
 	error?: string;
+	warning?: string;
 	size?: InputSizes;
 	horizontal?: boolean;
 	noErrors?: boolean;

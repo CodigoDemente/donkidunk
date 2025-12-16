@@ -3,7 +3,6 @@
 	import { CategoryType } from '../../components/box/types';
 	import { startResize } from '../../components/box/utils';
 	import Toggle from '../../components/toggle/toggle.svelte';
-	import { saveBoardSizeCommand } from '../config/commands/SaveBoardSize';
 	import { configContext } from '../config/context.svelte';
 	import { boardContext } from './context.svelte';
 

@@ -1,11 +1,11 @@
 <script lang="ts">
 	import Input from '../../../components/input/input.svelte';
 	import { configContext } from '../../config/context.svelte';
-	import Toggle from '../../../components/toggle/toggle.svelte';
 	import Checkbox from '../../../components/checkbox/checkbox.svelte';
 
 	let boardName = $state('');
 	let isDefault = $state(false);
+	let warning = $state('');
 
 	const config = configContext.get();
 
@@ -15,6 +15,12 @@
 			boardName,
 			isDefault
 		};
+
+		if (config.buttonBoards.find((b) => b.name === boardName)) {
+			warning = 'A board with this name already exists, it will be overwritten';
+		} else {
+			warning = '';
+		}
 	});
 </script>
 
@@ -31,6 +37,7 @@
 			size="large"
 			inputClass="bg-gray-700"
 			noErrors
+			{warning}
 		/>
 	</div>
 

@@ -310,6 +310,7 @@ export class Board {
 						name: this.#tempCategory.name,
 						color: this.#tempCategory.color,
 						position: { x: this.#tempCategory.position.x, y: this.#tempCategory.position.y },
+						size: this.#tempCategory.size ?? undefined,
 						buttons: []
 					}
 				]

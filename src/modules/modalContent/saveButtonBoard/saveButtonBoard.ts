@@ -12,7 +12,13 @@ export async function saveButtonBoard(board: Board, config: Config) {
 		return;
 	}
 
-	const newBoardId = uuidv7();
+	const existingBoard = config.buttonBoards.find((b) => b.name === newBoardData.boardName);
+
+	let newBoardId = uuidv7();
+
+	if (existingBoard) {
+		newBoardId = existingBoard.id;
+	}
 
 	const path = await saveButtonBoardCommand(
 		newBoardId,

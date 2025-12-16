@@ -130,8 +130,8 @@ fn build_menu<R: tauri::Runtime>(app: &mut App<R>) -> Result<Menu<R>, Error> {
         .enabled(false)
         .build(handle)?;
 
-    let save_button_board_item = MenuItemBuilder::with_id("save_button_board", "Save Button Board")
-        .build(handle)?;
+    let save_button_board_item =
+        MenuItemBuilder::with_id("save_button_board", "Save as preset").build(handle)?;
 
     let button_board_submenu = SubmenuBuilder::with_id(handle, "button_board-menu", "Button Board")
         .item(&save_button_board_item)

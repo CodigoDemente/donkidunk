@@ -17,6 +17,7 @@
 		inputClass = '',
 		labelClass = '',
 		error = '',
+		warning = '',
 		size = 'large',
 		horizontal = false,
 		noErrors = false
@@ -52,6 +53,9 @@
 			{minlength}
 			{maxlength}
 		/>
+		{#if warning}
+			<p class="mt-1 w-full text-xs text-yellow-400">{warning}</p>
+		{/if}
 		{#if error}
 			<p class="mt-1 w-full text-xs text-red-400">{error}</p>
 		{/if}

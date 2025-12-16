@@ -83,8 +83,8 @@ impl ConfigManager {
             locale: Locale::EN,
             ui_mode: UIMode::Simple,
             board_size: BoardSize {
-                events: 30,
-                tags: 70,
+                events: 15,
+                tags: 85,
             },
             button_boards: vec![],
         };
@@ -218,11 +218,28 @@ impl ConfigManagerTrait for ConfigManager {
 
         board_file.write_all(board_content.as_bytes())?;
 
-        self.config.button_boards.push(ButtonBoard {
-            id: board_id,
-            name: board_name,
-            is_default,
-        });
+        let mut must_insert_new_board = true;
+
+        for button_board in self.config.button_boards.iter_mut() {
+            if is_default {
+                button_board.is_default = false;
+            }
+
+            if button_board.id == board_id {
+                must_insert_new_board = false;
+                button_board.is_default = is_default;
+            }
+        }
+
+        if must_insert_new_board {
+            let new_button_board = ButtonBoard {
+                id: board_id,
+                name: board_name,
+                is_default,
+            };
+
+            self.config.button_boards.push(new_button_board);
+        }
 
         self.write_config_to_file()?;
 
