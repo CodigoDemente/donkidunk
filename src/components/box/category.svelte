@@ -23,9 +23,16 @@
 		category: Category;
 		draggedCategory: DraggedCategory;
 		handleModalOpen: (type: CategoryType, categoryId?: string) => void;
+		handleModalDelete: (categoryId: string) => void;
 	};
 
-	let { type, category, handleModalOpen, draggedCategory = $bindable() }: Props = $props();
+	let {
+		type,
+		category,
+		handleModalOpen,
+		handleModalDelete,
+		draggedCategory = $bindable()
+	}: Props = $props();
 
 	let categoryElement: HTMLDivElement;
 	let headerElement: HTMLDivElement;
@@ -94,11 +101,21 @@
 	}
 
 	function removeCategory() {
-		board.deleteCategory(type, category.id);
+		handleModalDelete(category.id);
 	}
 
 	function editCategory() {
 		handleModalOpen(type, category.id);
+	}
+
+	function isButtonDisabled(buttonId: string): boolean {
+		// Check if there's any event playing from the same category but with a different button ID
+		for (const [, event] of timeline.eventsPlaying) {
+			if (event.categoryId === category.id && event.buttonId !== buttonId) {
+				return true;
+			}
+		}
+		return false;
 	}
 </script>
 
@@ -147,13 +164,17 @@
 	<div bind:this={contentElement} class="flex w-full flex-wrap items-start gap-2 p-2">
 		{#if type === CategoryType.Event}
 			{#each category.buttons as button, idx (button.id ?? `temp-${category.id}-${idx}`)}
+				{@const disabled = button.id ? isButtonDisabled(button.id) : false}
 				<button
 					style={`
 					background-color: ${button.color};
 					color: ${getTextColorForBackground(button.color)};
 				`}
-					class="shrink-0 rounded-xs border border-gray-800 px-2 py-1 text-sm shadow-sm hover:cursor-pointer hover:brightness-120"
-					onclick={() => addEvent(button as Button)}
+					class="shrink-0 rounded-xs border border-gray-800 px-2 py-1 text-sm shadow-sm transition-opacity {disabled
+						? 'cursor-not-allowed opacity-50'
+						: 'hover:cursor-pointer hover:brightness-120'}"
+					{disabled}
+					onclick={() => !disabled && addEvent(button as Button)}
 				>
 					{button.name}
 				</button>

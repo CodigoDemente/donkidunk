@@ -8,7 +8,7 @@
 	import { boardContext } from '../../board/context.svelte';
 	import { CategoryType } from '../../../components/box/types';
 	import { ButtonRange, type Button as ButtonType } from '../../board/types/Button';
-	import { secondsOptions, typeOptions } from './utils';
+	import { secondsBeforeOptions, secondsDurationOptions, typeOptions } from './utils';
 	import type { Tag } from '../../board/types/Tag';
 
 	const context = boardContext.get();
@@ -136,7 +136,7 @@
 								<td class="w-[100px] p-2">
 									<Dropdown
 										placeholder="Select duration"
-										options={secondsOptions}
+										options={secondsDurationOptions}
 										size="mini"
 										selectClass="bg-gray-800"
 										bind:value={btn.duration}
@@ -145,7 +145,7 @@
 								<td class="w-[100px] p-2">
 									<Dropdown
 										placeholder="Select before"
-										options={secondsOptions}
+										options={secondsBeforeOptions}
 										size="mini"
 										selectClass="bg-gray-800"
 										bind:value={btn.before}

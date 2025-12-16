@@ -1,14 +1,17 @@
 <script lang="ts">
 	import { projectActions } from '../../persistence/stores/project/actions';
 	import addCategoryModal from '../../modules/modalContent/addCategoryModal/index.svelte';
+	import deleteCategoryModal from '../../modules/modalContent/deleteCategoryModal/index.svelte';
 	import { IconPlus, IconChevronDown } from '@tabler/icons-svelte';
 	import Button from '../button/button.svelte';
 	import { CategoryType, type DraggedCategory, type Props } from './types';
 	import { boardContext } from '../../modules/board/context.svelte';
+	import { timelineContext } from '../../modules/videoplayer/context.svelte';
 	import Category from './category.svelte';
 	import { v7 as uuidv7 } from 'uuid';
 
 	const board = boardContext.get();
+	const timeline = timelineContext.get();
 
 	let { boxHeight, isOpened, otherIsOpened, title, type, categories }: Props = $props();
 
@@ -45,13 +48,25 @@
 		e.preventDefault();
 	}
 
+	function handleModalDelete(categoryId: string) {
+		projectActions.setModal({
+			content: deleteCategoryModal,
+			title: `Delete category`,
+			onCancel: () => projectActions.closeAndResetModal(),
+			onSubmit: () => board.deleteCategory(type, categoryId, timeline),
+			onSubmitText: 'Delete',
+			show: true,
+			size: 'small'
+		});
+	}
+
 	function handleModalOpen(type: CategoryType, categoryId?: string) {
 		board.loadCategoryToAddOrEdit(type, categoryId);
 		projectActions.setModal({
 			content: addCategoryModal,
 			title: `Add category to ${title}`,
 			onCancel: () => board.resetCategoryForm(type),
-			onSubmit: () => board.addOrUpdateCategory(type),
+			onSubmit: () => board.addOrUpdateCategory(type, timeline),
 			show: true,
 			size: 'large'
 		});
@@ -95,7 +110,7 @@
 			aria-label="Drop area"
 		>
 			{#each categories as category (category.id)}
-				<Category {type} {category} {handleModalOpen} bind:draggedCategory />
+				<Category {type} {category} {handleModalOpen} {handleModalDelete} bind:draggedCategory />
 			{/each}
 		</div>
 	{/if}
