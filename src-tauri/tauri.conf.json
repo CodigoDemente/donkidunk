@@ -46,6 +46,9 @@
     },
     "externalBin": [
       "./bin/donkidunk_ffmpeg"
+    ],
+    "resources": [
+      "assets/"
     ]
   }
 }

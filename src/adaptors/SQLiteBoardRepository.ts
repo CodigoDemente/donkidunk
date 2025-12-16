@@ -47,27 +47,18 @@ export class SQLiteBoardRepository implements BoardRepository {
 		const categoriesAndButtons: Record<string, Category> = categories.reduce(
 			(acc, category) => {
 				if (!acc[category.id]) {
-					acc[category.id] = {
-						id: category.id,
-						type: category.type as CategoryType,
-						name: category.name,
-						color: category.color,
-						position: { x: category.grid_position_x, y: category.grid_position_y },
-						size:
-							category.width != null && category.height != null
-								? { width: category.width, height: category.height }
-								: undefined,
-						buttons: [
-							{
-								id: category.button_id,
-								name: category.button_name,
-								range: ButtonRange[category.button_range as keyof typeof ButtonRange],
-								duration: category.button_duration,
-								before: category.button_before,
-								color: category.button_color
-							}
-						]
+					const c = CategoryMapper.toDomain(category);
+					const button: Button = {
+						id: category.button_id,
+						name: category.button_name,
+						range: ButtonRange[category.button_range as keyof typeof ButtonRange],
+						duration: category.button_duration,
+						before: category.button_before,
+						color: category.button_color
 					};
+					c.buttons.push(button);
+
+					acc[category.id] = c;
 				} else {
 					acc[category.id].buttons.push({
 						id: category.button_id,
@@ -98,24 +89,14 @@ export class SQLiteBoardRepository implements BoardRepository {
 		const categoriesAndTags: Record<string, Category> = categories.reduce(
 			(acc, category) => {
 				if (!acc[category.id]) {
-					acc[category.id] = {
-						id: category.id,
-						type: category.type as CategoryType,
-						name: category.name,
-						color: category.color,
-						position: { x: category.grid_position_x, y: category.grid_position_y },
-						size:
-							category.width != null && category.height != null
-								? { width: category.width, height: category.height }
-								: undefined,
-						buttons: [
-							{
-								id: category.tag_id,
-								name: category.tag_name,
-								color: category.tag_color
-							} as Tag
-						]
+					const c = CategoryMapper.toDomain(category);
+					const tag: Tag = {
+						id: category.tag_id,
+						name: category.tag_name,
+						color: category.tag_color
 					};
+					(c.buttons as Tag[]).push(tag);
+					acc[category.id] = c;
 				} else {
 					(acc[category.id].buttons as Tag[]).push({
 						id: category.tag_id,
@@ -137,11 +118,7 @@ export class SQLiteBoardRepository implements BoardRepository {
              FROM tag`
 		);
 
-		return tags.map((tag) => ({
-			id: tag.id,
-			name: tag.name,
-			color: tag.color
-		}));
+		return tags.map(TagMapper.toDomain);
 	}
 
 	async addCategory(category: Category): Promise<void> {
@@ -232,10 +209,9 @@ export class SQLiteBoardRepository implements BoardRepository {
 	}
 
 	async updateCategoryButtons(categoryId: string, buttons: Button[]): Promise<void> {
-		// Start a transaction to ensure data integrity
-		await this.db.execute('BEGIN TRANSACTION');
-
 		try {
+			// Start a transaction to ensure data integrity
+			await this.db.execute('BEGIN TRANSACTION');
 			const fullInsertQuery =
 				'INSERT INTO button (id, name, range, duration, before, color, category_id) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (id) DO UPDATE SET name = $2, range = $3, duration = $4, before = $5, color = $6';
 
@@ -263,9 +239,8 @@ export class SQLiteBoardRepository implements BoardRepository {
 	}
 
 	async updateCategoryTags(categoryId: string, tags: Tag[]): Promise<void> {
-		await this.db.execute('BEGIN TRANSACTION');
-
 		try {
+			await this.db.execute('BEGIN TRANSACTION');
 			const fullInsertQuery =
 				'INSERT INTO tag (id, name, color, category_id) VALUES ($1, $2, $3, $4) ON CONFLICT (id) DO UPDATE SET name = $2, color = $3';
 

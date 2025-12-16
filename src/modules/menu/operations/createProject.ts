@@ -1,42 +1,39 @@
-import { debug } from '@tauri-apps/plugin-log';
-import { v4 as uuidv4 } from 'uuid';
-import { createBackupDatabase } from '../../../persistence/database/actions';
-import { enableImportVideo } from './enableItems';
 import { projectActions } from '../../../persistence/stores/project/actions';
-import { selectProjectPath } from './selectProjectPath';
+import type { Board } from '../../board/context.svelte';
+import { createNewProject as createNewProjectModal } from '../../modalContent/addNewProject/createProject';
+import AddNewProjectModal from '../../modalContent/addNewProject/index.svelte';
 
-export async function createNewProject(providedPath?: string) {
-	debug('New project action triggered');
+export async function createNewProject(board: Board) {
+	projectActions.setNewProjectFormData(null);
+	projectActions.setModal({
+		content: AddNewProjectModal,
+		title: 'Create New Project',
+		onCancel: handleCancel,
+		onSubmit: () => handleSubmit(board),
+		onSubmitText: 'Create',
+		show: true,
+		size: 'large'
+	});
+}
 
-	let path = providedPath;
+async function handleSubmit(board: Board) {
+	const formData = projectActions.getNewProjectFormData();
 
-	if (!path) {
-		const selectedPath = await selectProjectPath();
-
-		if (!selectedPath) {
-			debug('No path selected');
-			return;
-		}
-
-		path = selectedPath;
-	}
-
-	if (path && !path.endsWith('.dnk')) {
-		path = `${path}.dnk`;
-	}
-
-	if (!path) {
-		debug('No valid path available');
+	if (!formData || !formData.projectPath) {
 		return;
 	}
 
-	projectActions.setFilePath(path);
+	await createNewProjectModal(formData.buttonBoard, board, formData.projectPath);
 
-	const backupId = uuidv4();
+	if (formData.videoPath) {
+		await projectActions.setVideoPath(formData.videoPath);
+	}
 
-	await createBackupDatabase(backupId);
+	projectActions.setNewProjectFormData(null);
+	projectActions.closeAndResetModal();
+}
 
-	await projectActions.setLastSavedTimestamp(new Date().toISOString());
-
-	await enableImportVideo();
+function handleCancel() {
+	projectActions.setNewProjectFormData(null);
+	projectActions.closeAndResetModal();
 }

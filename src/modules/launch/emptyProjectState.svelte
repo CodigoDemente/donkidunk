@@ -2,47 +2,14 @@
 	import { boardContext } from '../board/context.svelte';
 	import { timelineContext } from '../videoplayer/context.svelte';
 	import { openProject } from '../menu/operations/openProject';
-	import { projectActions } from '../../persistence/stores/project/actions';
 	import Button from '../../components/button/button.svelte';
-	import AddNewProjectModal from '../modalContent/addNewProject/index.svelte';
 	import { createNewProject } from '../menu/operations/createProject';
 
 	const board = boardContext.get();
 	const timeline = timelineContext.get();
 
-	async function handleSubmit() {
-		const formData = projectActions.getNewProjectFormData();
-
-		if (!formData || !formData.projectPath) {
-			return;
-		}
-
-		await createNewProject(formData.projectPath);
-
-		if (formData.videoPath) {
-			await projectActions.setVideoPath(formData.videoPath);
-		}
-
-		projectActions.setNewProjectFormData(null);
-		projectActions.closeAndResetModal();
-	}
-
-	function handleCancel() {
-		projectActions.setNewProjectFormData(null);
-		projectActions.closeAndResetModal();
-	}
-
 	function handleCreateProject() {
-		projectActions.setNewProjectFormData(null);
-		projectActions.setModal({
-			content: AddNewProjectModal,
-			title: 'Create New Project',
-			onCancel: handleCancel,
-			onSubmit: handleSubmit,
-			onSubmitText: 'Create',
-			show: true,
-			size: 'large'
-		});
+		createNewProject(board);
 	}
 
 	async function handleOpenProject() {

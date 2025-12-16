@@ -310,6 +310,7 @@ export class Board {
 						name: this.#tempCategory.name,
 						color: this.#tempCategory.color,
 						position: { x: this.#tempCategory.position.x, y: this.#tempCategory.position.y },
+						size: this.#tempCategory.size ?? undefined,
 						buttons: []
 					}
 				]
@@ -422,6 +423,16 @@ export class Board {
 				...feedbackMessages.ACTION_FAILED,
 				message: error instanceof Error ? error.message : String(error)
 			});
+		}
+	}
+
+	async loadBoard(boardData: BoardData): Promise<void> {
+		const eventCategories = boardData[CategoryType.Event];
+		const tagCategories = boardData[CategoryType.Tag];
+
+		for (const category of [...eventCategories, ...tagCategories]) {
+			this.#tempCategory = category;
+			await this.addCategory();
 		}
 	}
 

@@ -6,11 +6,25 @@
 	import Modal from '../components/modal/modal.svelte';
 	import Snackbar from '../components/snackbar/snackbar.svelte';
 	import EmptyProjectState from '../modules/launch/emptyProjectState.svelte';
+	import { configContext } from '../modules/config/context.svelte';
+	import { onMount } from 'svelte';
+	import { getButtonBoardsCommand } from '../modules/config/commands/GetButtonBoards';
 
 	let leftWidth = 50;
 	let isResizing = false;
 
 	const projectStore = ProjectStore.getState();
+	const config = configContext.get();
+
+	onMount(() =>
+		getButtonBoardsCommand()
+			.then((buttonBoards) => {
+				config.buttonBoards = buttonBoards;
+			})
+			.catch((error) => {
+				console.error(error);
+			})
+	);
 
 	function startResize() {
 		isResizing = true;

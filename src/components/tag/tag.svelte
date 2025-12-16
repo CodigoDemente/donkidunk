@@ -4,7 +4,7 @@
 
 	let { color, text, disabled, onClick, className }: Props = $props();
 
-	const buttonTextColor = getTextColorForBackground(color);
+	const buttonTextColor = $derived(getTextColorForBackground(color));
 
 	function handleClick(e: MouseEvent) {
 		if (disabled) {
