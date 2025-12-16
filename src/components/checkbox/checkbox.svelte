@@ -10,7 +10,7 @@
 		id = ''
 	}: CheckboxProps = $props();
 
-	function handleChange(e: Event) {
+	function handleChange() {
 		if (disabled) return;
 		const newChecked = !checked;
 		checked = newChecked;
@@ -21,7 +21,7 @@
 		if (disabled) return;
 		if (e.key === ' ' || e.key === 'Enter') {
 			e.preventDefault();
-			handleChange(e);
+			handleChange();
 		}
 	}
 </script>
