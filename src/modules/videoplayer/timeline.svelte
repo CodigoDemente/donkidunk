@@ -47,6 +47,8 @@
 	const board = boardContext.get();
 	const timeline = timelineContext.get();
 
+	let isDraggingTimeMarker = $state(false);
+
 	/* ==================== DERIVED STATE ==================== */
 
 	// Calculate timeline limits and progress
@@ -59,6 +61,12 @@
 			limits.visibleDuration
 		)
 	);
+
+	/* ==================== DRAGGING MARKER LOGIC ==================== */
+
+	function handleDraggingTimeMarker(dragging: boolean) {
+		isDraggingTimeMarker = dragging;
+	}
 
 	/* ==================== AUTO-SCROLL LOGIC ==================== */
 
@@ -113,14 +121,12 @@
 	}
 
 	/* ==================== AUTO-SCROLL EFFECTS ==================== */
-	// Track if user is dragging (derived from child component state)
-	let isDragging = $state(false);
 
 	// Auto-scroll when cursor reaches end of visible range (99%)
 	$effect(() => {
 		const progress = relativeProgress();
 
-		if (shouldAutoScroll(isPlaying, progress, isAutoScrolling, isDragging)) {
+		if (shouldAutoScroll(isPlaying, progress, isAutoScrolling, isDraggingTimeMarker)) {
 			applyCenterTime(currentTime);
 		}
 	});
@@ -155,6 +161,7 @@
 			relativeProgress={relativeProgress()}
 			leftLimitTime={limits.leftLimitTime}
 			visibleDuration={limits.visibleDuration}
+			{duration}
 			{handleDragStart}
 			{handleDragEnd}
 			eventCategoriesById={board.eventCategoriesById}
@@ -164,6 +171,8 @@
 			eventSelected={timeline.eventSelected}
 			onEventClick={timeline.setEventSelected.bind(timeline)}
 			onTimeChange={handleTimeChange}
+			{isDraggingTimeMarker}
+			{handleDraggingTimeMarker}
 		/>
 
 		<TimelineZoomBar
@@ -177,6 +186,4 @@
 </div>
 
 <!-- Tags box -->
-<div class="relative mt-2 max-h-[20vh] bg-gray-700">
-	<Tagsbox />
-</div>
+<Tagsbox />
