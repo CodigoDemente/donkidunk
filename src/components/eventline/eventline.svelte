@@ -36,7 +36,7 @@
 	}
 </script>
 
-<div class="relative h-5 w-full rounded-xs bg-gray-800">
+<div class="relative h-5 w-full rounded-xs bg-gray-900">
 	{#if allTagsByCategory[categoryId]}
 		{#each allTagsByCategory[categoryId] as event (event.id)}
 			{#if isEventVisible(event.timestamp.start, event.timestamp.end)}

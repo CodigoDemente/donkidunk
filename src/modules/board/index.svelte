@@ -15,13 +15,13 @@
 	let tagsOpen = true;
 </script>
 
-<div id="boards-container" class="flex h-full min-h-0 flex-1 flex-col">
-	<Toggle
+<div id="boards-container" class="flex h-screen min-h-0 flex-1 flex-col overflow-y-hidden">
+	<!-- <Toggle
 		labelTruthy="Edit"
 		labelFalsy="Play"
 		checked={context.isEditing}
 		onChange={(value) => context.setEditingMode(value)}
-	/>
+	/> -->
 	<!-- Events Section -->
 	<Box
 		categories={context.eventCategories}

@@ -105,8 +105,14 @@
 	}
 </script>
 
-<div class="flex h-screen flex-col bg-gray-900 p-2 pl-8">
-	<p class="mb-2 inline-block py-1 text-xs">Video / Timeline</p>
+<div
+	class="flex h-screen flex-col overflow-y-hidden rounded-md border border-gray-700 bg-gray-800 px-2"
+>
+	<p
+		class="mb-2 inline-block border-b border-gray-700 px-2 py-1 text-xs font-semibold text-gray-200"
+	>
+		Video / Timeline
+	</p>
 	<video
 		id="video-player"
 		class={{

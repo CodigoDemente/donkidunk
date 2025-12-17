@@ -5,17 +5,17 @@
 	import Tag from '../../components/tag/tag.svelte';
 
 	const board = boardContext.get();
-	let isBoxOpen: boolean = $state(false);
+	let isBoxOpen: boolean = $state(true);
 
 	const timeline = timelineContext.get();
 </script>
 
 <!-- Line that toggles the box -->
 <button
-	class="flex w-full cursor-pointer items-center bg-gray-700 px-1 text-gray-200"
+	class="mt-2 flex w-full cursor-pointer items-center rounded-t-md border-b border-gray-600 bg-gray-700 px-1 text-gray-200"
 	onclick={() => (isBoxOpen = !isBoxOpen)}
 >
-	<p class="text-xs">Tags related</p>
+	<p class="px-2 text-xs font-semibold">Tags related</p>
 	<IconChevronDown
 		class="ml-auto p-1 transition-transform duration-200"
 		style="transform: {isBoxOpen ? 'rotate(180deg)' : 'rotate(0deg)'}"
@@ -23,7 +23,9 @@
 </button>
 
 {#if isBoxOpen}
-	<div class="rounded-md bg-gray-800 p-2 shadow-md">
+	<div
+		class="box-shadow mb-2 max-h-[18vh] overflow-y-auto rounded-md border border-gray-600 bg-gray-700 p-2 shadow-md"
+	>
 		<div class="flex flex-wrap gap-2">
 			{#if timeline.eventsPlaying.size > 0}
 				{#if Array.from(timeline.eventsPlaying)[timeline.eventsPlaying.size - 1][1].tagsRelated.length === 0}
