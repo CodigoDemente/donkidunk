@@ -143,8 +143,8 @@
 	});
 </script>
 
-<div class="flex max-h-[20vh] w-full flex-row" onwheel={onTimelineWheel}>
-	<div class="flex w-full flex-col">
+<div class="flex min-h-0 w-full flex-1 flex-col justify-between" onwheel={onTimelineWheel}>
+	<div class="flex min-h-0 flex-col justify-start">
 		<TimeDisplay {currentTime} {duration} {toTimeString} />
 
 		<TimelineMarkers
@@ -153,7 +153,6 @@
 			visibleDuration={limits.visibleDuration}
 			{toTimeString}
 		/>
-
 		<TimelineProgressBar
 			bind:currentTime
 			{timelineStart}
@@ -174,7 +173,6 @@
 			{isDraggingTimeMarker}
 			{handleDraggingTimeMarker}
 		/>
-
 		<TimelineZoomBar
 			bind:timelineStart
 			bind:timelineEnd
@@ -183,7 +181,7 @@
 			onRangeChange={handleRangeChange}
 		/>
 	</div>
-</div>
 
-<!-- Tags box -->
-<Tagsbox />
+	<!-- Tags box -->
+	<Tagsbox />
+</div>

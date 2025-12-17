@@ -10,21 +10,9 @@
 	const timeline = timelineContext.get();
 </script>
 
-<!-- Line that toggles the box -->
-<button
-	class="mt-2 flex w-full cursor-pointer items-center rounded-t-md border-b border-gray-600 bg-gray-700 px-1 text-gray-200"
-	onclick={() => (isBoxOpen = !isBoxOpen)}
->
-	<p class="px-2 text-xs font-semibold">Tags related</p>
-	<IconChevronDown
-		class="ml-auto p-1 transition-transform duration-200"
-		style="transform: {isBoxOpen ? 'rotate(180deg)' : 'rotate(0deg)'}"
-	/>
-</button>
-
 {#if isBoxOpen}
 	<div
-		class="box-shadow mb-2 max-h-[18vh] overflow-y-auto rounded-md border border-gray-600 bg-gray-700 p-2 shadow-md"
+		class="box-shadow max-h-[30vh] shrink-0 overflow-y-auto rounded-t-md border border-gray-600 bg-gray-700 p-2 shadow-md"
 	>
 		<div class="flex flex-wrap gap-2">
 			{#if timeline.eventsPlaying.size > 0}
@@ -47,3 +35,15 @@
 		</div>
 	</div>
 {/if}
+
+<!-- Line that toggles the box -->
+<button
+	class="mb-2 flex w-full shrink-0 cursor-pointer items-center rounded-b-md border-t border-gray-600 bg-gray-700 px-1 text-gray-200"
+	onclick={() => (isBoxOpen = !isBoxOpen)}
+>
+	<p class="px-2 text-xs font-semibold">Tags related</p>
+	<IconChevronDown
+		class="ml-auto p-1 transition-transform duration-200"
+		style="transform: {isBoxOpen ? 'rotate(0deg)' : 'rotate(180deg)'}"
+	/>
+</button>

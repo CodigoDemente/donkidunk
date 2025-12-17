@@ -148,7 +148,7 @@
 	}
 </script>
 
-<div class="custom-scrollbar overflow-y my-1 mb-4 flex flex-col overflow-x-hidden">
+<div class="custom-scrollbar overflow-y my-1 flex min-h-0 flex-1 flex-col overflow-x-hidden">
 	<button
 		aria-label="Progress Bar"
 		bind:this={progressBarElement}
