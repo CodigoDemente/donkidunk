@@ -27,9 +27,16 @@
 		// The event is visible if there is any overlap with the visible range
 		return start < rightLimit && eventEnd > leftLimit;
 	}
+
+	function handleDblClick(startTimestamp: number) {
+		if (playingObjects && playingObjects.size > 0) {
+			return;
+		}
+		timeline.currentTime = startTimestamp;
+	}
 </script>
 
-<div class="relative h-5 w-full rounded-xs bg-gray-800">
+<div class="relative h-5 w-full rounded-xs bg-gray-900">
 	{#if allTagsByCategory[categoryId]}
 		{#each allTagsByCategory[categoryId] as event (event.id)}
 			{#if isEventVisible(event.timestamp.start, event.timestamp.end)}
@@ -43,6 +50,7 @@
 					borderColor={buttonsListById[event.buttonId]?.color}
 					name={buttonsListById[event.buttonId]?.name}
 					onClick={() => onClick && !playingObjects?.has(event.buttonId) && onClick(event.id)}
+					onDblClick={() => handleDblClick(event.timestamp.start)}
 				/>
 			{/if}
 		{/each}
@@ -58,6 +66,7 @@
 					color={boardCategoriesById[categoryId]?.color}
 					name={buttonsListById[playingObject.buttonId]?.name}
 					onClick={() => {}}
+					onDblClick={() => handleDblClick(playingObject.timestamp.start)}
 				/>
 			{/if}
 		{/each}

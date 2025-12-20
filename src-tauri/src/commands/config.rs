@@ -1,5 +1,5 @@
 use lib::{
-    configmanager::{ButtonBoardWithPath, Config, ConfigManagerTrait},
+    configmanager::{ButtonBoardWithPath, Config, ConfigManagerTrait, UIMode},
     errors::AppError,
 };
 
@@ -42,7 +42,6 @@ pub fn save_button_board(
     Ok(new_board_path.to_string_lossy().to_string())
 }
 
-// remember to call `.manage(MyState::default())`
 #[tauri::command]
 pub fn save_board_size(
     state: tauri::State<'_, AppState>,
@@ -54,6 +53,13 @@ pub fn save_board_size(
         .lock()
         .unwrap()
         .set_board_size(event_size, tag_size)?;
+
+    Ok(())
+}
+
+#[tauri::command]
+pub fn save_ui_mode(state: tauri::State<'_, AppState>, ui_mode: UIMode) -> Result<(), AppError> {
+    state.config_manager.lock().unwrap().set_ui_mode(ui_mode)?;
 
     Ok(())
 }

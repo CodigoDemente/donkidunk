@@ -79,7 +79,9 @@
     ${!isOpened ? 'h-10 min-h-0 shrink-0' : otherIsOpened ? '' : 'min-h-[40px] flex-1'}`}
 	style={isOpened && otherIsOpened ? `height: ${boxHeight}%; min-height: 40px;` : ''}
 >
-	<div class="flex h-6 items-center justify-between border-b border-gray-600 bg-gray-800 px-4">
+	<div
+		class="flex h-6 items-center justify-between rounded-t-md border-b border-gray-600 bg-gray-800 px-4"
+	>
 		<p class="text-xs font-semibold text-white">{title}</p>
 		<button
 			class="ml-2 rounded p-1 transition hover:text-gray-200"

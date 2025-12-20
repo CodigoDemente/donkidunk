@@ -47,6 +47,8 @@
 	const board = boardContext.get();
 	const timeline = timelineContext.get();
 
+	let isDraggingTimeMarker = $state(false);
+
 	/* ==================== DERIVED STATE ==================== */
 
 	// Calculate timeline limits and progress
@@ -59,6 +61,12 @@
 			limits.visibleDuration
 		)
 	);
+
+	/* ==================== DRAGGING MARKER LOGIC ==================== */
+
+	function handleDraggingTimeMarker(dragging: boolean) {
+		isDraggingTimeMarker = dragging;
+	}
 
 	/* ==================== AUTO-SCROLL LOGIC ==================== */
 
@@ -113,14 +121,12 @@
 	}
 
 	/* ==================== AUTO-SCROLL EFFECTS ==================== */
-	// Track if user is dragging (derived from child component state)
-	let isDragging = $state(false);
 
 	// Auto-scroll when cursor reaches end of visible range (99%)
 	$effect(() => {
 		const progress = relativeProgress();
 
-		if (shouldAutoScroll(isPlaying, progress, isAutoScrolling, isDragging)) {
+		if (shouldAutoScroll(isPlaying, progress, isAutoScrolling, isDraggingTimeMarker)) {
 			applyCenterTime(currentTime);
 		}
 	});
@@ -137,8 +143,8 @@
 	});
 </script>
 
-<div class="flex max-h-[20vh] w-full flex-row" onwheel={onTimelineWheel}>
-	<div class="flex w-full flex-col">
+<div class="flex min-h-0 w-full flex-1 flex-col justify-between" onwheel={onTimelineWheel}>
+	<div class="flex min-h-0 flex-col justify-start">
 		<TimeDisplay {currentTime} {duration} {toTimeString} />
 
 		<TimelineMarkers
@@ -147,7 +153,6 @@
 			visibleDuration={limits.visibleDuration}
 			{toTimeString}
 		/>
-
 		<TimelineProgressBar
 			bind:currentTime
 			{timelineStart}
@@ -155,6 +160,7 @@
 			relativeProgress={relativeProgress()}
 			leftLimitTime={limits.leftLimitTime}
 			visibleDuration={limits.visibleDuration}
+			{duration}
 			{handleDragStart}
 			{handleDragEnd}
 			eventCategoriesById={board.eventCategoriesById}
@@ -164,8 +170,9 @@
 			eventSelected={timeline.eventSelected}
 			onEventClick={timeline.setEventSelected.bind(timeline)}
 			onTimeChange={handleTimeChange}
+			{isDraggingTimeMarker}
+			{handleDraggingTimeMarker}
 		/>
-
 		<TimelineZoomBar
 			bind:timelineStart
 			bind:timelineEnd
@@ -174,9 +181,7 @@
 			onRangeChange={handleRangeChange}
 		/>
 	</div>
-</div>
 
-<!-- Tags box -->
-<div class="relative mt-2 max-h-[20vh] bg-gray-700">
+	<!-- Tags box -->
 	<Tagsbox />
 </div>

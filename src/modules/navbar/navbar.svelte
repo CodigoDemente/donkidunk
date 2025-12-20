@@ -1,71 +1,87 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import type { RouteId } from '$app/types';
-	import {
-		IconChevronLeft,
-		IconChevronRight,
-		IconFileScissors,
-		IconTag
-	} from '@tabler/icons-svelte';
+	import { IconEdit, IconHome, IconLayoutBoard, IconPlayerPlay } from '@tabler/icons-svelte';
+	import Floatingmenu from '../../components/floatingmenu/floatingmenu.svelte';
+	import { UIMode } from '../config/types/Config';
+	import { configContext } from '../config/context.svelte';
+	import type { FloatingMenuOption } from '../../components/floatingmenu/types';
+	import { saveUIModeCommand } from '../config/commands/SaveUIMode';
+	import ProjectStore from '../../persistence/stores/project/store.svelte';
+	import { boardContext } from '../board/context.svelte';
+	import Tooltip from '../../components/tooltip/tooltip.svelte';
 
 	type Props = {
 		disabled: boolean;
 	};
 
-	let isNavbarOpen = $state(false);
 	let { disabled }: Props = $props();
 
-	function toggleNavbar() {
-		isNavbarOpen = !isNavbarOpen; // Toggle the navbar state
-	}
+	const config = configContext.get();
+	const board = boardContext.get();
 
 	function navigateTo(page: RouteId) {
 		goto(resolve(page)); // Navigate to the specified route
 	}
 
 	const isActive = (pageRoute: RouteId) => {
-		return $page.route.id === pageRoute;
+		return page.route.id === pageRoute;
 	};
+
+	const floatingmenuOptions = [
+		{
+			id: '1',
+			value: UIMode.Simple.toString(),
+			label: 'Beginner'
+		},
+		{
+			id: '2',
+			value: UIMode.Advanced.toString(),
+			label: 'Professional'
+		}
+	];
+
+	async function handleUIModeChange(option: FloatingMenuOption): Promise<void> {
+		config.uiMode = Number(option.value) as UIMode;
+
+		await saveUIModeCommand(config.uiMode);
+	}
+
+	function toggleEditingMode(): void {
+		const value = !board.isEditing;
+		board.setEditingMode(value);
+	}
 </script>
 
-<navbar
-	class="navbarEffects relative overflow-hidden border-r-3 border-black bg-gray-900 {isNavbarOpen
-		? 'w-28'
-		: 'w-14'}"
->
-	<ul class="contentEffects flex flex-col items-center gap-5 pt-26">
-		<li class="border-b border-black">
+<navbar class="my-0.5 bg-gray-900 px-4">
+	<ul class="flex flex-row items-center">
+		<li>
 			<button
 				class={`
 				${disabled ? 'cursor-not-allowed opacity-50' : 'hover:cursor-pointer '}
-				flex items-center justify-center gap-2 rounded-sm p-2 
-				${isActive('/') ? 'bg-tertiary text-white' : 'text-tertiary'}`}
+				${isActive('/') ? 'bg-tertiary text-white' : 'text-tertiary'}
+				flex items-center justify-center gap-2 rounded-sm 
+				p-1.5`}
 				type="button"
 				{disabled}
 				onclick={() => navigateTo('/')}
 			>
-				<IconTag class="h-5 w-5" />
-				{#if isNavbarOpen}
-					<p class="buttonEffects text-sm">Board</p>
-				{/if}
+				<IconHome class="mr-0.5 h-3 w-3" />
 			</button>
 		</li>
-		<li class="border-b border-black">
+		<li>
 			<button
 				class={`
 				${disabled ? 'cursor-not-allowed opacity-50' : 'hover:cursor-pointer'}
-				flex items-center justify-center gap-2 rounded-sm p-2  
-				${isActive('/export') ? 'bg-tertiary text-white' : 'text-tertiary'}`}
+				${isActive('/export') ? 'bg-tertiary text-white' : 'text-tertiary'}
+				flex items-center justify-center gap-2 rounded-sm p-1.5`}
 				type="button"
 				{disabled}
 				onclick={() => navigateTo('/export')}
 			>
-				<IconFileScissors class="h-6 w-6" />
-				{#if isNavbarOpen}
-					<p class="buttonEffects text-sm">Export</p>
-				{/if}
+				<span class="h-3 text-xs">Export</span>
 			</button>
 		</li>
 		<!-- 
@@ -74,35 +90,39 @@
 			<button type="button" onclick={() => navigateTo('/graphics')}>Graphics</button>
 		</li> 
 		-->
+
+		<li class="ml-auto">
+			<Tooltip text={board.isEditing ? 'Edit Mode' : 'Play Mode'} size="small" position="bottom">
+				<button
+					type="button"
+					class={`
+				${disabled ? 'cursor-not-allowed opacity-50' : 'hover:cursor-pointer'}
+				${board.isEditing ? 'bg-tertiary text-white' : 'text-tertiary'}
+				flex items-center justify-center gap-2 rounded-sm p-1.5`}
+					onclick={() => toggleEditingMode()}
+					aria-label="Edit"
+					{disabled}
+				>
+					{#if board.isEditing}
+						<IconEdit class="h-4 w-4" />
+					{:else}
+						<IconPlayerPlay class="h-4 w-4" />
+					{/if}
+				</button>
+			</Tooltip>
+		</li>
+
+		<li>
+			<Floatingmenu
+				trigger={IconLayoutBoard}
+				options={floatingmenuOptions}
+				selectedValue={config.uiMode.toString()}
+				onoptionselected={handleUIModeChange}
+				triggerClass="text-tertiary hover:cursor-pointer"
+				iconClass="h-4 w-4"
+				tooltip="Layout Mode"
+				{disabled}
+			/>
+		</li>
 	</ul>
 </navbar>
-<button
-	class="buttonEffects absolute top-15 {isNavbarOpen
-		? 'left-22'
-		: 'left-11'} border-tertiary text-tertiary rounded-lg border bg-black p-1 hover:cursor-pointer hover:border-gray-200 hover:text-gray-200"
-	onclick={toggleNavbar}
-	aria-label="Toggle Navbar"
->
-	{#if isNavbarOpen}
-		<IconChevronLeft class="h-3 w-3" />
-	{:else}
-		<IconChevronRight class="h-3 w-3" />
-	{/if}
-</button>
-
-<style>
-	.navbarEffects {
-		transition: width 0.3s ease; /* Smooth transition for width */
-		overflow: hidden; /* Hide content when collapsed */
-	}
-
-	.contentEffects {
-		transition:
-			opacity 0.3s ease,
-			visibility 0.3s ease; /* Smooth transition for visibility and opacity */
-	}
-
-	.buttonEffects {
-		transition: left 0.3s ease; /* Smooth transition for left position */
-	}
-</style>

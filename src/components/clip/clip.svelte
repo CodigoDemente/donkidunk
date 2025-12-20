@@ -9,6 +9,7 @@
 		borderColor?: string;
 		name: string;
 		onClick: () => void;
+		onDblClick?: () => void;
 	}
 
 	let {
@@ -20,7 +21,8 @@
 		color,
 		borderColor,
 		name,
-		onClick
+		onClick,
+		onDblClick
 	}: Props = $props();
 
 	let total = $derived(timelineEnd - timelineStart);
@@ -43,6 +45,7 @@
 	role="button"
 	tabindex="0"
 	onclick={() => onClick()}
+	ondblclick={() => onDblClick && onDblClick()}
 	onkeydown={(e) => {
 		if (e.key === 'Enter' || e.key === ' ') {
 			onClick();
