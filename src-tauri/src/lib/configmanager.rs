@@ -167,22 +167,39 @@ impl ConfigManagerTrait for ConfigManager {
             return Ok(());
         }
 
-        let default_board_button_asset_path = app
+        let beginner_button_board_asset_path = app
             .path()
-            .resolve("assets/default_board_button.json", BaseDirectory::Resource)?;
+            .resolve("assets/beginner_button_board.json", BaseDirectory::Resource)?;
+        let advanced_button_board_asset_path = app
+            .path()
+            .resolve("assets/advanced_button_board.json", BaseDirectory::Resource)?;
 
-        let default_board_button_id = uuid::Uuid::now_v7();
+        let beginner_button_board_id = uuid::Uuid::now_v7();
 
-        let default_board_button_path = self
+        let beginner_button_board_path = self
             .button_board_dir
-            .join(format!("{default_board_button_id}.json"));
+            .join(format!("{beginner_button_board_id}.json"));
 
-        fs::copy(default_board_button_asset_path, default_board_button_path)?;
+        fs::copy(beginner_button_board_asset_path, beginner_button_board_path)?;
 
         self.config.button_boards.push(ButtonBoard {
-            id: default_board_button_id.to_string(),
-            name: "Professional analysis".to_string(),
+            id: beginner_button_board_id.to_string(),
+            name: "Amateur coaching".to_string(),
             is_default: true,
+        });
+
+        let advanced_button_board_id = uuid::Uuid::now_v7();
+
+        let advanced_button_board_path = self
+            .button_board_dir
+            .join(format!("{advanced_button_board_id}.json"));
+
+        fs::copy(advanced_button_board_asset_path, advanced_button_board_path)?;
+
+        self.config.button_boards.push(ButtonBoard {
+            id: advanced_button_board_id.to_string(),
+            name: "Professional coaching".to_string(),
+            is_default: false,
         });
 
         self.write_config_to_file()?;

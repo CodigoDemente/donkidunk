@@ -109,7 +109,7 @@
 								inputClass="bg-gray-800"
 								type="text"
 								size="medium"
-								maxlength={15}
+								maxlength={255}
 								error={context.errorsForm[idx]?.message}
 								bind:value={btn.name}
 							/>

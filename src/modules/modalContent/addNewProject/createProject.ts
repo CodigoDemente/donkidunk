@@ -10,8 +10,8 @@ import type { BoardData } from '../../board/types/Board';
 import type { Board } from '../../board/context.svelte';
 
 export async function createNewProject(
-	buttonBoard: ButtonBoard,
 	board: Board,
+	buttonBoard?: ButtonBoard,
 	providedPath?: string
 ) {
 	debug('New project action triggered');
@@ -46,7 +46,7 @@ export async function createNewProject(
 
 	await projectActions.setLastSavedTimestamp(new Date().toISOString());
 
-	if (buttonBoard.id) {
+	if (buttonBoard?.id) {
 		await loadButtonBoardIntoProject(buttonBoard, board);
 	}
 
