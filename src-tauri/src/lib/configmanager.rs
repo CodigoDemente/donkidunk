@@ -23,7 +23,7 @@ enum Locale {
 
 #[derive(Debug, Clone, Copy, Serialize_repr, Deserialize_repr)]
 #[repr(u8)]
-enum UIMode {
+pub enum UIMode {
     Simple,
     Advanced,
 }
@@ -75,6 +75,7 @@ pub trait ConfigManagerTrait {
         board_content: String,
     ) -> Result<PathBuf, ConfigError>;
     fn set_board_size(&mut self, events: u8, tags: u8) -> Result<(), ConfigError>;
+    fn set_ui_mode(&mut self, ui_mode: UIMode) -> Result<(), ConfigError>;
 }
 
 impl ConfigManager {
@@ -255,6 +256,14 @@ impl ConfigManagerTrait for ConfigManager {
         }
 
         self.config.board_size = BoardSize { events, tags };
+
+        self.write_config_to_file()?;
+
+        Ok(())
+    }
+
+    fn set_ui_mode(&mut self, ui_mode: UIMode) -> Result<(), ConfigError> {
+        self.config.ui_mode = ui_mode;
 
         self.write_config_to_file()?;
 
