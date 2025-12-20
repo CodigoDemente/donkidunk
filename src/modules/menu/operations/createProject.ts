@@ -23,7 +23,7 @@ async function handleSubmit(board: Board) {
 		return;
 	}
 
-	await createNewProjectModal(formData.buttonBoard, board, formData.projectPath);
+	await createNewProjectModal(board, formData.buttonBoard, formData.projectPath);
 
 	if (formData.videoPath) {
 		await projectActions.setVideoPath(formData.videoPath);

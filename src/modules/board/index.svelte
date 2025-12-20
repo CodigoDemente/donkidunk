@@ -2,26 +2,20 @@
 	import Box from '../../components/box/box.svelte';
 	import { CategoryType } from '../../components/box/types';
 	import { startResize } from '../../components/box/utils';
-	import Toggle from '../../components/toggle/toggle.svelte';
 	import { configContext } from '../config/context.svelte';
+	import { UIMode } from '../config/types/Config';
 	import { boardContext } from './context.svelte';
 
 	const context = boardContext.get();
 	const config = configContext.get();
 
-	let eventsBoxHeight = config.eventsHeight;
-	let tagsBoxHeight = config.tagsHeight;
+	let eventsBoxHeight = $derived(config.uiMode === UIMode.Advanced ? config.eventsHeight : 100);
+	let tagsBoxHeight = $derived(config.tagsHeight);
 	let eventsOpen = true;
 	let tagsOpen = true;
 </script>
 
 <div id="boards-container" class="flex h-screen min-h-0 flex-1 flex-col overflow-y-hidden">
-	<!-- <Toggle
-		labelTruthy="Edit"
-		labelFalsy="Play"
-		checked={context.isEditing}
-		onChange={(value) => context.setEditingMode(value)}
-	/> -->
 	<!-- Events Section -->
 	<Box
 		categories={context.eventCategories}
@@ -32,7 +26,7 @@
 		otherIsOpened={tagsOpen}
 	/>
 	<!-- Resize bar -->
-	{#if eventsOpen && tagsOpen}
+	{#if config.uiMode === UIMode.Advanced && eventsOpen && tagsOpen}
 		<button
 			type="button"
 			class="h-1 w-full shrink-0 cursor-row-resize border-0 bg-gray-900 p-0"
@@ -45,13 +39,15 @@
 			tabindex="0"
 		></button>
 	{/if}
-	<!-- Tags Section -->
-	<Box
-		categories={context.tagCategories}
-		title="Tags"
-		boxHeight={tagsBoxHeight}
-		type={CategoryType.Tag}
-		isOpened={tagsOpen}
-		otherIsOpened={eventsOpen}
-	/>
+	{#if config.uiMode === UIMode.Advanced}
+		<!-- Tags Section -->
+		<Box
+			categories={context.tagCategories}
+			title="Tags"
+			boxHeight={tagsBoxHeight}
+			type={CategoryType.Tag}
+			isOpened={tagsOpen}
+			otherIsOpened={eventsOpen}
+		/>
+	{/if}
 </div>

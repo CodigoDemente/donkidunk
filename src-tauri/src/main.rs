@@ -29,6 +29,7 @@ fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
             get_button_boards,
             save_button_board,
             save_board_size,
+            save_ui_mode,
         ])
         .setup(|app| {
             #[cfg(not(target_os = "windows"))]
