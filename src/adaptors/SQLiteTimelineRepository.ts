@@ -32,9 +32,9 @@ export class SQLiteTimelineRepository implements TimelineRepository {
 	async getRangesForExport(rules: ExportingRule[]): Promise<[number, number][]> {
 		const conditions = rules
 			.map((rule) => {
-				let condition = `(t.button_id = ${rule.include}`;
+				let condition = `(t.button_id = '${rule.include}'`;
 				if (rule.taggedWith.length > 0) {
-					condition += ` AND tt.tag_id IN (${rule.taggedWith.join(',')})`;
+					condition += ` AND tt.tag_id IN ('${rule.taggedWith.join("','")}')`;
 				}
 				return condition + ')';
 			})
