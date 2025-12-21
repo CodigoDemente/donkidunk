@@ -183,7 +183,7 @@
 			<div
 				id="time-marker"
 				class="absolute top-0 left-0 z-10 h-full w-[2px] cursor-ew-resize rounded-full bg-sky-400 transition-all"
-				style="left: {relativeProgress * 100}%"
+				style="left: clamp(0%, {relativeProgress * 100}%, calc(100% - 2px))"
 				onmousedown={onMarkerMouseDown}
 				role="slider"
 				aria-label="Time marker"
