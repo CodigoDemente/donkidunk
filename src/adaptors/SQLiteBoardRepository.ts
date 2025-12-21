@@ -13,6 +13,7 @@ import type {
 import { CategoryMapper } from './mappers/CategoryMapper';
 import { ButtonMapper } from './mappers/ButtonMapper';
 import { TagMapper } from './mappers/TagMapper';
+import { error } from '@tauri-apps/plugin-log';
 
 export class SQLiteBoardRepository implements BoardRepository {
 	constructor(private readonly db: Database) {}
@@ -210,15 +211,16 @@ export class SQLiteBoardRepository implements BoardRepository {
 
 	async updateCategoryButtons(categoryId: string, buttons: Button[]): Promise<void> {
 		try {
-			// Start a transaction to ensure data integrity
-			await this.db.execute('BEGIN TRANSACTION');
-			const fullInsertQuery =
-				'INSERT INTO button (id, name, range, duration, before, color, category_id) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (id) DO UPDATE SET name = $2, range = $3, duration = $4, before = $5, color = $6';
+			let fullInsertQuery =
+				'INSERT INTO button (id, name, range, duration, before, color, category_id) VALUES';
+			const allValues = [];
+			const allArgs = [];
+			let index = 1;
 
 			for (const button of buttons) {
 				const databaseButton = ButtonMapper.toPersistence(button);
 
-				await this.db.execute(fullInsertQuery, [
+				allArgs.push(
 					databaseButton.id,
 					databaseButton.name,
 					databaseButton.range,
@@ -226,39 +228,41 @@ export class SQLiteBoardRepository implements BoardRepository {
 					databaseButton.before,
 					databaseButton.color,
 					categoryId
-				]);
+				);
+				allValues.push(
+					`(${index++}, $${index++}, $${index++}, $${index++}, $${index++}, $${index++}, $${index++})`
+				);
 			}
-		} catch (error) {
-			// If an error occurs, rollback the transaction
-			await this.db.execute('ROLLBACK');
-			throw error;
-		}
 
-		// If everything is successful, commit the transaction
-		await this.db.execute('COMMIT');
+			fullInsertQuery += ` ${allValues.join(',')} ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, range = EXCLUDED.range, duration = EXCLUDED.duration, before = EXCLUDED.before, color = EXCLUDED.color`;
+
+			await this.db.execute(fullInsertQuery, allArgs);
+		} catch (err) {
+			error(`Error updating category buttons: ${err}`);
+			throw err;
+		}
 	}
 
 	async updateCategoryTags(categoryId: string, tags: Tag[]): Promise<void> {
 		try {
-			await this.db.execute('BEGIN TRANSACTION');
-			const fullInsertQuery =
-				'INSERT INTO tag (id, name, color, category_id) VALUES ($1, $2, $3, $4) ON CONFLICT (id) DO UPDATE SET name = $2, color = $3';
+			let fullInsertQuery = 'INSERT INTO tag (id, name, color, category_id) VALUES';
+			const allValues = [];
+			const allArgs = [];
+			let index = 1;
 
 			for (const tag of tags) {
 				const databaseTag = TagMapper.toPersistence(tag);
 
-				await this.db.execute(fullInsertQuery, [
-					databaseTag.id,
-					databaseTag.name,
-					databaseTag.color,
-					categoryId
-				]);
+				allArgs.push(databaseTag.id, databaseTag.name, databaseTag.color, categoryId);
+				allValues.push(`(${index++}, $${index++}, $${index++}, $${index++})`);
 			}
-		} catch (error) {
-			await this.db.execute('ROLLBACK');
-			throw error;
-		}
 
-		await this.db.execute('COMMIT');
+			fullInsertQuery += ` ${allValues.join(',')} ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, color = EXCLUDED.color`;
+
+			await this.db.execute(fullInsertQuery, allArgs);
+		} catch (err) {
+			error(`Error updating category tags: ${err}`);
+			throw err;
+		}
 	}
 }

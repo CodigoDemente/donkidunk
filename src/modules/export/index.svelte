@@ -31,7 +31,7 @@
 
 	const initialRule: ExportingRule = {
 		type: CategoryType.Event,
-		include: -1,
+		include: '',
 		taggedWith: [],
 		temp: true
 	};
