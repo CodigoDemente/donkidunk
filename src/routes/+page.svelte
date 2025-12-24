@@ -46,8 +46,8 @@
 	}
 </script>
 
-<div class="flex w-full flex-row gap-1">
-	<div class="shrink-0" style="width: {leftWidth}%">
+<div class="flex h-full w-full flex-row gap-1">
+	<div class="flex h-full shrink-0 flex-col" style="width: {leftWidth}%">
 		<VideoPlayer video={projectStore.video?.path} />
 	</div>
 	<div
@@ -56,7 +56,7 @@
 		role="separator"
 		aria-orientation="horizontal"
 	></div>
-	<div class="grow">
+	<div class="flex h-full grow flex-col">
 		{#if projectStore.file?.originalPath}
 			<Board />
 		{:else}

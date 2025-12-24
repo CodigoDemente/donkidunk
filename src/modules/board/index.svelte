@@ -15,7 +15,7 @@
 	let tagsOpen = true;
 </script>
 
-<div id="boards-container" class="flex h-screen min-h-0 flex-1 flex-col overflow-y-hidden">
+<div id="boards-container" class="flex h-full min-h-0 flex-1 flex-col overflow-y-hidden">
 	<!-- Events Section -->
 	<Box
 		categories={context.eventCategories}
