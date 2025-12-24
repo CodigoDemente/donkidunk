@@ -96,7 +96,7 @@
 
 	{#if isOpened}
 		<Button
-			customClass="absolute right-5 top-14 z-10"
+			customClass="absolute right-5 top-14 z-11"
 			size="mini"
 			primary
 			onClick={() => handleModalOpen(type)}
