@@ -34,6 +34,19 @@
 		}
 		timeline.currentTime = startTimestamp;
 	}
+
+	async function handleResize(
+		eventId: string,
+		buttonId: string,
+		categoryId: string,
+		newStart: number,
+		newEnd: number
+	) {
+		if (playingObjects && playingObjects.size > 0) {
+			return;
+		}
+		await timeline.updateEvent(eventId, buttonId, categoryId, { start: newStart, end: newEnd });
+	}
 </script>
 
 <div class="relative h-5 w-full rounded-xs bg-gray-900">
@@ -51,6 +64,8 @@
 					name={buttonsListById[event.buttonId]?.name}
 					onClick={() => onClick && !playingObjects?.has(event.buttonId) && onClick(event.id)}
 					onDblClick={() => handleDblClick(event.timestamp.start)}
+					onResize={(newStart, newEnd) =>
+						handleResize(event.id, event.buttonId, event.categoryId, newStart, newEnd)}
 				/>
 			{/if}
 		{/each}

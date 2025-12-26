@@ -10,6 +10,7 @@
 		name: string;
 		onClick: () => void;
 		onDblClick?: () => void;
+		onResize?: (start: number, end: number) => void;
 	}
 
 	let {
@@ -22,7 +23,8 @@
 		borderColor,
 		name,
 		onClick,
-		onDblClick
+		onDblClick,
+		onResize
 	}: Props = $props();
 
 	let total = $derived(timelineEnd - timelineStart);

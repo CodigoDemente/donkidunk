@@ -148,6 +148,26 @@ export class Timeline {
 		}
 	}
 
+	async updateEvent(
+		eventId: string,
+		buttonId: string,
+		categoryId: string,
+		timestamp: { start: number; end: number }
+	) {
+		const repository = TimelineRepositoryFactory.getInstance();
+
+		await repository.updateEntry({ id: eventId, buttonId, categoryId, timestamp });
+
+		this.#state = {
+			...this.#state,
+			eventTimeline: this.#state.eventTimeline.map((event) =>
+				event.id === eventId ? { ...event, timestamp } : event
+			)
+		};
+
+		await emit('project:dirty');
+	}
+
 	setEventSelected(eventId: string) {
 		if (this.#eventSelected === eventId) {
 			this.#eventSelected = null;
