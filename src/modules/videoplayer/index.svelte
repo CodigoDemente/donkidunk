@@ -58,15 +58,6 @@
 	});
 
 	// Component handlers
-	function handleDragStart(event: DragEvent) {
-		var img = new Image();
-		img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=';
-		event.dataTransfer?.setDragImage(img, 0, 0);
-	}
-
-	function handleDragEnd(event: DragEvent) {
-		event.preventDefault();
-	}
 
 	function toZeroPad(num: number) {
 		return ('00' + num).slice(-2);
@@ -131,8 +122,6 @@
 			bind:currentTime={timeline.currentTime}
 			duration={timeline.duration}
 			{toTimeString}
-			{handleDragStart}
-			{handleDragEnd}
 			bind:progress
 			isPlaying={videoIsPlaying}
 		/>

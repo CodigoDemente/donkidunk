@@ -19,8 +19,6 @@
 		leftLimitTime: number;
 		visibleDuration: number;
 		duration: number;
-		handleDragStart: (event: DragEvent) => void;
-		handleDragEnd: (event: DragEvent) => void;
 		eventCategoriesById: Record<string, Category>;
 		eventsByCategory: Record<string, RangeDataWithTags[]>;
 		eventButtonsById: Record<string, Button>;
@@ -40,8 +38,6 @@
 		leftLimitTime,
 		visibleDuration,
 		duration,
-		handleDragStart,
-		handleDragEnd,
 		eventCategoriesById,
 		eventsByCategory,
 		eventButtonsById,
@@ -152,10 +148,7 @@
 	<button
 		aria-label="Progress Bar"
 		bind:this={progressBarElement}
-		ondragstart={handleDragStart}
-		ondragend={handleDragEnd}
 		onclick={onProgressBarClick}
-		draggable="true"
 		class="relative"
 	>
 		<!-- Event categories -->

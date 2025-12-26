@@ -24,8 +24,6 @@
 		currentTime: number;
 		duration: number;
 		toTimeString: (time: number) => string;
-		handleDragStart: (event: DragEvent) => void;
-		handleDragEnd: (event: DragEvent) => void;
 		progress: number;
 		isPlaying: boolean;
 	};
@@ -34,8 +32,6 @@
 		currentTime = $bindable(),
 		duration,
 		toTimeString,
-		handleDragStart,
-		handleDragEnd,
 		progress = $bindable(),
 		isPlaying
 	}: Props = $props();
@@ -161,8 +157,6 @@
 			leftLimitTime={limits.leftLimitTime}
 			visibleDuration={limits.visibleDuration}
 			{duration}
-			{handleDragStart}
-			{handleDragEnd}
 			eventCategoriesById={board.eventCategoriesById}
 			eventsByCategory={timeline.eventsByCategory}
 			eventButtonsById={board.eventButtonsById}
