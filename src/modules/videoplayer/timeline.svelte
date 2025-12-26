@@ -19,6 +19,8 @@
 		shouldCenterOnPlay,
 		handleZoomWheel
 	} from './timelineZoom';
+	import { projectActions } from '../../persistence/stores/project/actions';
+	import deleteEventModal from '../modalContent/deleteEventModal/index.svelte';
 
 	type Props = {
 		currentTime: number;
@@ -136,6 +138,45 @@
 		}
 
 		wasPlaying = isPlaying;
+	});
+
+	/* ==================== DELETE EVENT LOGIC ==================== */
+
+	// Handle Delete key to remove selected event
+	$effect(() => {
+		function handleKeyDown(e: KeyboardEvent) {
+			// Ignore if typing in an input or textarea
+			if (
+				e.target instanceof HTMLInputElement ||
+				e.target instanceof HTMLTextAreaElement ||
+				(e.target instanceof HTMLElement && e.target.isContentEditable)
+			) {
+				return;
+			}
+
+			// Delete or Backspace key
+			if ((e.key === 'Delete' || e.key === 'Backspace') && timeline.eventSelected) {
+				e.preventDefault();
+				const eventId = timeline.eventSelected;
+				projectActions.setModal({
+					content: deleteEventModal,
+					title: 'Delete event',
+					onCancel: () => projectActions.closeAndResetModal(),
+					onSubmit: async () => {
+						await timeline.removeEvent(eventId);
+						projectActions.closeAndResetModal();
+					},
+					onSubmitText: 'Delete',
+					show: true,
+					size: 'small'
+				});
+			}
+		}
+
+		document.addEventListener('keydown', handleKeyDown);
+		return () => {
+			document.removeEventListener('keydown', handleKeyDown);
+		};
 	});
 </script>
 
