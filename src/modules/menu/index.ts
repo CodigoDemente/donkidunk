@@ -21,10 +21,10 @@ export async function bindMenuEvents(board: Board, timeline: Timeline, config: C
 		debug(`Menu event triggered: ${event.id}`);
 		switch (event.payload.id) {
 			case 'new_project':
-				await createNewProject(board);
+				await createNewProject(board, config);
 				break;
 			case 'open_project':
-				await openProject(board, timeline);
+				await openProject(board, timeline, config);
 				break;
 			case 'save_project_as':
 				await saveProjectAs();
