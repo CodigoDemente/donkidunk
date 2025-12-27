@@ -4,16 +4,18 @@
 	import { openProject } from '../menu/operations/openProject';
 	import Button from '../../components/button/button.svelte';
 	import { createNewProject } from '../menu/operations/createProject';
+	import { configContext } from '../config/context.svelte';
 
 	const board = boardContext.get();
 	const timeline = timelineContext.get();
+	const config = configContext.get();
 
 	function handleCreateProject() {
-		createNewProject(board);
+		createNewProject(board, config);
 	}
 
 	async function handleOpenProject() {
-		await openProject(board, timeline);
+		await openProject(board, timeline, config);
 	}
 </script>
 
