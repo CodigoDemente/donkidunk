@@ -11,6 +11,7 @@
 		onClick: () => void;
 		onDblClick?: () => void;
 		onResize?: (start: number, end: number) => void;
+		otherEvents?: { start: number; end: number | null }[];
 	}
 
 	let {
@@ -24,7 +25,8 @@
 		name,
 		onClick,
 		onDblClick,
-		onResize
+		onResize,
+		otherEvents = []
 	}: Props = $props();
 
 	const total = $derived(timelineEnd - timelineStart);
@@ -132,23 +134,48 @@
 		document.addEventListener('mouseup', upHandler);
 	}
 
+	function getCollisionLimits(): { minStart: number; maxEnd: number } {
+		let minStart = timelineStart;
+		let maxEnd = timelineEnd;
+
+		for (const event of otherEvents) {
+			const eventEnd = event.end ?? timelineEnd;
+
+			// Find closest event to the left: event ends before current clip starts
+			if (eventEnd <= drag!.startTime && eventEnd > minStart) {
+				minStart = eventEnd;
+			}
+
+			// Find closest event to the right: event starts after current clip ends
+			if (event.start >= drag!.endTime && event.start < maxEnd) {
+				maxEnd = event.start;
+			}
+		}
+
+		return { minStart, maxEnd };
+	}
+
 	function handleMove(e: MouseEvent) {
 		if (!drag || !onResize) return;
 
 		const deltaX = e.clientX - drag.startX;
 		const deltaTime = (deltaX / drag.container.getBoundingClientRect().width) * total;
+		const limits = getCollisionLimits();
 
 		if (drag.type === 'move') {
+			const proposedStart = drag.startTime + deltaTime;
 			const newStart = Math.max(
-				timelineStart,
-				Math.min(timelineEnd - drag.duration, drag.startTime + deltaTime)
+				limits.minStart,
+				Math.min(limits.maxEnd - drag.duration, proposedStart)
 			);
 			tempStart = newStart;
 			tempEnd = newStart + drag.duration;
 		} else if (drag.type === 'left') {
-			tempStart = Math.max(timelineStart, Math.min(drag.startTime + deltaTime, drag.endTime - 0.1));
+			const proposedStart = drag.startTime + deltaTime;
+			tempStart = Math.max(limits.minStart, Math.min(proposedStart, drag.endTime - 0.1));
 		} else {
-			tempEnd = Math.min(timelineEnd, Math.max(drag.startTime + 0.1, drag.endTime + deltaTime));
+			const proposedEnd = drag.endTime + deltaTime;
+			tempEnd = Math.min(limits.maxEnd, Math.max(drag.startTime + 0.1, proposedEnd));
 		}
 	}
 
@@ -159,7 +186,6 @@
 		if (onResize && tempStart < tempEnd) {
 			isWaitingForUpdate = true;
 			onResize(tempStart, tempEnd);
-			// Don't set drag = null here, let the effect handle it when props update
 		} else {
 			drag = null;
 		}
