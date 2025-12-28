@@ -48,13 +48,48 @@
 	let tempStart = $state(start);
 	let tempEnd = $state(end || timelineEnd);
 	let mouseDownPos = $state({ x: 0, y: 0 });
+	let isWaitingForUpdate = $state(false);
+
+	const currentEnd = $derived(end || timelineEnd);
+
+	function propsMatchTemp(): boolean {
+		return Math.abs(start - tempStart) < 0.01 && Math.abs(currentEnd - tempEnd) < 0.01;
+	}
+
+	function syncTempWithProps() {
+		tempStart = start;
+		tempEnd = currentEnd;
+	}
 
 	$effect(() => {
+		if (drag && isWaitingForUpdate && propsMatchTemp()) {
+			isWaitingForUpdate = false;
+			drag = null;
+			syncTempWithProps();
+			return;
+		}
+
 		if (!drag) {
-			tempStart = start;
-			tempEnd = end || timelineEnd;
+			if (isWaitingForUpdate && propsMatchTemp()) {
+				isWaitingForUpdate = false;
+			}
+			syncTempWithProps();
 		}
 	});
+
+	function initDrag(type: 'left' | 'right' | 'move', e: MouseEvent, container: HTMLElement) {
+		drag = {
+			type,
+			startX: e.clientX,
+			startTime: start,
+			endTime: currentEnd,
+			duration: currentEnd - start,
+			container
+		};
+		syncTempWithProps();
+		document.addEventListener('mousemove', handleMove);
+		document.addEventListener('mouseup', handleUp);
+	}
 
 	function startResize(e: MouseEvent, type: 'left' | 'right') {
 		if (!onResize) return;
@@ -62,69 +97,36 @@
 		e.preventDefault();
 		const container = (e.currentTarget as HTMLElement).closest('.relative') as HTMLElement;
 		if (!container) return;
-
-		drag = {
-			type,
-			startX: e.clientX,
-			startTime: start,
-			endTime: end || timelineEnd,
-			duration: (end || timelineEnd) - start,
-			container
-		};
-		tempStart = start;
-		tempEnd = end || timelineEnd;
-		document.addEventListener('mousemove', handleMove);
-		document.addEventListener('mouseup', handleUp);
+		initDrag(type, e, container);
 	}
 
 	function startMove(e: MouseEvent) {
-		// Ignore if clicking on resize handles
 		const target = e.target as HTMLElement;
-		if (target.closest('.cursor-ew-resize')) return;
-		if (!onResize) return;
+		if (target.closest('.cursor-ew-resize') || !onResize) return;
 
 		mouseDownPos = { x: e.clientX, y: e.clientY };
 		const container = (e.currentTarget as HTMLElement).closest('.relative') as HTMLElement;
 		if (!container) return;
 
 		let hasMoved = false;
-		let moveHandler: ((e: MouseEvent) => void) | null = null;
-		let upHandler: (() => void) | null = null;
 
-		moveHandler = (e: MouseEvent) => {
+		function moveHandler(e: MouseEvent) {
 			const deltaX = Math.abs(e.clientX - mouseDownPos.x);
 			const deltaY = Math.abs(e.clientY - mouseDownPos.y);
 
-			// Start drag if moved horizontally more than 3px
 			if ((deltaX > 3 || deltaY > 3) && !drag) {
 				hasMoved = true;
-				const duration = (end || timelineEnd) - start;
-				drag = {
-					type: 'move',
-					startX: mouseDownPos.x,
-					startTime: start,
-					endTime: end || timelineEnd,
-					duration,
-					container
-				};
-				tempStart = start;
-				tempEnd = end || timelineEnd;
-
-				// Switch to drag handlers
-				if (moveHandler) document.removeEventListener('mousemove', moveHandler);
-				if (upHandler) document.removeEventListener('mouseup', upHandler);
-				document.addEventListener('mousemove', handleMove);
-				document.addEventListener('mouseup', handleUp);
+				document.removeEventListener('mousemove', moveHandler);
+				document.removeEventListener('mouseup', upHandler);
+				initDrag('move', e, container);
 			}
-		};
+		}
 
-		upHandler = () => {
-			if (moveHandler) document.removeEventListener('mousemove', moveHandler);
-			if (upHandler) document.removeEventListener('mouseup', upHandler);
-			if (!hasMoved && !drag) {
-				onClick();
-			}
-		};
+		function upHandler() {
+			document.removeEventListener('mousemove', moveHandler);
+			document.removeEventListener('mouseup', upHandler);
+			if (!hasMoved && !drag) onClick();
+		}
 
 		document.addEventListener('mousemove', moveHandler);
 		document.addEventListener('mouseup', upHandler);
@@ -132,11 +134,11 @@
 
 	function handleMove(e: MouseEvent) {
 		if (!drag || !onResize) return;
+
 		const deltaX = e.clientX - drag.startX;
 		const deltaTime = (deltaX / drag.container.getBoundingClientRect().width) * total;
 
 		if (drag.type === 'move') {
-			// Move entire clip (maintain duration)
 			const newStart = Math.max(
 				timelineStart,
 				Math.min(timelineEnd - drag.duration, drag.startTime + deltaTime)
@@ -144,10 +146,8 @@
 			tempStart = newStart;
 			tempEnd = newStart + drag.duration;
 		} else if (drag.type === 'left') {
-			// Resize from left edge
 			tempStart = Math.max(timelineStart, Math.min(drag.startTime + deltaTime, drag.endTime - 0.1));
 		} else {
-			// Resize from right edge
 			tempEnd = Math.min(timelineEnd, Math.max(drag.startTime + 0.1, drag.endTime + deltaTime));
 		}
 	}
@@ -157,9 +157,12 @@
 		document.removeEventListener('mousemove', handleMove);
 		document.removeEventListener('mouseup', handleUp);
 		if (onResize && tempStart < tempEnd) {
+			isWaitingForUpdate = true;
 			onResize(tempStart, tempEnd);
+			// Don't set drag = null here, let the effect handle it when props update
+		} else {
+			drag = null;
 		}
-		drag = null;
 	}
 
 	$effect(() => () => {
@@ -169,7 +172,7 @@
 
 	// Display values during drag
 	const displayStart = $derived(drag ? tempStart : start);
-	const displayEnd = $derived(drag ? tempEnd : end || timelineEnd);
+	const displayEnd = $derived(drag ? tempEnd : currentEnd);
 	const displayLeft = $derived(Math.max(0, displayStart - timelineStart) / total);
 	const displayWidth = $derived(
 		(Math.min(timelineEnd, displayEnd - timelineStart) -
