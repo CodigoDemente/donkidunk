@@ -1,9 +1,4 @@
 <script lang="ts">
-	/**
-	 * Video Timeline Component
-	 * Main timeline component that orchestrates zoom, progress and auto-scroll
-	 */
-
 	import { boardContext } from '../board/context.svelte';
 	import { timelineContext } from './context.svelte';
 	import Tagsbox from './tagsbox.svelte';
@@ -19,8 +14,11 @@
 		shouldCenterOnPlay,
 		handleZoomWheel
 	} from './timelineZoom';
-	import { projectActions } from '../../persistence/stores/project/actions';
-	import deleteEventModal from '../modalContent/deleteEventModal/index.svelte';
+	import {
+		openDeleteEventModal,
+		shouldIgnoreKeyboardEvent,
+		isDeleteKey
+	} from './utils/eventModalUtils';
 
 	type Props = {
 		currentTime: number;
@@ -46,6 +44,33 @@
 	const timeline = timelineContext.get();
 
 	let isDraggingTimeMarker = $state(false);
+
+	/* ==================== EVENT HANDLERS ==================== */
+
+	// Event handlers for timeline interactions
+	function handleEventClick(eventId: string, buttonId: string) {
+		// Check if button is playing
+		if (!timeline.eventsPlaying.has(buttonId)) {
+			timeline.setEventSelected(eventId);
+		}
+	}
+
+	function handleEventDblClick(startTimestamp: number) {
+		if (timeline.eventsPlaying.size > 0) return;
+		currentTime = startTimestamp;
+		handleTimeChange(startTimestamp);
+	}
+
+	async function handleEventResize(
+		eventId: string,
+		buttonId: string,
+		categoryId: string,
+		newStart: number,
+		newEnd: number
+	) {
+		if (timeline.eventsPlaying.size > 0) return;
+		await timeline.updateEvent(eventId, buttonId, categoryId, { start: newStart, end: newEnd });
+	}
 
 	/* ==================== DERIVED STATE ==================== */
 
@@ -145,38 +170,15 @@
 	// Handle Delete key to remove selected event
 	$effect(() => {
 		function handleKeyDown(e: KeyboardEvent) {
-			// Ignore if typing in an input or textarea
-			if (
-				e.target instanceof HTMLInputElement ||
-				e.target instanceof HTMLTextAreaElement ||
-				(e.target instanceof HTMLElement && e.target.isContentEditable)
-			) {
-				return;
-			}
+			if (shouldIgnoreKeyboardEvent(e)) return;
+			if (!isDeleteKey(e.key) || !timeline.eventSelected) return;
 
-			// Delete or Backspace key
-			if ((e.key === 'Delete' || e.key === 'Backspace') && timeline.eventSelected) {
-				e.preventDefault();
-				const eventId = timeline.eventSelected;
-				projectActions.setModal({
-					content: deleteEventModal,
-					title: 'Delete event',
-					onCancel: () => projectActions.closeAndResetModal(),
-					onSubmit: async () => {
-						await timeline.removeEvent(eventId);
-						projectActions.closeAndResetModal();
-					},
-					onSubmitText: 'Delete',
-					show: true,
-					size: 'small'
-				});
-			}
+			e.preventDefault();
+			openDeleteEventModal(timeline, timeline.eventSelected);
 		}
 
 		document.addEventListener('keydown', handleKeyDown);
-		return () => {
-			document.removeEventListener('keydown', handleKeyDown);
-		};
+		return () => document.removeEventListener('keydown', handleKeyDown);
 	});
 </script>
 
@@ -203,7 +205,9 @@
 			eventButtonsById={board.eventButtonsById}
 			eventsPlaying={timeline.eventsPlaying}
 			eventSelected={timeline.eventSelected}
-			onEventClick={timeline.setEventSelected.bind(timeline)}
+			onEventClick={handleEventClick}
+			onEventDblClick={handleEventDblClick}
+			onEventResize={handleEventResize}
 			onTimeChange={handleTimeChange}
 			{isDraggingTimeMarker}
 			{handleDraggingTimeMarker}

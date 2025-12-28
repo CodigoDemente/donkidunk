@@ -13,5 +13,13 @@ export type Props = {
 	playingObjects?: SvelteMap<string, RangeDataWithTags>;
 	eventSelected?: string | null;
 	currentTime: number;
-	onClick?: (id: string) => void;
+	onEventClick: (eventId: string, buttonId: string) => void;
+	onEventDblClick: (startTimestamp: number) => void;
+	onEventResize: (
+		eventId: string,
+		buttonId: string,
+		categoryId: string,
+		newStart: number,
+		newEnd: number
+	) => void;
 };

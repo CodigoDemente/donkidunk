@@ -15,7 +15,9 @@
 		playingObjects,
 		eventSelected,
 		currentTime,
-		onClick
+		onEventClick,
+		onEventDblClick,
+		onEventResize
 	}: Props = $props();
 
 	const leftLimit = $derived(timeline.duration * timelineStart);
@@ -24,28 +26,7 @@
 	// Function to check if an event is visible in the timeline range
 	function isEventVisible(start: number, end: number | null | undefined): boolean {
 		const eventEnd = end ?? currentTime;
-		// The event is visible if there is any overlap with the visible range
 		return start < rightLimit && eventEnd > leftLimit;
-	}
-
-	function handleDblClick(startTimestamp: number) {
-		if (playingObjects && playingObjects.size > 0) {
-			return;
-		}
-		timeline.currentTime = startTimestamp;
-	}
-
-	async function handleResize(
-		eventId: string,
-		buttonId: string,
-		categoryId: string,
-		newStart: number,
-		newEnd: number
-	) {
-		if (playingObjects && playingObjects.size > 0) {
-			return;
-		}
-		await timeline.updateEvent(eventId, buttonId, categoryId, { start: newStart, end: newEnd });
 	}
 </script>
 
@@ -62,10 +43,10 @@
 					color={boardCategoriesById[categoryId]?.color}
 					borderColor={buttonsListById[event.buttonId]?.color}
 					name={buttonsListById[event.buttonId]?.name}
-					onClick={() => onClick && !playingObjects?.has(event.buttonId) && onClick(event.id)}
-					onDblClick={() => handleDblClick(event.timestamp.start)}
+					onClick={() => onEventClick(event.id, event.buttonId)}
+					onDblClick={() => onEventDblClick(event.timestamp.start)}
 					onResize={(newStart, newEnd) =>
-						handleResize(event.id, event.buttonId, event.categoryId, newStart, newEnd)}
+						onEventResize(event.id, event.buttonId, event.categoryId, newStart, newEnd)}
 				/>
 			{/if}
 		{/each}
@@ -81,7 +62,7 @@
 					color={boardCategoriesById[categoryId]?.color}
 					name={buttonsListById[playingObject.buttonId]?.name}
 					onClick={() => {}}
-					onDblClick={() => handleDblClick(playingObject.timestamp.start)}
+					onDblClick={() => onEventDblClick(playingObject.timestamp.start)}
 				/>
 			{/if}
 		{/each}

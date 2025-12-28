@@ -1,15 +1,10 @@
 <script lang="ts">
 	import { SvelteMap } from 'svelte/reactivity';
-	/**
-	 * Timeline Progress Bar Component
-	 * Displays events and actions on the timeline with a time marker
-	 */
-
 	import Eventline from '../../../components/eventline/eventline.svelte';
 	import type { Button } from '../../board/types/Button';
 	import type { Category } from '../../board/types/Category';
-	import { mapClickToVisibleTime } from '../timelineZoom';
 	import type { RangeDataWithTags } from '../types/RangeData';
+	import { calculateTimeFromPosition, shouldIgnoreClick } from '../utils/progressBarUtils';
 
 	type Props = {
 		currentTime: number;
@@ -24,7 +19,15 @@
 		eventButtonsById: Record<string, Button>;
 		eventsPlaying: SvelteMap<string, RangeDataWithTags>;
 		eventSelected: string | null;
-		onEventClick: (eventId: string) => void;
+		onEventClick: (eventId: string, buttonId: string) => void;
+		onEventDblClick: (startTimestamp: number) => void;
+		onEventResize: (
+			eventId: string,
+			buttonId: string,
+			categoryId: string,
+			newStart: number,
+			newEnd: number
+		) => void;
 		onTimeChange: (time: number) => void;
 		isDraggingTimeMarker: boolean;
 		handleDraggingTimeMarker: (isDragging: boolean) => void;
@@ -44,69 +47,42 @@
 		eventsPlaying,
 		eventSelected,
 		onEventClick,
+		onEventDblClick,
+		onEventResize,
 		onTimeChange,
 		isDraggingTimeMarker,
 		handleDraggingTimeMarker
 	}: Props = $props();
 
-	// Time marker drag state
 	let progressBarElement: HTMLButtonElement | null = $state(null);
 
-	/* ==================== EVENT HANDLERS ==================== */
+	/* ==================== PROGRESS BAR HANDLERS ==================== */
 
 	function onProgressBarClick(event: MouseEvent) {
-		if (isDraggingTimeMarker) {
-			return;
-		}
-
 		const target = event.target as HTMLElement;
-
-		if (target.id === 'time-marker' || target.closest('#time-marker')) {
-			return;
-		}
-
-		if (
-			target.closest('[role="button"]') &&
-			target.closest('[role="button"]') !== progressBarElement
-		) {
-			return;
-		}
-
-		// Use the progress bar button element to calculate position
-		if (!progressBarElement) {
-			return;
-		}
+		if (shouldIgnoreClick(target, progressBarElement, isDraggingTimeMarker)) return;
+		if (!progressBarElement) return;
 
 		event.preventDefault();
 		event.stopPropagation();
 
-		// Calculate click position relative to the progress bar button
 		const rect = progressBarElement.getBoundingClientRect();
-		const x = event.clientX - rect.left;
-		const fullWidth = rect.width;
+		const newTime = calculateTimeFromPosition(
+			event.clientX,
+			rect,
+			leftLimitTime,
+			visibleDuration,
+			duration
+		);
 
-		// Clamp x to valid range
-		if (x < 0 || x > fullWidth) {
-			return;
+		if (newTime >= 0) {
+			currentTime = newTime;
+			onTimeChange(newTime);
 		}
-
-		// Map click position to time within visible range
-		let newTime = mapClickToVisibleTime(x, fullWidth, leftLimitTime, visibleDuration);
-
-		// Clamp time to valid range
-		if (newTime < 0.1) {
-			newTime = 0.1;
-		}
-		if (newTime > duration) {
-			newTime = duration;
-		}
-
-		currentTime = newTime;
-		onTimeChange(newTime);
 	}
 
-	// Handle time marker drag
-	function onMarkerMouseDown(event: MouseEvent) {
+	// Time marker drag handlers
+	function onMarkerDragStart(event: MouseEvent) {
 		event.preventDefault();
 		event.stopPropagation();
 		handleDraggingTimeMarker(true);
@@ -115,22 +91,18 @@
 			if (!progressBarElement) return;
 
 			const rect = progressBarElement.getBoundingClientRect();
-			const x = moveEvent.clientX - rect.left;
-			const fullWidth = rect.width;
+			const newTime = calculateTimeFromPosition(
+				moveEvent.clientX,
+				rect,
+				leftLimitTime,
+				visibleDuration,
+				duration
+			);
 
-			// Clamp x to valid range
-			const clampedX = Math.max(0, Math.min(x, fullWidth));
-
-			// Map mouse position to time within visible range
-			let newTime = mapClickToVisibleTime(clampedX, fullWidth, leftLimitTime, visibleDuration);
-
-			// Clamp time to valid range
-			if (newTime < 0.1) {
-				newTime = 0.1;
+			if (newTime >= 0) {
+				currentTime = newTime;
+				onTimeChange(newTime);
 			}
-
-			currentTime = newTime;
-			onTimeChange(newTime);
 		}
 
 		function onMouseUp() {
@@ -165,7 +137,9 @@
 						playingObjects={eventsPlaying}
 						{eventSelected}
 						{currentTime}
-						onClick={onEventClick}
+						{onEventClick}
+						{onEventDblClick}
+						{onEventResize}
 					/>
 				{/each}
 			</div>
@@ -177,7 +151,7 @@
 				id="time-marker"
 				class="absolute top-0 left-0 z-10 h-full w-[2px] cursor-ew-resize rounded-full bg-sky-400 transition-all"
 				style="left: clamp(0%, {relativeProgress * 100}%, calc(100% - 2px))"
-				onmousedown={onMarkerMouseDown}
+				onmousedown={onMarkerDragStart}
 				role="slider"
 				aria-label="Time marker"
 				aria-valuenow={currentTime}
