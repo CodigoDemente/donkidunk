@@ -8,9 +8,12 @@ import { selectProjectPath } from '../../menu/operations/selectProjectPath';
 import { readFile } from '@tauri-apps/plugin-fs';
 import type { BoardData } from '../../board/types/Board';
 import type { Board } from '../../board/context.svelte';
+import type { Config } from '../../config/context.svelte';
+import { UIMode } from '../../config/types/Config';
 
 export async function createNewProject(
 	board: Board,
+	config: Config,
 	buttonBoard?: ButtonBoard,
 	providedPath?: string
 ) {
@@ -48,6 +51,10 @@ export async function createNewProject(
 
 	if (buttonBoard?.id) {
 		await loadButtonBoardIntoProject(buttonBoard, board);
+
+		if (board.tagCategories.length) {
+			config.uiMode = UIMode.Advanced;
+		}
 	}
 
 	await enableImportVideo();

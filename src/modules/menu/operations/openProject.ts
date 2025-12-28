@@ -18,8 +18,10 @@ import { BoardRepositoryFactory } from '../../../factories/BoardRepositoryFactor
 import { TimelineRepositoryFactory } from '../../../factories/TimelineRepositoryFactory';
 import type { Board } from '../../board/context.svelte';
 import type { Timeline } from '../../videoplayer/context.svelte';
+import type { Config } from '../../config/context.svelte';
+import { UIMode } from '../../config/types/Config';
 
-export async function openProject(board: Board, timeline: Timeline) {
+export async function openProject(board: Board, timeline: Timeline, config: Config) {
 	debug('Open project action triggered');
 
 	const path = await open({
@@ -85,6 +87,10 @@ export async function openProject(board: Board, timeline: Timeline) {
 	await loadProjectFromDatabase(ProjectRepositoryFactory.getInstance());
 	await loadBoardFromDatabase(BoardRepositoryFactory.getInstance(), board);
 	await loadTimelineFromDatabase(TimelineRepositoryFactory.getInstance(), timeline);
+
+	if (board.tagCategories.length) {
+		config.uiMode = UIMode.Advanced;
+	}
 
 	await enableImportVideo();
 }
