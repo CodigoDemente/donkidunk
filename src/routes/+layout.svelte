@@ -40,7 +40,7 @@
 	});
 </script>
 
-<main class="container">
+<main class="container flex h-screen flex-col">
 	<Navbar disabled={!projectStore.file?.originalPath} />
 	<slot />
 </main>

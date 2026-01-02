@@ -8,7 +8,8 @@
 		"ffmpeg",
 		"export",
 		"config-manager",
-		"components"
+		"components",
+		"metrics"
 	],
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": null,
