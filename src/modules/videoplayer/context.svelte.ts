@@ -9,8 +9,7 @@ import { Scope } from '../../persistence/undo/types/Scope';
 import { SvelteMap } from 'svelte/reactivity';
 
 const initialState: TimelineData = {
-	eventTimeline: [],
-	actionTimeline: []
+	eventTimeline: []
 };
 
 export const timelineContext = new Context<Timeline>('');

@@ -122,7 +122,7 @@
 <!-- Draggable element absolutely positioned by percentage -->
 <div
 	bind:this={categoryElement}
-	class="absolute z-10 inline-flex min-h-10 flex-col rounded border border-gray-900 bg-gray-700 text-blue-950 shadow select-none"
+	class="absolute inline-flex min-h-10 flex-col rounded border border-gray-900 bg-gray-700 text-blue-950 shadow select-none"
 	class:cursor-move={!resizeState.resizeHandle}
 	class:min-w-fit={!category.size?.width}
 	class:w-fit={!category.size?.width}

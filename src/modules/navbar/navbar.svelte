@@ -9,7 +9,6 @@
 	import { configContext } from '../config/context.svelte';
 	import type { FloatingMenuOption } from '../../components/floatingmenu/types';
 	import { saveUIModeCommand } from '../config/commands/SaveUIMode';
-	import ProjectStore from '../../persistence/stores/project/store.svelte';
 	import { boardContext } from '../board/context.svelte';
 	import Tooltip from '../../components/tooltip/tooltip.svelte';
 
@@ -82,6 +81,19 @@
 				onclick={() => navigateTo('/export')}
 			>
 				<span class="h-3 text-xs">Export</span>
+			</button>
+		</li>
+		<li>
+			<button
+				class={`
+					${disabled ? 'cursor-not-allowed opacity-50' : 'hover:cursor-pointer'}
+					${isActive('/metrics') ? 'bg-tertiary text-white' : 'text-tertiary'}
+					flex items-center justify-center gap-2 rounded-sm p-1.5`}
+				type="button"
+				{disabled}
+				onclick={() => navigateTo('/metrics')}
+			>
+				<span class="h-3 text-xs">Metrics</span>
 			</button>
 		</li>
 		<!-- 
