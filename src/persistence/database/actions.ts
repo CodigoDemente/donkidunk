@@ -16,6 +16,7 @@ import type { TimelineRepository } from '../../ports/TimelineRepository';
 import { Board } from '../../modules/board/context.svelte';
 import type { Timeline } from '../../modules/videoplayer/context.svelte';
 import { CategoryType } from '../../components/box/types';
+import { DashboardRepositoryFactory } from '../../factories/DashboardRepositoryFactory';
 
 const DB_BACKUP_EXTENSION = 'dnk';
 
@@ -109,6 +110,9 @@ export async function openDatabase(
 
 	TimelineRepositoryFactory.reset();
 	TimelineRepositoryFactory.create(db);
+
+	DashboardRepositoryFactory.reset();
+	DashboardRepositoryFactory.create(db);
 
 	projectActions.setCurrentFilePath(dbPath);
 	projectActions.setDatabase(db);
