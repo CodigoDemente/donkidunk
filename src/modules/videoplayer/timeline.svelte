@@ -1,3 +1,34 @@
+<!--
+	📋 PROPUESTA DE REORGANIZACIÓN DE ARQUITECTURA
+	===============================================
+	
+	Este componente actualmente contiene muchos handlers y lógica que podrían
+	ser mejor organizados. Ver ARCHITECTURE_PROPOSAL.md para la propuesta completa.
+	
+	Estructura propuesta:
+	
+	handlers/
+	├── eventHandlers.ts      → handleEventClick, handleEventDblClick, handleEventResize
+	├── timeHandlers.ts       → handleTimeChange, handleRangeChange, handleDraggingTimeMarker
+	├── keyboardHandlers.ts   → handleDeleteEvent (effect), shouldIgnoreKeyboardEvent, isDeleteKey
+	└── interactionHandlers.ts → onTimelineWheel
+	
+	logic/
+	├── autoScroll.ts         → applyCenterTime, createAutoScrollEffect, createCenterOnPlayEffect
+	└── timelineState.ts      → createTimelineLimits, createRelativeProgress (derived state)
+	
+	utils/
+	├── timeCalculations.ts   → calculateTimeFromPosition, clampTime, mapClickToVisibleTime
+	├── zoomCalculations.ts   → (renombrar timelineZoomUtils.ts)
+	├── markerCalculations.ts → (renombrar timeMarkersUtils.ts)
+	└── clickValidation.ts    → shouldIgnoreClick (mover desde progressBarUtils)
+	
+	Beneficios:
+	- timeline.svelte se reduce de ~180 a ~50 líneas (solo orquestación)
+	- Separación clara de responsabilidades
+	- Mejor testabilidad (utils son funciones puras)
+	- Más fácil de mantener y escalar
+-->
 <script lang="ts">
 	import { boardContext } from '../board/context.svelte';
 	import { timelineContext } from './context.svelte';
