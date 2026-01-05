@@ -47,8 +47,8 @@
 		duration: number;
 		container: HTMLElement;
 	} | null>(null);
-	let tempStart = $state(start);
-	let tempEnd = $state(end || timelineEnd);
+	let tempStart = $derived(start);
+	let tempEnd = $derived(end || timelineEnd);
 	let mouseDownPos = $state({ x: 0, y: 0 });
 	let isWaitingForUpdate = $state(false);
 

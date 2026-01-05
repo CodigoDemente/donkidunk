@@ -36,7 +36,10 @@
 <div class="w-ful relative h-6">
 	{#each markerPositions as markerTime (markerTime)}
 		{@const position = getPosition(markerTime)}
-		<div class="absolute top-0 flex flex-col items-center" style="left: {position}%">
+		<div
+			class="absolute top-0 flex flex-col items-center"
+			style="left: {position}%; transform: translateX(-50%)"
+		>
 			<!-- Time label on top, centered -->
 			<span class="text-[10px] whitespace-nowrap text-gray-400">
 				{toTimeString(markerTime)}
