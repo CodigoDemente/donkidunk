@@ -8,7 +8,7 @@
 		getTimeInterval,
 		generateMarkerPositions,
 		getMarkerPercentage
-	} from '../utils/timeMarkers';
+	} from '../utils/timeMarkersUtils';
 
 	type Props = {
 		leftLimitTime: number;

@@ -9,7 +9,7 @@
 		handleDragMove,
 		handleMirroredDrag,
 		type DragState
-	} from '../timelineZoom';
+	} from '../utils/timelineZoomUtils';
 
 	type Props = {
 		timelineStart: number;
