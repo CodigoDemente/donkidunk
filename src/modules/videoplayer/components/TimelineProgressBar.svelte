@@ -58,6 +58,7 @@
 	}: Props = $props();
 
 	let progressBarElement: HTMLButtonElement | null = $state(null);
+	let eventlinesContainer: HTMLDivElement | null = $state(null);
 
 	/* ==================== PROGRESS BAR HANDLERS ==================== */
 
@@ -119,7 +120,7 @@
 	}
 </script>
 
-<div class="custom-scrollbar overflow-y flex overflow-x-hidden">
+<div class="custom-scrollbar overflow-y relative flex overflow-x-hidden">
 	<div class="relative mt-2 mb-1 flex flex-col gap-2">
 		{#each Object.keys(eventCategoriesById) as categoryId (categoryId)}
 			{@const category = eventCategoriesById[categoryId]}
@@ -134,7 +135,10 @@
 	>
 		<!-- Event categories -->
 		{#if Object.entries(eventCategoriesById).length > 0}
-			<div class="mt-2 mb-1 flex flex-col items-start gap-2">
+			<div
+				bind:this={eventlinesContainer}
+				class="relative mt-2 mb-1 flex flex-col items-start gap-2"
+			>
 				{#each Object.keys(eventCategoriesById) as categoryId (categoryId)}
 					<Eventline
 						{categoryId}
@@ -151,23 +155,23 @@
 						{onEventResize}
 					/>
 				{/each}
-			</div>
-		{/if}
 
-		<!-- Time marker (cursor) -->
-		{#if relativeProgress >= 0 && relativeProgress <= 1}
-			<div
-				id="time-marker"
-				class="absolute top-0 left-0 z-10 h-full w-[2px] cursor-ew-resize rounded-full bg-sky-400 transition-all"
-				style="left: clamp(0%, {relativeProgress * 100}%, calc(100% - 2px))"
-				onmousedown={onMarkerDragStart}
-				role="slider"
-				aria-label="Time marker"
-				aria-valuenow={currentTime}
-				aria-valuemin={0}
-				aria-valuemax={duration}
-				tabindex="0"
-			></div>
+				<!-- Time marker (cursor) - Inside eventlines container to span full height -->
+				{#if relativeProgress >= 0 && relativeProgress <= 1 && eventlinesContainer}
+					<div
+						id="time-marker"
+						class="absolute top-0 left-0 z-10 w-[2px] cursor-ew-resize rounded-full bg-sky-400 transition-all"
+						style="left: clamp(0%, {relativeProgress * 100}%, calc(100% - 2px)); height: 100%;"
+						onmousedown={onMarkerDragStart}
+						role="slider"
+						aria-label="Time marker"
+						aria-valuenow={currentTime}
+						aria-valuemin={0}
+						aria-valuemax={duration}
+						tabindex="0"
+					></div>
+				{/if}
+			</div>
 		{/if}
 	</button>
 </div>

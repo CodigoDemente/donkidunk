@@ -33,7 +33,7 @@
 	}
 </script>
 
-<div class="flex h-6">
+<div class="mb-2 flex h-6">
 	<div class="w-[var(--spacing-category-name-width)]"></div>
 	<div class="relative flex-1">
 		{#each markerPositions as markerTime (markerTime)}
@@ -48,7 +48,7 @@
 				</span>
 				<!-- Marker line -->
 				<div
-					class="h-3 w-px bg-gray-600"
+					class="mt-[-4px] h-2 w-px bg-gray-600"
 					aria-label="Time marker at {toTimeString(markerTime)}"
 				></div>
 			</div>
