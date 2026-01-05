@@ -202,6 +202,21 @@
 		wasPlaying = isPlaying;
 	});
 
+	/* ==================== CATEGORY PLAYBACK LOGIC ==================== */
+
+	// Monitor category playback and jump to next event when current finishes
+	$effect(() => {
+		if (timeline.currentPlaybackIndex < 0) return;
+
+		const currentEvent = timeline.getNextEventInQueue();
+		if (!currentEvent || currentEvent.timestamp.end === undefined) return;
+
+		// Check if current time has reached the end of the current event
+		if (currentTime >= currentEvent.timestamp.end) {
+			timeline.moveToNextEvent();
+		}
+	});
+
 	// /* ==================== DELETE EVENT LOGIC ==================== */
 
 	// Handle Delete key to remove selected event
@@ -251,6 +266,7 @@
 			}}
 			{isDraggingTimeMarker}
 			{handleDraggingTimeMarker}
+			playingCategoryId={timeline.currentPlaybackCategoryId}
 		/>
 		<TimelineZoomBar
 			bind:timelineStart

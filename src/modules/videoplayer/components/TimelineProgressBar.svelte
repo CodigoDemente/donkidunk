@@ -33,6 +33,7 @@
 		onCategoryPlay?: (categoryId: string) => void;
 		isDraggingTimeMarker: boolean;
 		handleDraggingTimeMarker: (isDragging: boolean) => void;
+		playingCategoryId: string | null;
 	};
 
 	let {
@@ -54,7 +55,8 @@
 		onTimeChange,
 		onCategoryPlay,
 		isDraggingTimeMarker,
-		handleDraggingTimeMarker
+		handleDraggingTimeMarker,
+		playingCategoryId
 	}: Props = $props();
 
 	let progressBarElement: HTMLButtonElement | null = $state(null);
@@ -124,7 +126,11 @@
 	<div class="relative mt-2 mb-1 flex flex-col gap-2">
 		{#each Object.keys(eventCategoriesById) as categoryId (categoryId)}
 			{@const category = eventCategoriesById[categoryId]}
-			<CategoryPlayer {category} onPlay={() => onCategoryPlay?.(categoryId)} />
+			<CategoryPlayer
+				{category}
+				isActive={playingCategoryId === categoryId}
+				onPlay={() => onCategoryPlay?.(categoryId)}
+			/>
 		{/each}
 	</div>
 	<button

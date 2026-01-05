@@ -5,10 +5,11 @@
 
 	type Props = {
 		category: Category | undefined;
+		isActive?: boolean;
 		onPlay?: () => void;
 	};
 
-	let { category, onPlay }: Props = $props();
+	let { category, isActive = false, onPlay }: Props = $props();
 </script>
 
 <div
@@ -32,11 +33,13 @@
 		</div>
 	</Tooltip>
 
-	<!-- Rewind button -->
+	<!-- Play button -->
 	<div
 		role="button"
 		tabindex="0"
-		class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-xs border border-gray-700 bg-gray-800 text-gray-400 transition-colors hover:bg-gray-700 hover:text-gray-300"
+		class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-xs border bg-gray-800 text-gray-400 transition-colors hover:bg-gray-700 hover:text-gray-300 {isActive
+			? 'border-primary'
+			: 'border-gray-700'}"
 		aria-label="Play all category events"
 		onclick={(e) => {
 			e.stopPropagation();
