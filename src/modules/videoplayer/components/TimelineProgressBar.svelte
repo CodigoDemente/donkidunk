@@ -119,35 +119,37 @@
 	}
 </script>
 
-<div class="custom-scrollbar overflow-y my-1 flex min-h-0 flex-1 flex-col overflow-x-hidden">
+<div class="custom-scrollbar overflow-y flex overflow-x-hidden">
+	<div class="relative mt-2 mb-1 flex flex-col gap-2">
+		{#each Object.keys(eventCategoriesById) as categoryId (categoryId)}
+			{@const category = eventCategoriesById[categoryId]}
+			<CategoryPlayer {category} onRewind={() => onCategoryRewind?.(categoryId)} />
+		{/each}
+	</div>
 	<button
 		aria-label="Progress Bar"
 		bind:this={progressBarElement}
 		onclick={onProgressBarClick}
-		class="relative"
+		class="relative flex-1"
 	>
 		<!-- Event categories -->
 		{#if Object.entries(eventCategoriesById).length > 0}
 			<div class="mt-2 mb-1 flex flex-col items-start gap-2">
 				{#each Object.keys(eventCategoriesById) as categoryId (categoryId)}
-					{@const category = eventCategoriesById[categoryId]}
-					<div class="flex w-full">
-						<CategoryPlayer {category} onRewind={() => onCategoryRewind?.(categoryId)} />
-						<Eventline
-							{categoryId}
-							allTagsByCategory={eventsByCategory}
-							{timelineStart}
-							{timelineEnd}
-							boardCategoriesById={eventCategoriesById}
-							buttonsListById={eventButtonsById}
-							playingObjects={eventsPlaying}
-							{eventSelected}
-							{currentTime}
-							{onEventClick}
-							{onEventDblClick}
-							{onEventResize}
-						/>
-					</div>
+					<Eventline
+						{categoryId}
+						allTagsByCategory={eventsByCategory}
+						{timelineStart}
+						{timelineEnd}
+						boardCategoriesById={eventCategoriesById}
+						buttonsListById={eventButtonsById}
+						playingObjects={eventsPlaying}
+						{eventSelected}
+						{currentTime}
+						{onEventClick}
+						{onEventDblClick}
+						{onEventResize}
+					/>
 				{/each}
 			</div>
 		{/if}
@@ -156,7 +158,7 @@
 		{#if relativeProgress >= 0 && relativeProgress <= 1}
 			<div
 				id="time-marker"
-				class="absolute top-0 left-0 z-10 ml-[var(--spacing-category-name-width)] h-full w-[2px] cursor-ew-resize rounded-full bg-sky-400 transition-all"
+				class="absolute top-0 left-0 z-10 h-full w-[2px] cursor-ew-resize rounded-full bg-sky-400 transition-all"
 				style="left: clamp(0%, {relativeProgress * 100}%, calc(100% - 2px))"
 				onmousedown={onMarkerDragStart}
 				role="slider"

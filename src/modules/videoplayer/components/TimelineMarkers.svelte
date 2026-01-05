@@ -33,22 +33,25 @@
 	}
 </script>
 
-<div class="relative ml-[var(--spacing-category-name-width)] h-6 w-full">
-	{#each markerPositions as markerTime (markerTime)}
-		{@const position = getPosition(markerTime)}
-		<div
-			class="absolute top-0 flex flex-col items-center"
-			style="left: {position}%; transform: translateX(-50%)"
-		>
-			<!-- Time label on top, centered -->
-			<span class="text-[10px] whitespace-nowrap text-gray-400">
-				{toTimeString(markerTime)}
-			</span>
-			<!-- Marker line -->
+<div class="flex h-6">
+	<div class="w-[var(--spacing-category-name-width)]"></div>
+	<div class="relative flex-1">
+		{#each markerPositions as markerTime (markerTime)}
+			{@const position = getPosition(markerTime)}
 			<div
-				class="h-3 w-px bg-gray-600"
-				aria-label="Time marker at {toTimeString(markerTime)}"
-			></div>
-		</div>
-	{/each}
+				class="absolute top-0 flex flex-col items-center"
+				style="left: {position}%; transform: translateX(-50%)"
+			>
+				<!-- Time label on top, centered -->
+				<span class="text-[10px] whitespace-nowrap text-gray-400">
+					{toTimeString(markerTime)}
+				</span>
+				<!-- Marker line -->
+				<div
+					class="h-3 w-px bg-gray-600"
+					aria-label="Time marker at {toTimeString(markerTime)}"
+				></div>
+			</div>
+		{/each}
+	</div>
 </div>

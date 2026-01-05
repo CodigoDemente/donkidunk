@@ -12,7 +12,7 @@
 </script>
 
 <div
-	class="flex w-[var(--spacing-category-name-width)] max-w-[var(--spacing-category-name-width)] min-w-[var(--spacing-category-name-width)] items-center gap-2"
+	class="flex h-5 w-[var(--spacing-category-name-width)] max-w-[var(--spacing-category-name-width)] min-w-[var(--spacing-category-name-width)] items-center gap-2"
 >
 	<!-- Category name tag -->
 	<Tooltip text={category?.name || 'Unknown'} position="right" size="large">
