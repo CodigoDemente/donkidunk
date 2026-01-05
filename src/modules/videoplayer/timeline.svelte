@@ -210,7 +210,7 @@
 </script>
 
 <div class="flex min-h-0 w-full flex-1 flex-col justify-between" onwheel={onTimelineWheel}>
-	<div class="flex min-h-0 flex-col justify-start">
+	<div class="mb-2 flex min-h-0 flex-col justify-start">
 		<TimeDisplay {currentTime} {duration} {toTimeString} />
 
 		<TimelineMarkers
@@ -236,6 +236,9 @@
 			onEventDblClick={handleEventDblClick}
 			onEventResize={handleEventResize}
 			onTimeChange={handleTimeChange}
+			onCategoryRewind={(categoryId) => {
+				// Handler for category rewind - to be implemented
+			}}
 			{isDraggingTimeMarker}
 			{handleDraggingTimeMarker}
 		/>

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { SvelteMap } from 'svelte/reactivity';
 	import Eventline from '../../../components/eventline/eventline.svelte';
+	import CategoryPlayer from '../../../components/categoryplayer/categoryplayer.svelte';
 	import type { Button } from '../../board/types/Button';
 	import type { Category } from '../../board/types/Category';
 	import type { RangeDataWithTags } from '../types/RangeData';
@@ -29,6 +30,7 @@
 			newEnd: number
 		) => void;
 		onTimeChange: (time: number) => void;
+		onCategoryRewind?: (categoryId: string) => void;
 		isDraggingTimeMarker: boolean;
 		handleDraggingTimeMarker: (isDragging: boolean) => void;
 	};
@@ -50,6 +52,7 @@
 		onEventDblClick,
 		onEventResize,
 		onTimeChange,
+		onCategoryRewind,
 		isDraggingTimeMarker,
 		handleDraggingTimeMarker
 	}: Props = $props();
@@ -127,20 +130,24 @@
 		{#if Object.entries(eventCategoriesById).length > 0}
 			<div class="mt-2 mb-1 flex flex-col items-start gap-2">
 				{#each Object.keys(eventCategoriesById) as categoryId (categoryId)}
-					<Eventline
-						{categoryId}
-						allTagsByCategory={eventsByCategory}
-						{timelineStart}
-						{timelineEnd}
-						boardCategoriesById={eventCategoriesById}
-						buttonsListById={eventButtonsById}
-						playingObjects={eventsPlaying}
-						{eventSelected}
-						{currentTime}
-						{onEventClick}
-						{onEventDblClick}
-						{onEventResize}
-					/>
+					{@const category = eventCategoriesById[categoryId]}
+					<div class="flex w-full">
+						<CategoryPlayer {category} onRewind={() => onCategoryRewind?.(categoryId)} />
+						<Eventline
+							{categoryId}
+							allTagsByCategory={eventsByCategory}
+							{timelineStart}
+							{timelineEnd}
+							boardCategoriesById={eventCategoriesById}
+							buttonsListById={eventButtonsById}
+							playingObjects={eventsPlaying}
+							{eventSelected}
+							{currentTime}
+							{onEventClick}
+							{onEventDblClick}
+							{onEventResize}
+						/>
+					</div>
 				{/each}
 			</div>
 		{/if}
@@ -149,7 +156,7 @@
 		{#if relativeProgress >= 0 && relativeProgress <= 1}
 			<div
 				id="time-marker"
-				class="absolute top-0 left-0 z-10 h-full w-[2px] cursor-ew-resize rounded-full bg-sky-400 transition-all"
+				class="absolute top-0 left-0 z-10 ml-[var(--spacing-category-name-width)] h-full w-[2px] cursor-ew-resize rounded-full bg-sky-400 transition-all"
 				style="left: clamp(0%, {relativeProgress * 100}%, calc(100% - 2px))"
 				onmousedown={onMarkerDragStart}
 				role="slider"

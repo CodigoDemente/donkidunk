@@ -33,7 +33,7 @@
 	}
 </script>
 
-<div class="w-ful relative h-6">
+<div class="relative ml-[var(--spacing-category-name-width)] h-6 w-full">
 	{#each markerPositions as markerTime (markerTime)}
 		{@const position = getPosition(markerTime)}
 		<div
