@@ -13,7 +13,8 @@
 		shouldAutoScroll,
 		shouldCenterOnPlay,
 		handleZoomWheel
-	} from './timelineZoom';
+	} from './utils/timelineZoomUtils';
+	import { isDeleteKey, shouldIgnoreKeyboardEvent } from './utils/progressBarUtils';
 
 	type Props = {
 		currentTime: number;
@@ -162,19 +163,19 @@
 
 	// /* ==================== DELETE EVENT LOGIC ==================== */
 
-	// // Handle Delete key to remove selected event
-	// $effect(() => {
-	// 	function handleKeyDown(e: KeyboardEvent) {
-	// 		if (shouldIgnoreKeyboardEvent(e)) return;
-	// 		if (!isDeleteKey(e.key) || !timeline.eventSelected) return;
+	// Handle Delete key to remove selected event
+	$effect(() => {
+		async function handleKeyDown(e: KeyboardEvent) {
+			if (shouldIgnoreKeyboardEvent(e)) return;
+			if (!isDeleteKey(e.key) || !timeline.eventSelected) return;
 
-	// 		e.preventDefault();
-	// 		openDeleteEventModal(timeline, timeline.eventSelected);
-	// 	}
+			e.preventDefault();
+			await timeline.removeEvent(timeline.eventSelected);
+		}
 
-	// 	document.addEventListener('keydown', handleKeyDown);
-	// 	return () => document.removeEventListener('keydown', handleKeyDown);
-	// });
+		document.addEventListener('keydown', handleKeyDown);
+		return () => document.removeEventListener('keydown', handleKeyDown);
+	});
 </script>
 
 <div class="flex min-h-0 w-full flex-1 flex-col justify-between" onwheel={onTimelineWheel}>

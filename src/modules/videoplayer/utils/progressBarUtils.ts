@@ -3,7 +3,7 @@
  * Helper functions for timeline progress bar interactions
  */
 
-import { mapClickToVisibleTime } from '../timelineZoom';
+import { mapClickToVisibleTime } from './timelineZoomUtils';
 
 /**
  * Clamp time value to valid range
@@ -54,4 +54,20 @@ export function shouldIgnoreClick(
 		return true;
 	}
 	return false;
+}
+
+export function shouldIgnoreKeyboardEvent(event: KeyboardEvent): boolean {
+	const target = event.target;
+	return (
+		target instanceof HTMLInputElement ||
+		target instanceof HTMLTextAreaElement ||
+		(target instanceof HTMLElement && target.isContentEditable)
+	);
+}
+
+/**
+ * Check if key is a delete key (Delete or Backspace)
+ */
+export function isDeleteKey(key: string): boolean {
+	return key === 'Delete' || key === 'Backspace';
 }
