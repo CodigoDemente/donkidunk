@@ -213,52 +213,39 @@
 	<div class="flex min-h-0 flex-col justify-start">
 		<TimeDisplay {currentTime} {duration} {toTimeString} />
 
-		<div class="flex w-full flex-row gap-2">
-			<div class="flex flex-col pt-9">
-				{#if Object.entries(board.eventCategoriesById).length > 0}
-					{#each Object.keys(board.eventCategoriesById) as categoryId (categoryId)}
-						<span class="h-5 text-sm text-gray-500"
-							>{board.eventCategoriesById[categoryId].name}</span
-						>
-					{/each}
-				{/if}
-			</div>
-			<div class="flex flex-1 flex-col">
-				<TimelineMarkers
-					leftLimitTime={limits.leftLimitTime}
-					rightLimitTime={limits.rightLimitTime}
-					visibleDuration={limits.visibleDuration}
-					{toTimeString}
-				/>
-				<TimelineProgressBar
-					bind:currentTime
-					{timelineStart}
-					{timelineEnd}
-					relativeProgress={relativeProgress()}
-					leftLimitTime={limits.leftLimitTime}
-					visibleDuration={limits.visibleDuration}
-					{duration}
-					eventCategoriesById={board.eventCategoriesById}
-					eventsByCategory={timeline.eventsByCategory}
-					eventButtonsById={board.eventButtonsById}
-					eventsPlaying={timeline.eventsPlaying}
-					eventSelected={timeline.eventSelected}
-					onEventClick={handleEventClick}
-					onEventDblClick={handleEventDblClick}
-					onEventResize={handleEventResize}
-					onTimeChange={handleTimeChange}
-					{isDraggingTimeMarker}
-					{handleDraggingTimeMarker}
-				/>
-				<TimelineZoomBar
-					bind:timelineStart
-					bind:timelineEnd
-					{currentTime}
-					{duration}
-					onRangeChange={handleRangeChange}
-				/>
-			</div>
-		</div>
+		<TimelineMarkers
+			leftLimitTime={limits.leftLimitTime}
+			rightLimitTime={limits.rightLimitTime}
+			visibleDuration={limits.visibleDuration}
+			{toTimeString}
+		/>
+		<TimelineProgressBar
+			bind:currentTime
+			{timelineStart}
+			{timelineEnd}
+			relativeProgress={relativeProgress()}
+			leftLimitTime={limits.leftLimitTime}
+			visibleDuration={limits.visibleDuration}
+			{duration}
+			eventCategoriesById={board.eventCategoriesById}
+			eventsByCategory={timeline.eventsByCategory}
+			eventButtonsById={board.eventButtonsById}
+			eventsPlaying={timeline.eventsPlaying}
+			eventSelected={timeline.eventSelected}
+			onEventClick={handleEventClick}
+			onEventDblClick={handleEventDblClick}
+			onEventResize={handleEventResize}
+			onTimeChange={handleTimeChange}
+			{isDraggingTimeMarker}
+			{handleDraggingTimeMarker}
+		/>
+		<TimelineZoomBar
+			bind:timelineStart
+			bind:timelineEnd
+			{currentTime}
+			{duration}
+			onRangeChange={handleRangeChange}
+		/>
 	</div>
 
 	<!-- Tags box -->
