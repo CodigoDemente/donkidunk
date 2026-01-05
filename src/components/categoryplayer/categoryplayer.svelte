@@ -1,14 +1,14 @@
 <script lang="ts">
-	import { IconPlayerSkipBack } from '@tabler/icons-svelte';
+	import { IconPlayerSkipForward } from '@tabler/icons-svelte';
 	import Tooltip from '../tooltip/tooltip.svelte';
 	import type { Category } from '../../modules/board/types/Category';
 
 	type Props = {
 		category: Category | undefined;
-		onRewind?: () => void;
+		onPlay?: () => void;
 	};
 
-	let { category, onRewind }: Props = $props();
+	let { category, onPlay }: Props = $props();
 </script>
 
 <div
@@ -37,20 +37,19 @@
 		role="button"
 		tabindex="0"
 		class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-xs border border-gray-700 bg-gray-800 text-gray-400 transition-colors hover:bg-gray-700 hover:text-gray-300"
-		aria-label="Rewind category"
-		title="Rewind category"
+		aria-label="Play all category events"
 		onclick={(e) => {
 			e.stopPropagation();
-			onRewind?.();
+			onPlay?.();
 		}}
 		onkeydown={(e) => {
 			if (e.key === 'Enter' || e.key === ' ') {
 				e.preventDefault();
 				e.stopPropagation();
-				onRewind?.();
+				onPlay?.();
 			}
 		}}
 	>
-		<IconPlayerSkipBack class="h-3 w-3" />
+		<IconPlayerSkipForward class="h-3 w-3" />
 	</div>
 </div>

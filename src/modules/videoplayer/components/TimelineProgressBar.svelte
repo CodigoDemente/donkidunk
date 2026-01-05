@@ -30,7 +30,7 @@
 			newEnd: number
 		) => void;
 		onTimeChange: (time: number) => void;
-		onCategoryRewind?: (categoryId: string) => void;
+		onCategoryPlay?: (categoryId: string) => void;
 		isDraggingTimeMarker: boolean;
 		handleDraggingTimeMarker: (isDragging: boolean) => void;
 	};
@@ -52,7 +52,7 @@
 		onEventDblClick,
 		onEventResize,
 		onTimeChange,
-		onCategoryRewind,
+		onCategoryPlay,
 		isDraggingTimeMarker,
 		handleDraggingTimeMarker
 	}: Props = $props();
@@ -124,7 +124,7 @@
 	<div class="relative mt-2 mb-1 flex flex-col gap-2">
 		{#each Object.keys(eventCategoriesById) as categoryId (categoryId)}
 			{@const category = eventCategoriesById[categoryId]}
-			<CategoryPlayer {category} onRewind={() => onCategoryRewind?.(categoryId)} />
+			<CategoryPlayer {category} onPlay={() => onCategoryPlay?.(categoryId)} />
 		{/each}
 	</div>
 	<button

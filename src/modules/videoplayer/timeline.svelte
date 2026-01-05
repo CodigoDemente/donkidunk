@@ -105,6 +105,10 @@
 		await timeline.updateEvent(eventId, buttonId, categoryId, { start: newStart, end: newEnd });
 	}
 
+	function handleCategoryPlayAll(categoryId: string) {
+		timeline.playAllEventsFromCategory(categoryId);
+	}
+
 	/* ==================== DERIVED STATE ==================== */
 
 	// Calculate timeline limits and progress
@@ -242,8 +246,8 @@
 			onEventDblClick={handleEventDblClick}
 			onEventResize={handleEventResize}
 			onTimeChange={handleTimeChange}
-			onCategoryRewind={(categoryId) => {
-				// Handler for category rewind - to be implemented
+			onCategoryPlay={(categoryId) => {
+				handleCategoryPlayAll(categoryId);
 			}}
 			{isDraggingTimeMarker}
 			{handleDraggingTimeMarker}
