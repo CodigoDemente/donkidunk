@@ -227,13 +227,13 @@
 >
 	{#if onResize}
 		<div
-			class="pointer-events-auto absolute top-0 left-0 z-20 h-full w-1 cursor-ew-resize"
+			class="pointer-events-auto absolute top-0 left-0 z-20 h-full w-px cursor-ew-resize"
 			role="button"
 			tabindex="0"
 			onmousedown={(e) => startResize(e, 'left')}
 		></div>
 		<div
-			class="pointer-events-auto absolute top-0 right-0 z-20 h-full w-1 cursor-ew-resize"
+			class="pointer-events-auto absolute top-0 right-0 z-20 h-full w-px cursor-ew-resize"
 			role="button"
 			tabindex="0"
 			onmousedown={(e) => startResize(e, 'right')}

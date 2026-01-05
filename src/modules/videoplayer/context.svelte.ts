@@ -168,11 +168,7 @@ export class Timeline {
 	}
 
 	setEventSelected(eventId: string) {
-		if (this.#eventSelected === eventId) {
-			this.#eventSelected = null;
-		} else {
-			this.#eventSelected = eventId;
-		}
+		this.#eventSelected = eventId;
 	}
 
 	async addRelatedTagToEvent(tagId: string) {

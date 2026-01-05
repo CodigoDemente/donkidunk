@@ -21,7 +21,7 @@
 		eventsPlaying: SvelteMap<string, RangeDataWithTags>;
 		eventSelected: string | null;
 		onEventClick: (eventId: string, buttonId: string) => void;
-		onEventDblClick: (startTimestamp: number) => void;
+		onEventDblClick: (startTimestamp: number, eventId: string, buttonId: string) => void;
 		onEventResize: (
 			eventId: string,
 			buttonId: string,

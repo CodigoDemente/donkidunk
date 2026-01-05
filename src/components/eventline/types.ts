@@ -14,7 +14,7 @@ export type Props = {
 	eventSelected?: string | null;
 	currentTime: number;
 	onEventClick: (eventId: string, buttonId: string) => void;
-	onEventDblClick: (startTimestamp: number) => void;
+	onEventDblClick: (startTimestamp: number, eventId: string, buttonId: string) => void;
 	onEventResize: (
 		eventId: string,
 		buttonId: string,

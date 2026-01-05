@@ -55,7 +55,7 @@
 					borderColor={buttonsListById[event.buttonId]?.color}
 					name={buttonsListById[event.buttonId]?.name}
 					onClick={() => onEventClick(event.id, event.buttonId)}
-					onDblClick={() => onEventDblClick(event.timestamp.start)}
+					onDblClick={() => onEventDblClick(event.timestamp.start, event.id, event.buttonId)}
 					onResize={(newStart, newEnd) =>
 						onEventResize(event.id, event.buttonId, event.categoryId, newStart, newEnd)}
 					otherEvents={getOtherEvents(event.id)}
@@ -74,7 +74,8 @@
 					color={boardCategoriesById[categoryId]?.color}
 					name={buttonsListById[playingObject.buttonId]?.name}
 					onClick={() => {}}
-					onDblClick={() => onEventDblClick(playingObject.timestamp.start)}
+					onDblClick={() =>
+						onEventDblClick(playingObject.timestamp.start, eventId, playingObject.buttonId)}
 				/>
 			{/if}
 		{/each}

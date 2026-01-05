@@ -82,10 +82,13 @@
 		}
 	}
 
-	function handleEventDblClick(startTimestamp: number) {
+	function handleEventDblClick(startTimestamp: number, eventId: string, buttonId: string) {
 		if (timeline.eventsPlaying.size > 0) return;
 		currentTime = startTimestamp;
 		handleTimeChange(startTimestamp);
+		if (!timeline.eventsPlaying.has(buttonId)) {
+			timeline.setEventSelected(eventId);
+		}
 	}
 
 	async function handleEventResize(
@@ -96,6 +99,9 @@
 		newEnd: number
 	) {
 		if (timeline.eventsPlaying.size > 0) return;
+		if (!timeline.eventsPlaying.has(buttonId)) {
+			timeline.setEventSelected(eventId);
+		}
 		await timeline.updateEvent(eventId, buttonId, categoryId, { start: newStart, end: newEnd });
 	}
 
