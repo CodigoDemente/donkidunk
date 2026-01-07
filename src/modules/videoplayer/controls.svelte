@@ -10,7 +10,7 @@
 	import { SkipDirection } from './types/SkipDirection';
 	import { SkipType } from './types/SkipType';
 	import Dropdown from '../../components/dropdown/dropdown.svelte';
-	import { speedOptions } from './utils/controlsUtils';
+	import { speedOptions, skipStepOptions } from './utils/controlsUtils';
 	import Tooltip from '../../components/tooltip/tooltip.svelte';
 
 	type Props = {
@@ -19,6 +19,8 @@
 		isPlaying: boolean;
 		playbackSpeed?: number;
 		onSpeedChange?: (speed: number) => void;
+		skipStep?: number;
+		onSkipStepChange?: (step: number) => void;
 		highlightedSkip?: 'forward' | 'backward' | 'play' | null;
 	};
 
@@ -28,10 +30,13 @@
 		isPlaying,
 		playbackSpeed = 1.0,
 		onSpeedChange,
+		skipStep = 15,
+		onSkipStepChange,
 		highlightedSkip = null
 	}: Props = $props();
 
 	let selectedSpeed = $state(playbackSpeed);
+	let selectedSkipStep = $state(skipStep);
 
 	$effect(() => {
 		selectedSpeed = playbackSpeed;
@@ -40,6 +45,16 @@
 	$effect(() => {
 		if (onSpeedChange) {
 			onSpeedChange(selectedSpeed);
+		}
+	});
+
+	$effect(() => {
+		selectedSkipStep = skipStep;
+	});
+
+	$effect(() => {
+		if (onSkipStepChange) {
+			onSkipStepChange(selectedSkipStep);
 		}
 	});
 
@@ -54,6 +69,14 @@
 				selectedSpeed = nextSpeed;
 				onSpeedChange(nextSpeed);
 			}
+			if (e.ctrlKey && e.key === 'b' && onSkipStepChange) {
+				e.preventDefault();
+				const currentIndex = skipStepOptions.findIndex((opt) => opt.value === selectedSkipStep);
+				const nextIndex = (currentIndex + 1) % skipStepOptions.length;
+				const nextSkipStep = skipStepOptions[nextIndex].value;
+				selectedSkipStep = nextSkipStep;
+				onSkipStepChange(nextSkipStep);
+			}
 		}
 
 		document.addEventListener('keydown', handleKeyDown);
@@ -62,10 +85,8 @@
 </script>
 
 <div class="mt-2 flex w-full items-center justify-between gap-3">
-	<!-- Spacer to center the controls -->
 	<div class="flex-1"></div>
 
-	<!-- Centered controls -->
 	<div class="flex items-center justify-center gap-3">
 		<button
 			class="mr-1 transition-all hover:cursor-pointer hover:text-white active:text-white {highlightedSkip ===
@@ -122,10 +143,9 @@
 		</button>
 	</div>
 
-	<!-- Dropdown aligned to the right -->
-	<div class="flex flex-1 justify-end">
+	<div class="flex flex-1 items-center justify-end gap-2">
 		{#if onSpeedChange}
-			<Tooltip text="Ctrl + V" position="left" size="small">
+			<Tooltip text="Ctrl + V" position="top" size="small">
 				<Dropdown
 					options={speedOptions}
 					bind:value={selectedSpeed}
@@ -133,6 +153,18 @@
 					selectClass="bg-gray-800 !text-gray-200 hover:!bg-gray-700 !w-10 hover:cursor-pointer"
 					noErrors
 				/>
+			</Tooltip>
+		{/if}
+		{#if onSkipStepChange}
+			<Tooltip text="Ctrl + B" position="top" size="small">
+				<Dropdown
+					options={skipStepOptions}
+					bind:value={selectedSkipStep}
+					size="mini"
+					selectClass="bg-gray-800 !text-gray-200 hover:!bg-gray-700 !w-8 hover:cursor-pointer"
+					noErrors
+				/>
+				<IconPlayerTrackNext class="mt-1 h-3 w-3 " />
 			</Tooltip>
 		{/if}
 	</div>

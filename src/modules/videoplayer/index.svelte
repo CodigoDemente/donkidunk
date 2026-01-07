@@ -16,6 +16,7 @@
 
 	let videoIsPlaying: boolean = $state(false);
 	let playbackSpeed = $state<number>(1.0);
+	let skipStep = $state<number>(15);
 	let highlightedSkip: 'forward' | 'backward' | 'play' | null = $state(null);
 	let videoPlayerRef: HTMLVideoElement | null = $state(null);
 
@@ -51,7 +52,7 @@
 		let skipAmount: number = 1;
 
 		if (type === SkipType.LONG) {
-			skipAmount = 15;
+			skipAmount = skipStep;
 		}
 
 		if (direction === SkipDirection.BACKWARD) {
@@ -63,6 +64,10 @@
 
 	function setPlaybackSpeed(speed: number) {
 		playbackSpeed = speed;
+	}
+
+	function setSkipStep(step: number) {
+		skipStep = step;
 	}
 </script>
 
@@ -97,6 +102,8 @@
 			{play}
 			{playbackSpeed}
 			onSpeedChange={setPlaybackSpeed}
+			{skipStep}
+			onSkipStepChange={setSkipStep}
 			{highlightedSkip}
 		/>
 		<Timeline
