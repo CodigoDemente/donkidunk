@@ -14,6 +14,16 @@
 		large: 'max-w-3xl',
 		extralarge: 'max-w-4xl'
 	};
+
+	function handleKeyDown(event: KeyboardEvent) {
+		console.log(event.key);
+		if (event.key === 'Escape') {
+			modalStore?.onCancel?.();
+			modalStore.show = false;
+		} else if (event.key === 'Enter') {
+			modalStore?.onSubmit?.();
+		}
+	}
 </script>
 
 <!-- !DO NOT USE THIS COMPONENT. This modal is called at the root of the application, then it can be reused throughout the app! -->
@@ -23,8 +33,15 @@
 	<!-- Overlay with blur -->
 	<div class="fixed inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-sm">
 		<!-- Modal window -->
+		<!-- svelte-ignore a11y_autofocus -->
+		<!-- Autofocus here makes sense because the modal is the only focusable element in the page -->
 		<div
 			class={`mx-4 flex w-full ${sizesToClass[modalStore.size as ModalSize]} flex-col rounded-lg bg-gray-800 p-0 shadow-lg`}
+			onkeydown={handleKeyDown}
+			role="dialog"
+			aria-modal="true"
+			tabindex="0"
+			autofocus
 		>
 			<!-- Header -->
 			<div class="flex items-center justify-between border-b border-gray-700 px-3 py-1">

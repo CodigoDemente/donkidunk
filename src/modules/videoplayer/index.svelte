@@ -58,15 +58,6 @@
 	});
 
 	// Component handlers
-	function handleDragStart(event: DragEvent) {
-		var img = new Image();
-		img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=';
-		event.dataTransfer?.setDragImage(img, 0, 0);
-	}
-
-	function handleDragEnd(event: DragEvent) {
-		event.preventDefault();
-	}
 
 	function toZeroPad(num: number) {
 		return ('00' + num).slice(-2);
@@ -106,13 +97,15 @@
 </script>
 
 <div
-	class="flex h-screen flex-col overflow-x-hidden overflow-y-hidden rounded-md border border-gray-700 bg-gray-800 px-2"
+	class="flex h-full flex-col overflow-x-hidden overflow-y-hidden rounded-md border border-gray-700 bg-gray-800 px-2"
 >
-	<p
-		class="mb-2 inline-block border-b border-gray-700 px-2 py-1 text-xs font-semibold text-gray-200"
-	>
-		Video / Timeline
-	</p>
+	{#if videoPlayer}
+		<p
+			class="mb-2 inline-block border-b border-gray-700 px-2 py-1 text-xs font-semibold text-gray-200"
+		>
+			Video / Timeline
+		</p>
+	{/if}
 	<video
 		id="video-player"
 		class={{
@@ -125,14 +118,12 @@
 	></video>
 	{#if videoPlayer}
 		<Controls isPlaying={videoIsPlaying} {skip} {play} />
+		<Timeline
+			bind:currentTime={timeline.currentTime}
+			duration={timeline.duration}
+			{toTimeString}
+			bind:progress
+			isPlaying={videoIsPlaying}
+		/>
 	{/if}
-	<Timeline
-		bind:currentTime={timeline.currentTime}
-		duration={timeline.duration}
-		{toTimeString}
-		{handleDragStart}
-		{handleDragEnd}
-		bind:progress
-		isPlaying={videoIsPlaying}
-	/>
 </div>

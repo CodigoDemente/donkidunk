@@ -79,6 +79,11 @@
 	--font-mono: 'Fira Code', monospace;
 }
 
+/* Category Name Variables - Accesibles como utilidades de Tailwind */
+@theme {
+	--spacing-category-name-width: 150px;
+}
+
 :root {
 	font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
 	font-size: 16px;

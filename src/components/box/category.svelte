@@ -109,13 +109,13 @@
 	}
 
 	function isButtonDisabled(buttonId: string): boolean {
-		// Check if there's any event playing from the same category but with a different button ID
 		for (const [, event] of timeline.eventsPlaying) {
 			if (event.categoryId === category.id && event.buttonId !== buttonId) {
 				return true;
 			}
 		}
-		return false;
+
+		return timeline.isTimeOverlappingWithCategoryEvent(category.id, buttonId);
 	}
 </script>
 

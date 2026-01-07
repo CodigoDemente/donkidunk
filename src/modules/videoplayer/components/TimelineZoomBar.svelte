@@ -9,7 +9,7 @@
 		handleDragMove,
 		handleMirroredDrag,
 		type DragState
-	} from '../timelineZoom';
+	} from '../utils/timelineZoomUtils';
 
 	type Props = {
 		timelineStart: number;
@@ -177,7 +177,7 @@
 	});
 </script>
 
-<div class="w-full rounded-md bg-gray-700">
+<div class="ml-[var(--spacing-category-name-width)] rounded-md bg-gray-700">
 	<div
 		bind:this={timelineBarRef}
 		class="relative h-2 w-full cursor-pointer rounded-md"

@@ -133,7 +133,7 @@
 	{#if show && text && !disabled}
 		<div
 			bind:this={tooltipRef}
-			class={`text-tertiary absolute z-50 w-max max-w-xs rounded-sm bg-gray-900 whitespace-nowrap shadow-lg ${sizeToClass[size]} ${positionClasses()}`}
+			class={`absolute z-50 w-max max-w-xs rounded-sm bg-gray-900 whitespace-nowrap text-white shadow-lg ${sizeToClass[size]} ${positionClasses()}`}
 			style="box-shadow: 0 2px 8px rgba(0,0,0,0.18);"
 		>
 			{text}

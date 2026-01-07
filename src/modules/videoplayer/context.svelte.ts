@@ -23,6 +23,8 @@ export class Timeline {
 	#duration: number = $state(0);
 	#eventSelected = $state<string | null>(null);
 	#timelineEventsByCategory!: Record<string, RangeDataWithTags[]>;
+	#categoryPlaybackQueue = $state<RangeDataWithTags[]>([]);
+	#currentPlaybackIndex = $state<number>(-1);
 
 	constructor() {
 		this.#history = new StateHistory<TimelineData>(
@@ -141,18 +143,51 @@ export class Timeline {
 
 		const eventPlaying = this.#eventsPlaying.get(buttonId);
 		if (eventPlaying) {
-			eventPlaying.timestamp.end = timeCursor;
+			// Check if the playing event's range (from start to timeCursor) overlaps with any existing event
+			const categoryEvents = this.#timelineEventsByCategory[categoryId] || [];
+			const playingEventStart = eventPlaying.timestamp.start;
+			const playingEventEnd = timeCursor;
+
+			const overlappingEvent = categoryEvents.find((event) => {
+				const existingEventStart = event.timestamp.start;
+				const existingEventEnd = event.timestamp.end ?? Infinity;
+				return playingEventStart < existingEventEnd && playingEventEnd > existingEventStart;
+			});
+
+			if (overlappingEvent) {
+				// End the playing event one microsecond before the overlapping event starts
+				eventPlaying.timestamp.end = overlappingEvent.timestamp.start - 0.001;
+			} else {
+				// No overlap, end at timeCursor as usual
+				eventPlaying.timestamp.end = timeCursor;
+			}
 
 			return await this.persistEvent(eventPlaying);
 		}
 	}
 
+	async updateEvent(
+		eventId: string,
+		buttonId: string,
+		categoryId: string,
+		timestamp: { start: number; end: number }
+	) {
+		const repository = TimelineRepositoryFactory.getInstance();
+
+		await repository.updateEntry({ id: eventId, buttonId, categoryId, timestamp });
+
+		this.#state = {
+			...this.#state,
+			eventTimeline: this.#state.eventTimeline.map((event) =>
+				event.id === eventId ? { ...event, timestamp } : event
+			)
+		};
+
+		await emit('project:dirty');
+	}
+
 	setEventSelected(eventId: string) {
-		if (this.#eventSelected === eventId) {
-			this.#eventSelected = null;
-		} else {
-			this.#eventSelected = eventId;
-		}
+		this.#eventSelected = eventId;
 	}
 
 	async addRelatedTagToEvent(tagId: string) {
@@ -287,6 +322,93 @@ export class Timeline {
 
 	set duration(value: number) {
 		this.#duration = value;
+	}
+
+	get categoryPlaybackQueue() {
+		return this.#categoryPlaybackQueue;
+	}
+
+	get currentPlaybackIndex() {
+		return this.#currentPlaybackIndex;
+	}
+
+	get currentPlaybackCategoryId(): string | null {
+		if (this.#categoryPlaybackQueue.length === 0 || this.#currentPlaybackIndex < 0) {
+			return null;
+		}
+		return this.#categoryPlaybackQueue[0]?.categoryId || null;
+	}
+
+	isTimeOverlappingWithCategoryEvent(categoryId: string, buttonId: string): boolean {
+		const categoryEvents = this.#timelineEventsByCategory[categoryId] || [];
+		const currentTime = this.#currentTime;
+
+		for (const event of categoryEvents) {
+			const eventStart = event.timestamp.start;
+			const eventEnd = event.timestamp.end ?? Infinity;
+
+			if (currentTime >= eventStart && currentTime < eventEnd) {
+				// If the button is not in eventsPlaying, it's overlapping
+				if (!this.#eventsPlaying.has(buttonId)) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	playAllEventsFromCategory(categoryId: string) {
+		const events = this.#timelineEventsByCategory[categoryId];
+		if (!events || events.length === 0) return;
+
+		// Sort events by start time
+		const sortedEvents = [...events].sort((a, b) => a.timestamp.start - b.timestamp.start);
+
+		// Filter out events without end time (dynamic events)
+		const eventsWithEnd = sortedEvents.filter(
+			(event) => event.timestamp.end !== undefined && event.timestamp.end !== null
+		);
+
+		if (eventsWithEnd.length === 0) return;
+
+		// Set up playback queue
+		this.#categoryPlaybackQueue = eventsWithEnd;
+		this.#currentPlaybackIndex = 0;
+
+		// Start playing the first event
+		const firstEvent = eventsWithEnd[0];
+		this.#currentTime = firstEvent.timestamp.start;
+	}
+
+	stopCategoryPlayback() {
+		this.#categoryPlaybackQueue = [];
+		this.#currentPlaybackIndex = -1;
+	}
+
+	getNextEventInQueue(): RangeDataWithTags | null {
+		if (
+			this.#currentPlaybackIndex < 0 ||
+			this.#currentPlaybackIndex >= this.#categoryPlaybackQueue.length
+		) {
+			return null;
+		}
+		return this.#categoryPlaybackQueue[this.#currentPlaybackIndex];
+	}
+
+	moveToNextEvent() {
+		if (this.#currentPlaybackIndex < 0) return false;
+
+		this.#currentPlaybackIndex++;
+		if (this.#currentPlaybackIndex >= this.#categoryPlaybackQueue.length) {
+			// All events played
+			this.stopCategoryPlayback();
+			return false;
+		}
+
+		const nextEvent = this.#categoryPlaybackQueue[this.#currentPlaybackIndex];
+		this.#currentTime = nextEvent.timestamp.start;
+		return true;
 	}
 	//#endregion
 }
