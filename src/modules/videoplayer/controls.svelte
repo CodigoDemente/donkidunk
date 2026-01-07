@@ -19,9 +19,17 @@
 		isPlaying: boolean;
 		playbackSpeed?: number;
 		onSpeedChange?: (speed: number) => void;
+		highlightedSkip?: 'forward' | 'backward' | 'play' | null;
 	};
 
-	let { skip, play, isPlaying, playbackSpeed = 1.0, onSpeedChange }: Props = $props();
+	let {
+		skip,
+		play,
+		isPlaying,
+		playbackSpeed = 1.0,
+		onSpeedChange,
+		highlightedSkip = null
+	}: Props = $props();
 
 	let selectedSpeed = $state(playbackSpeed);
 
@@ -60,7 +68,10 @@
 	<!-- Centered controls -->
 	<div class="flex items-center justify-center gap-3">
 		<button
-			class="mr-1 hover:cursor-pointer hover:text-white active:text-white"
+			class="mr-1 transition-all hover:cursor-pointer hover:text-white active:text-white {highlightedSkip ===
+			'backward'
+				? 'text-tertiary scale-110'
+				: ''}"
 			aria-label="Rewind Long"
 			title="Rewind Long"
 			onclick={() => skip(SkipType.LONG, SkipDirection.BACKWARD)}
@@ -76,7 +87,10 @@
 			<IconPlayerSkipBack />
 		</button>
 		<button
-			class="hover:cursor-pointer hover:text-white active:text-white"
+			class="transition-all hover:cursor-pointer hover:text-white active:text-white {highlightedSkip ===
+			'play'
+				? 'text-tertiary scale-110'
+				: ''}"
 			onclick={play}
 			aria-label="Play/Pause"
 			title="Play/Pause"
@@ -96,7 +110,10 @@
 			<IconPlayerSkipForward />
 		</button>
 		<button
-			class="ml-1 hover:cursor-pointer hover:text-white active:text-white"
+			class="ml-1 transition-all hover:cursor-pointer hover:text-white active:text-white {highlightedSkip ===
+			'forward'
+				? 'text-tertiary scale-110'
+				: ''}"
 			aria-label="Skip Forward Long"
 			title="Skip Forward Long"
 			onclick={() => skip(SkipType.LONG, SkipDirection.FORWARD)}
