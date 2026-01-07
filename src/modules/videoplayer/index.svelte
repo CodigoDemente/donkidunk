@@ -17,6 +17,7 @@
 
 	let videoPlayer: HTMLVideoElement | null = $state(null);
 	let videoIsPlaying: boolean = $state(false);
+	let playbackSpeed = $state<number>(1.0);
 
 	let progress: number = $derived((timeline.currentTime / timeline.duration) * 100);
 
@@ -54,6 +55,8 @@
 			videoPlayer.onpause = () => {
 				videoIsPlaying = false;
 			};
+
+			videoPlayer.playbackRate = playbackSpeed;
 		}
 	});
 
@@ -82,10 +85,10 @@
 	}
 
 	function skip(type: SkipType, direction: SkipDirection) {
-		let skipAmount: number = 1; // 0.1 seconds
+		let skipAmount: number = 1;
 
 		if (type === SkipType.LONG) {
-			skipAmount = 2; // 2 seconds
+			skipAmount = 15;
 		}
 
 		if (direction === SkipDirection.BACKWARD) {
@@ -93,6 +96,10 @@
 		}
 
 		timeline.currentTime += skipAmount;
+	}
+
+	function setPlaybackSpeed(speed: number) {
+		playbackSpeed = speed;
 	}
 </script>
 
@@ -117,7 +124,13 @@
 		bind:duration={timeline.duration}
 	></video>
 	{#if videoPlayer}
-		<Controls isPlaying={videoIsPlaying} {skip} {play} />
+		<Controls
+			isPlaying={videoIsPlaying}
+			{skip}
+			{play}
+			{playbackSpeed}
+			onSpeedChange={setPlaybackSpeed}
+		/>
 		<Timeline
 			bind:currentTime={timeline.currentTime}
 			duration={timeline.duration}
