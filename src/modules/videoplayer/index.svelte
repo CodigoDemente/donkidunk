@@ -21,6 +21,10 @@
 
 	let progress: number = $derived((timeline.currentTime / timeline.duration) * 100);
 
+	// Trackpad gesture state for smooth scrolling
+	let trackpadDeltaX = $state(0);
+	let trackpadTimeout: ReturnType<typeof setTimeout> | null = null;
+
 	// Effects
 
 	$effect(() => {
@@ -101,6 +105,41 @@
 	function setPlaybackSpeed(speed: number) {
 		playbackSpeed = speed;
 	}
+
+	// Handle trackpad horizontal gestures for skip forward/backward
+	function handleTrackpadGesture(event: WheelEvent) {
+		if (event.ctrlKey || event.metaKey) return;
+
+		// Check if it's a horizontal gesture (deltaX is significant)
+		if (Math.abs(event.deltaX) > Math.abs(event.deltaY)) {
+			event.preventDefault();
+			event.stopPropagation();
+
+			// Accumulate deltaX for smoother scrolling
+			trackpadDeltaX += event.deltaX;
+
+			// Clear existing timeout
+			if (trackpadTimeout) {
+				clearTimeout(trackpadTimeout);
+			}
+
+			// Threshold for triggering skip (accumulated movement)
+			const skipThreshold = 50; // Pixels of accumulated movement
+
+			// If accumulated movement exceeds threshold, perform skip
+			if (Math.abs(trackpadDeltaX) >= skipThreshold) {
+				const direction = trackpadDeltaX < 0 ? SkipDirection.FORWARD : SkipDirection.BACKWARD;
+				skip(SkipType.SHORT, direction);
+				trackpadDeltaX = 0; // Reset accumulator
+			}
+
+			// Reset accumulator after a short delay (when gesture ends)
+			trackpadTimeout = setTimeout(() => {
+				trackpadDeltaX = 0;
+				trackpadTimeout = null;
+			}, 150);
+		}
+	}
 </script>
 
 <div
@@ -122,6 +161,7 @@
 		}}
 		bind:currentTime={timeline.currentTime}
 		bind:duration={timeline.duration}
+		onwheel={handleTrackpadGesture}
 	></video>
 	{#if videoPlayer}
 		<Controls
