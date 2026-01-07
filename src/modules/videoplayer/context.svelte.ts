@@ -143,7 +143,27 @@ export class Timeline {
 
 		const eventPlaying = this.#eventsPlaying.get(buttonId);
 		if (eventPlaying) {
-			eventPlaying.timestamp.end = timeCursor;
+			// Check if the playing event's range (from start to timeCursor) overlaps with any existing event
+			const categoryEvents = this.#timelineEventsByCategory[categoryId] || [];
+			const playingEventStart = eventPlaying.timestamp.start;
+			const playingEventEnd = timeCursor;
+
+			const overlappingEvent = categoryEvents.find((event) => {
+				const existingEventStart = event.timestamp.start;
+				const existingEventEnd = event.timestamp.end ?? Infinity; // Events without end extend indefinitely
+
+				// Check if the two ranges overlap
+				// Two ranges overlap if: playingStart < existingEnd AND playingEnd > existingStart
+				return playingEventStart < existingEventEnd && playingEventEnd > existingEventStart;
+			});
+
+			if (overlappingEvent) {
+				// End the playing event one microsecond before the overlapping event starts
+				eventPlaying.timestamp.end = overlappingEvent.timestamp.start - 0.001;
+			} else {
+				// No overlap, end at timeCursor as usual
+				eventPlaying.timestamp.end = timeCursor;
+			}
 
 			return await this.persistEvent(eventPlaying);
 		}
@@ -320,6 +340,25 @@ export class Timeline {
 			return null;
 		}
 		return this.#categoryPlaybackQueue[0]?.categoryId || null;
+	}
+
+	isTimeOverlappingWithCategoryEvent(categoryId: string, buttonId: string): boolean {
+		const categoryEvents = this.#timelineEventsByCategory[categoryId] || [];
+		const currentTime = this.#currentTime;
+
+		for (const event of categoryEvents) {
+			const eventStart = event.timestamp.start;
+			const eventEnd = event.timestamp.end ?? Infinity;
+
+			if (currentTime >= eventStart && currentTime < eventEnd) {
+				// If the button is not in eventsPlaying, it's overlapping
+				if (!this.#eventsPlaying.has(buttonId)) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	playAllEventsFromCategory(categoryId: string) {
