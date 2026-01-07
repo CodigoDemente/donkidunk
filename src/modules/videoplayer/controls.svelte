@@ -11,6 +11,7 @@
 	import { SkipType } from './types/SkipType';
 	import Dropdown from '../../components/dropdown/dropdown.svelte';
 	import { speedOptions } from './utils/controlsUtils';
+	import Tooltip from '../../components/tooltip/tooltip.svelte';
 
 	type Props = {
 		skip: (type: SkipType, direction: SkipDirection) => void;
@@ -32,6 +33,23 @@
 		if (onSpeedChange) {
 			onSpeedChange(selectedSpeed);
 		}
+	});
+
+	// Handle Ctrl + V
+	$effect(() => {
+		function handleKeyDown(e: KeyboardEvent) {
+			if (e.ctrlKey && e.key === 'v' && onSpeedChange) {
+				e.preventDefault();
+				const currentIndex = speedOptions.findIndex((opt) => opt.value === selectedSpeed);
+				const nextIndex = (currentIndex + 1) % speedOptions.length;
+				const nextSpeed = speedOptions[nextIndex].value;
+				selectedSpeed = nextSpeed;
+				onSpeedChange(nextSpeed);
+			}
+		}
+
+		document.addEventListener('keydown', handleKeyDown);
+		return () => document.removeEventListener('keydown', handleKeyDown);
 	});
 </script>
 
@@ -90,13 +108,15 @@
 	<!-- Dropdown aligned to the right -->
 	<div class="flex flex-1 justify-end">
 		{#if onSpeedChange}
-			<Dropdown
-				options={speedOptions}
-				bind:value={selectedSpeed}
-				size="mini"
-				selectClass="bg-gray-800 !text-gray-200 hover:!bg-gray-700 !w-10 hover:cursor-pointer"
-				noErrors
-			/>
+			<Tooltip text="Ctrl + V" position="left" size="small">
+				<Dropdown
+					options={speedOptions}
+					bind:value={selectedSpeed}
+					size="mini"
+					selectClass="bg-gray-800 !text-gray-200 hover:!bg-gray-700 !w-10 hover:cursor-pointer"
+					noErrors
+				/>
+			</Tooltip>
 		{/if}
 	</div>
 </div>
