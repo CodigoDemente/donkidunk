@@ -150,10 +150,7 @@ export class Timeline {
 
 			const overlappingEvent = categoryEvents.find((event) => {
 				const existingEventStart = event.timestamp.start;
-				const existingEventEnd = event.timestamp.end ?? Infinity; // Events without end extend indefinitely
-
-				// Check if the two ranges overlap
-				// Two ranges overlap if: playingStart < existingEnd AND playingEnd > existingStart
+				const existingEventEnd = event.timestamp.end ?? Infinity;
 				return playingEventStart < existingEventEnd && playingEventEnd > existingEventStart;
 			});
 
