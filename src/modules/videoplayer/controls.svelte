@@ -35,8 +35,8 @@
 		highlightedSkip = null
 	}: Props = $props();
 
-	let selectedSpeed = $state(playbackSpeed);
-	let selectedSkipStep = $state(skipStep);
+	let selectedSpeed = $derived(playbackSpeed);
+	let selectedSkipStep = $derived(skipStep);
 
 	$effect(() => {
 		selectedSpeed = playbackSpeed;

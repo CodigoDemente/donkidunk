@@ -10,8 +10,6 @@
 		duration?: number;
 		playbackSpeed?: number;
 		videoPlayerRef?: HTMLVideoElement | null;
-		onTimeChange?: (time: number) => void;
-		onDurationChange?: (duration: number) => void;
 		onPlayStateChange?: (isPlaying: boolean) => void;
 		onSkip?: (type: SkipType, direction: SkipDirection) => void;
 		onHighlightChange?: (highlight: 'forward' | 'backward' | 'play' | null) => void;
@@ -24,8 +22,6 @@
 		duration = $bindable(),
 		playbackSpeed = 1.0,
 		videoPlayerRef = $bindable(),
-		onTimeChange,
-		onDurationChange,
 		onPlayStateChange,
 		onSkip,
 		onHighlightChange,
@@ -60,9 +56,11 @@
 		source.src = videoUrl;
 
 		if (videoPlayer.firstChild) {
+			// eslint-disable-next-line svelte/no-dom-manipulating
 			videoPlayer.removeChild(videoPlayer.firstChild);
 		}
 
+		// eslint-disable-next-line svelte/no-dom-manipulating
 		videoPlayer.appendChild(source);
 		videoPlayer.load();
 		videoPlayer.currentTime = 0.1;
@@ -123,7 +121,7 @@
 
 	/* ==================== CLICK HANDLERS ==================== */
 
-	function handleVideoClick(event: MouseEvent) {
+	function handleVideoClick(_event: MouseEvent) {
 		if (!videoPlayer || !onPlay) return;
 
 		// Cancel if this is part of a double click
