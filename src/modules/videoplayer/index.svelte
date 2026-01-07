@@ -106,7 +106,6 @@
 		playbackSpeed = speed;
 	}
 
-	// Handle trackpad horizontal gestures for skip forward/backward
 	function handleTrackpadGesture(event: WheelEvent) {
 		if (event.ctrlKey || event.metaKey) return;
 
@@ -140,6 +139,19 @@
 			}, 150);
 		}
 	}
+
+	function handleVideoDoubleClick(event: MouseEvent) {
+		if (!videoPlayer) return;
+
+		const rect = videoPlayer.getBoundingClientRect();
+		const clickX = event.clientX - rect.left;
+		const videoWidth = rect.width;
+		const midpoint = videoWidth / 2;
+
+		// First half = backward, second half = forward
+		const direction = clickX < midpoint ? SkipDirection.BACKWARD : SkipDirection.FORWARD;
+		skip(SkipType.LONG, direction);
+	}
 </script>
 
 <div
@@ -162,6 +174,7 @@
 		bind:currentTime={timeline.currentTime}
 		bind:duration={timeline.duration}
 		onwheel={handleTrackpadGesture}
+		ondblclick={handleVideoDoubleClick}
 	></video>
 	{#if videoPlayer}
 		<Controls
