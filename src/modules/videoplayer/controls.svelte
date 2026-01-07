@@ -94,7 +94,7 @@
 				options={speedOptions}
 				bind:value={selectedSpeed}
 				size="mini"
-				selectClass="bg-gray-800 text-white !px-0 w-12"
+				selectClass="bg-gray-800 !text-gray-200 hover:!bg-gray-700 !w-10 hover:cursor-pointer"
 				noErrors
 			/>
 		{/if}
