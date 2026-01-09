@@ -62,6 +62,8 @@
 	let progressBarElement: HTMLButtonElement | null = $state(null);
 	let eventlinesContainer: HTMLDivElement | null = $state(null);
 
+	$inspect(relativeProgress);
+
 	/* ==================== PROGRESS BAR HANDLERS ==================== */
 
 	function onProgressBarClick(event: MouseEvent) {
@@ -166,7 +168,7 @@
 				{#if relativeProgress >= 0 && relativeProgress <= 1 && eventlinesContainer}
 					<div
 						id="time-marker"
-						class="absolute top-0 left-0 z-10 w-[2px] cursor-ew-resize rounded-full bg-sky-400 transition-all"
+						class="absolute top-0 left-0 z-10 w-[2px] cursor-ew-resize rounded-full bg-sky-400"
 						style="left: clamp(0%, {relativeProgress * 100}%, calc(100% - 2px)); height: 100%;"
 						onmousedown={onMarkerDragStart}
 						role="slider"
