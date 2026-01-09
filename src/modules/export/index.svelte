@@ -2,6 +2,7 @@
 	import { Channel } from '@tauri-apps/api/core';
 	import ProjectStore from '../../persistence/stores/project/store.svelte';
 	import { boardContext } from '../../modules/board/context.svelte';
+	import { timelineContext } from '../../modules/videoplayer/context.svelte';
 	import { TimelineRepositoryFactory } from '../../factories/TimelineRepositoryFactory';
 	import { save } from '@tauri-apps/plugin-dialog';
 	import { path } from '@tauri-apps/api';
@@ -13,9 +14,9 @@
 	import { cutVideo } from './commands/CutVideo';
 	import Button from '../../components/button/button.svelte';
 	import Tag from '../../components/tag/tag.svelte';
-	import { getTextColorForBackground } from '../../components/box/colors';
 
 	const board = boardContext.get();
+	const timeline = timelineContext.get();
 	const timelineRepository = TimelineRepositoryFactory.getInstance();
 
 	let exportingRules: ExportingRule[] = $state([]);
@@ -32,6 +33,23 @@
 		color: tag.color
 	}));
 
+	const availableTags = $derived.by(() => {
+		if (!newRule.include) {
+			return [];
+		}
+
+		const eventsWithButtonId = timeline
+			.getState()
+			.eventTimeline.filter((event) => event.buttonId === newRule.include);
+
+		const tagIds = new Set<string>();
+		eventsWithButtonId.forEach((event) => {
+			event.tagsRelated.forEach((tagId) => tagIds.add(tagId));
+		});
+
+		return allTags.filter((tag) => tagIds.has(tag.value));
+	});
+
 	const initialRule: ExportingRule = {
 		type: CategoryType.Event,
 		include: '',
@@ -42,10 +60,8 @@
 	let newRule = $state({ ...initialRule });
 
 	function addRule() {
-		// Add the current rule to the table
 		if (newRule.include) {
 			exportingRules = [...exportingRules, { ...newRule, temp: false }];
-			// Reset form to initial state
 			newRule = { ...initialRule };
 		}
 	}
@@ -63,7 +79,6 @@
 	let export_progress = $state(0);
 
 	async function export_video(): Promise<void> {
-		// Fix initial values just in case
 		exporting = false;
 		export_progress = 0;
 
@@ -176,6 +191,7 @@
 								checked={newRule.include === option.value}
 								onchange={() => {
 									newRule.include = option.value;
+									newRule.taggedWith = [];
 								}}
 								class="accent-primary h-4 w-4 cursor-pointer"
 							/>
@@ -187,7 +203,7 @@
 			<div class="flex flex-col gap-2">
 				<p class="text-sm text-gray-400">Choose the related tags:</p>
 				<Multiselect
-					options={allTags}
+					options={availableTags}
 					size="full"
 					selectClass="bg-gray-800"
 					bind:selectedValues={newRule.taggedWith}
