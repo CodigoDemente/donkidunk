@@ -51,8 +51,6 @@ export function calculateRelativeProgress(
 	rightLimitTime: number,
 	visibleDuration: number
 ): number {
-	if (currentTime < leftLimitTime) return 0;
-	if (currentTime > rightLimitTime) return 1;
 	return (currentTime - leftLimitTime) / visibleDuration;
 }
 
