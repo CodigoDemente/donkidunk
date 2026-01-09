@@ -56,9 +56,10 @@
 	justify-center
     rounded-[4px]
 	leading-none
-	hover:cursor-pointer
+	${!disabled ? 'hover:cursor-pointer' : ''}
 	${disabled ? 'cursor-not-allowed opacity-70' : ''}
 	transition`}
+	disabled
 	onclick={onClick}
 >
 	{@render children()}

@@ -17,11 +17,9 @@ export interface Props {
 	labelClass?: string;
 	selectClass?: string;
 	chipClass?: string;
-	error?: string;
 	size?: InputSizes;
 	horizontal?: boolean;
 	placeholder?: string;
-	noErrors?: boolean;
 	defaultChipColor?: string;
 	maxChips?: number;
 	onSelectionChange?: (selectedValues: (string | number)[]) => void;
