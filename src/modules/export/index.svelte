@@ -14,6 +14,7 @@
 	import { cutVideo } from './commands/CutVideo';
 	import Button from '../../components/button/button.svelte';
 	import Tag from '../../components/tag/tag.svelte';
+	import { SvelteSet } from 'svelte/reactivity';
 
 	const board = boardContext.get();
 	const timeline = timelineContext.get();
@@ -42,7 +43,7 @@
 			.getState()
 			.eventTimeline.filter((event) => event.buttonId === newRule.include);
 
-		const tagIds = new Set<string>();
+		const tagIds = new SvelteSet<string>();
 		eventsWithButtonId.forEach((event) => {
 			event.tagsRelated.forEach((tagId) => tagIds.add(tagId));
 		});

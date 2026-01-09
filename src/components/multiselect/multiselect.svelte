@@ -3,18 +3,12 @@
 	import type { Props, MultiselectOption } from './types';
 
 	let {
-		label = '',
 		options = [],
 		selectedValues = $bindable([]),
-		name = '',
 		id = '',
 		disabled = false,
-		labelClass = '',
 		selectClass = '',
-		chipClass = '',
 		size = 'medium',
-		horizontal = false,
-		placeholder = 'Seleccionar opciones...',
 		defaultChipColor = '#6366f1',
 		maxChips = undefined,
 		onSelectionChange = undefined
