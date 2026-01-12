@@ -43,6 +43,7 @@ export const projectActions = {
 
 	setModal({
 		content,
+		contentProps,
 		title,
 		onCancel,
 		onSubmit,
@@ -50,7 +51,16 @@ export const projectActions = {
 		show,
 		size
 	}: ProjectData['modal']): void {
-		projectStore.modal = { content, title, onCancel, onSubmit, onSubmitText, show, size };
+		projectStore.modal = {
+			content,
+			contentProps,
+			title,
+			onCancel,
+			onSubmit,
+			onSubmitText,
+			show,
+			size
+		};
 	},
 
 	closeAndResetModal(): void {

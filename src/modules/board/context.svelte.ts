@@ -389,16 +389,12 @@ export class Board {
 		}
 	}
 
-	async deleteCategory(
-		section: CategoryType,
-		categoryId: string,
-		timeline: Timeline
-	): Promise<void> {
+	async deleteEventCategory(categoryId: string, timeline: Timeline): Promise<void> {
 		try {
 			const repository = BoardRepositoryFactory.getInstance();
 
 			// Get the category before deleting to access its buttons
-			const category = this.#state[section].find((c) => c.id === categoryId);
+			const category = this.#state[CategoryType.Event].find((c) => c.id === categoryId);
 			const buttonIds = category?.buttons.map((button) => button.id) || [];
 
 			await repository.deleteCategory(categoryId);
@@ -411,7 +407,7 @@ export class Board {
 
 			this.#state = {
 				...this.#state,
-				[section]: this.#state[section].filter((c) => c.id !== categoryId)
+				[CategoryType.Event]: this.#state[CategoryType.Event].filter((c) => c.id !== categoryId)
 			};
 
 			await emit('project:dirty');
@@ -423,6 +419,50 @@ export class Board {
 				...feedbackMessages.ACTION_FAILED,
 				message: error instanceof Error ? error.message : String(error)
 			});
+		}
+	}
+
+	async deleteTagCategory(categoryId: string, timeline: Timeline): Promise<void> {
+		try {
+			const repository = BoardRepositoryFactory.getInstance();
+
+			// Get the category before deleting to access its buttons
+			const category = this.#state[CategoryType.Tag].find((c) => c.id === categoryId);
+			const buttonIds = category?.buttons.map((button) => button.id) || [];
+
+			await repository.deleteCategory(categoryId);
+
+			// Remove all events related to buttons in this category
+			if (buttonIds.length > 0) {
+				await timeline.removeAllTagsFromButtons(buttonIds);
+			}
+
+			this.#state = {
+				...this.#state,
+				[CategoryType.Tag]: this.#state[CategoryType.Tag].filter((c) => c.id !== categoryId)
+			};
+
+			await emit('project:dirty');
+
+			projectActions.closeAndResetModal();
+			projectActions.setSnackbar(feedbackMessages.DELETE_SUCCESS);
+		} catch (error) {
+			projectActions.setSnackbar({
+				...feedbackMessages.ACTION_FAILED,
+				message: error instanceof Error ? error.message : String(error)
+			});
+		}
+	}
+
+	async deleteCategory(
+		section: CategoryType,
+		categoryId: string,
+		timeline: Timeline
+	): Promise<void> {
+		if (section === CategoryType.Event) {
+			await this.deleteEventCategory(categoryId, timeline);
+		} else {
+			await this.deleteEventCategory(categoryId, timeline);
 		}
 	}
 

@@ -22,8 +22,6 @@ function handleCancel(config: Config) {
 }
 
 async function handleSubmit(board: Board, config: Config) {
-	console.log('Save button board');
-
 	await saveButtonBoardModal(board, config);
 	config.newButtonBoardFormData = null;
 	projectActions.closeAndResetModal();

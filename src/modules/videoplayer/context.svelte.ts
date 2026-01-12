@@ -274,6 +274,12 @@ export class Timeline {
 		}
 	}
 
+	async removeAllTagsFromButtons(buttonIds: string[]) {
+		this.#state.eventTimeline.forEach((event) => {
+			event.tagsRelated = event.tagsRelated.filter((tag) => !buttonIds.includes(tag));
+		});
+	}
+
 	wrapForUndo() {
 		Object.assign(
 			this,

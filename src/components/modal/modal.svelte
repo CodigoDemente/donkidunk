@@ -16,7 +16,6 @@
 	};
 
 	function handleKeyDown(event: KeyboardEvent) {
-		console.log(event.key);
 		if (event.key === 'Escape') {
 			modalStore?.onCancel?.();
 			modalStore.show = false;
@@ -33,15 +32,12 @@
 	<!-- Overlay with blur -->
 	<div class="fixed inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-sm">
 		<!-- Modal window -->
-		<!-- svelte-ignore a11y_autofocus -->
-		<!-- Autofocus here makes sense because the modal is the only focusable element in the page -->
 		<div
 			class={`mx-4 flex w-full ${sizesToClass[modalStore.size as ModalSize]} flex-col rounded-lg bg-gray-800 p-0 shadow-lg`}
 			onkeydown={handleKeyDown}
 			role="dialog"
 			aria-modal="true"
 			tabindex="0"
-			autofocus
 		>
 			<!-- Header -->
 			<div class="flex items-center justify-between border-b border-gray-700 px-3 py-1">
@@ -60,7 +56,7 @@
 				</button>
 			</div>
 			<!-- Content -->
-			<modalStore.content />
+			<modalStore.content {...modalStore.contentProps} />
 			<!-- Footer -->
 			<div class="flex justify-end gap-2 border-t border-gray-700 px-4 py-2">
 				<Button

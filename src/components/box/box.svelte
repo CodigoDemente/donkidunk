@@ -51,6 +51,9 @@
 	function handleModalDelete(categoryId: string) {
 		projectActions.setModal({
 			content: deleteCategoryModal,
+			contentProps: {
+				categoryType: type
+			},
 			title: `Delete category`,
 			onCancel: () => projectActions.closeAndResetModal(),
 			onSubmit: () => board.deleteCategory(type, categoryId, timeline),

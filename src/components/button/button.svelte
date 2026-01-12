@@ -59,7 +59,7 @@
 	${!disabled ? 'hover:cursor-pointer' : ''}
 	${disabled ? 'cursor-not-allowed opacity-70' : ''}
 	transition`}
-	disabled
+	{disabled}
 	onclick={onClick}
 >
 	{@render children()}
