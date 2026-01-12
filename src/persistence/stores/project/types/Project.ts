@@ -24,7 +24,9 @@ export type ProjectData = {
 		path?: string;
 	};
 	modal: {
-		content: Component | null;
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		content: Component<any> | null;
+		contentProps?: Record<string, unknown>;
 		title?: string;
 		onCancel?: () => void;
 		onSubmit?: () => void;

@@ -62,8 +62,6 @@
 	let progressBarElement: HTMLButtonElement | null = $state(null);
 	let eventlinesContainer: HTMLDivElement | null = $state(null);
 
-	$inspect(relativeProgress);
-
 	/* ==================== PROGRESS BAR HANDLERS ==================== */
 
 	function onProgressBarClick(event: MouseEvent) {
