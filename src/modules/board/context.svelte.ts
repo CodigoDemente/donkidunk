@@ -356,7 +356,11 @@ export class Board {
 
 			// Remove events for deleted buttons
 			if (deletedButtonIds.length > 0) {
-				await timeline.removeAllEventsFromButtons(deletedButtonIds);
+				if (section === CategoryType.Event) {
+					await timeline.removeAllEventsFromButtons(deletedButtonIds);
+				} else {
+					await timeline.removeAllTagsFromButtons(deletedButtonIds);
+				}
 			}
 
 			this.#state = {
@@ -462,7 +466,7 @@ export class Board {
 		if (section === CategoryType.Event) {
 			await this.deleteEventCategory(categoryId, timeline);
 		} else {
-			await this.deleteEventCategory(categoryId, timeline);
+			await this.deleteTagCategory(categoryId, timeline);
 		}
 	}
 
