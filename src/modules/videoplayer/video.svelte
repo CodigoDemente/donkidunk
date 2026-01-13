@@ -44,7 +44,19 @@
 	/* ==================== VIDEO INITIALIZATION ==================== */
 
 	$effect(() => {
-		if (!video || !videoPlayer) return;
+		if (!videoPlayer) return;
+
+		// Si no hay video, limpiar el source existente
+		if (!video) {
+			if (videoPlayer.firstChild) {
+				// eslint-disable-next-line svelte/no-dom-manipulating
+				videoPlayer.removeChild(videoPlayer.firstChild);
+			}
+			videoPlayer.load();
+			duration = 0;
+			currentTime = 0;
+			return;
+		}
 
 		const videoUrl =
 			platform() !== 'windows'

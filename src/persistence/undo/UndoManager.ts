@@ -19,6 +19,11 @@ export class UndoManager {
 		};
 	}
 
+	public clear(): void {
+		this.editions.undoStack = [];
+		this.editions.redoStack = [];
+	}
+
 	public addBoardEdition(): void {
 		this.addEdition(Scope.Board);
 	}

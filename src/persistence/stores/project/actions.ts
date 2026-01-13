@@ -16,6 +16,10 @@ export const projectActions = {
 		projectStore.metadata.dirty = isDirty;
 	},
 
+	resetProjectState(): void {
+		ProjectStore.reset();
+	},
+
 	async setLastSavedTimestamp(timestamp: string): Promise<void> {
 		const repository = ProjectRepositoryFactory.getInstance();
 		await repository.setLastSavedTimestamp(timestamp);

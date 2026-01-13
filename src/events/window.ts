@@ -1,8 +1,5 @@
 import { getCurrentWindow } from '@tauri-apps/api/window';
-import { ask } from '@tauri-apps/plugin-dialog';
-import { closeDatabase, dumpIntoOriginalDatabase } from '../persistence/database/actions';
-import { projectActions } from '../persistence/stores/project/actions';
-import { remove } from '@tauri-apps/plugin-fs';
+import { closeDatabaseAndSaveChanges } from '../modules/menu/operations/closeProject';
 
 export class WindowEventHandler {
 	private unlisteners: (() => void)[] = [];
@@ -23,26 +20,6 @@ export class WindowEventHandler {
 	}
 
 	private async onCloseRequested(): Promise<void> {
-		const isDirty = projectActions.getProjectDirty();
-
-		if (isDirty) {
-			const answer = await ask('You have unsaved changes. Do you want to save before closing?', {
-				title: 'Unsaved Changes',
-				okLabel: 'Yes',
-				cancelLabel: 'No'
-			});
-
-			if (answer) {
-				await dumpIntoOriginalDatabase(projectActions.getFilePath());
-			}
-		}
-
-		if (projectActions.getDatabase()) {
-			const currentFilePath = projectActions.getCurrentFilePath();
-
-			await closeDatabase();
-
-			await remove(currentFilePath);
-		}
+		await closeDatabaseAndSaveChanges();
 	}
 }

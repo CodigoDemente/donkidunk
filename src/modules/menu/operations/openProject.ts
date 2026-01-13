@@ -10,7 +10,7 @@ import {
 	openDatabase,
 	restoreBackup
 } from '../../../persistence/database/actions';
-import { enableImportVideo } from './enableItems';
+import { enableCloseProject, enableImportVideo } from './enableItems';
 import { ProjectRepositoryFactory } from '../../../factories/ProjectRepositoryFactory';
 import ProjectStore from '../../../persistence/stores/project/store.svelte';
 import { projectActions } from '../../../persistence/stores/project/actions';
@@ -20,9 +20,14 @@ import type { Board } from '../../board/context.svelte';
 import type { Timeline } from '../../videoplayer/context.svelte';
 import type { Config } from '../../config/context.svelte';
 import { UIMode } from '../../config/types/Config';
+import { closeProject } from './closeProject';
 
 export async function openProject(board: Board, timeline: Timeline, config: Config) {
 	debug('Open project action triggered');
+
+	if (projectActions.getDatabase()) {
+		await closeProject(board, timeline);
+	}
 
 	const path = await open({
 		directory: false,
@@ -93,4 +98,5 @@ export async function openProject(board: Board, timeline: Timeline, config: Conf
 	}
 
 	await enableImportVideo();
+	await enableCloseProject();
 }

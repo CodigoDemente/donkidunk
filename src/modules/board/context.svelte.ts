@@ -118,6 +118,10 @@ export class Board {
 	//#region Actions
 	reset() {
 		this.#state = initialState;
+		this.#isEditing = false;
+		this.#tempCategory = initialCategory(CategoryType.Event);
+		this.#errorsForm = {};
+		this.#history.clear();
 	}
 
 	setEditingMode(value: boolean) {
