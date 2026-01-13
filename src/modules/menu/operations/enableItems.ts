@@ -7,6 +7,27 @@ export async function enableImportVideo() {
 	});
 }
 
+export async function disableImportVideo() {
+	return await invoke('set_menu_item_enabling_status', {
+		menuId: 'import_video',
+		enabled: false
+	});
+}
+
+export async function enableCloseProject() {
+	return await invoke('set_menu_item_enabling_status', {
+		menuId: 'close_project',
+		enabled: true
+	});
+}
+
+export async function disableCloseProject() {
+	return await invoke('set_menu_item_enabling_status', {
+		menuId: 'close_project',
+		enabled: false
+	});
+}
+
 export async function enableSaveProject() {
 	return await invoke('set_menu_item_enabling_status', {
 		menuId: 'save_project',

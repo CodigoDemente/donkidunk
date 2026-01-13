@@ -11,6 +11,7 @@ import type { Board } from '../board/context.svelte';
 import type { Timeline } from '../videoplayer/context.svelte';
 import { saveButtonBoard } from './operations/saveButtonBoard';
 import type { Config } from '../config/context.svelte';
+import { closeProject } from './operations/closeProject';
 
 type MenuEvent = {
 	id: string;
@@ -31,6 +32,9 @@ export async function bindMenuEvents(board: Board, timeline: Timeline, config: C
 				break;
 			case 'save_project':
 				await saveProject();
+				break;
+			case 'close_project':
+				await closeProject(board, timeline);
 				break;
 			case 'import_video':
 				await importVideo();

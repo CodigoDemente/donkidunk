@@ -45,6 +45,6 @@ export default class ProjectStore {
 	}
 
 	static reset() {
-		projectStore = InitialProjectData;
+		Object.assign(projectStore, structuredClone(InitialProjectData));
 	}
 }

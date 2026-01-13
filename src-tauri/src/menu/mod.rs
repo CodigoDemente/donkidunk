@@ -111,12 +111,18 @@ fn build_menu<R: tauri::Runtime>(app: &mut App<R>) -> Result<Menu<R>, Error> {
         .item(&save_project_as_item)
         .build()?;
 
+    let close_project_item = MenuItemBuilder::with_id("close_project", "Close Project")
+        .accelerator("CmdOrCtrl+F4")
+        .enabled(false)
+        .build(handle)?;
+
     let file_submenu = SubmenuBuilder::with_id(handle, "file-menu", "File")
         .items(&[
             &open_project_item,
             &new_project_item,
             &import_video_item,
             &save_submenu,
+            &close_project_item,
         ])
         .build()?;
 

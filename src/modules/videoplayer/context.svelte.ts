@@ -54,6 +54,15 @@ export class Timeline {
 
 	reset() {
 		this.#state = initialState;
+		this.#history.clear();
+		this.#eventPlaying = null;
+		this.#eventsPlaying = new SvelteMap();
+		this.#currentTime = 0;
+		this.#duration = 0;
+		this.#eventSelected = null;
+		this.#categoryPlaybackQueue = [];
+		this.#currentPlaybackIndex = -1;
+		this.#history.clear();
 	}
 
 	canUndo() {
