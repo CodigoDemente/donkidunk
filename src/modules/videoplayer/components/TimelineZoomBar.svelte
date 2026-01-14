@@ -207,14 +207,14 @@
 		></div>
 		<!-- Start handle -->
 		<button
-			class="absolute top-0 z-10 h-full w-2 cursor-ew-resize rounded-full bg-gray-300 transition-colors hover:bg-white"
+			class="absolute top-0 h-full w-2 cursor-ew-resize rounded-full bg-gray-300 transition-colors hover:bg-white"
 			style="left: {timelineStart * 100}%"
 			aria-label="Timeline Start"
 			onmousedown={onStartHandleMouseDown}
 		></button>
 		<!-- End handle -->
 		<button
-			class="absolute top-0 z-10 h-full w-2 cursor-ew-resize rounded-full bg-gray-300 transition-colors hover:bg-white"
+			class="absolute top-0 h-full w-2 cursor-ew-resize rounded-full bg-gray-300 transition-colors hover:bg-white"
 			style="right: {(1 - timelineEnd) * 100}%"
 			aria-label="Timeline End"
 			onmousedown={onEndHandleMouseDown}
