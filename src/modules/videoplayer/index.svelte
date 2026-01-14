@@ -14,7 +14,6 @@
 
 	const { video }: Props = $props();
 
-	let videoIsPlaying: boolean = $state(false);
 	let playbackSpeed = $state<number>(1.0);
 	let skipStep = $state<number>(15);
 	let highlightedSkip: 'forward' | 'backward' | 'play' | null = $state(null);
@@ -41,7 +40,7 @@
 	function play() {
 		if (!videoPlayerRef) return;
 
-		if (!videoIsPlaying) {
+		if (!timeline.isPlaying) {
 			videoPlayerRef.play();
 		} else {
 			videoPlayerRef.pause();
@@ -86,7 +85,7 @@
 		bind:duration={timeline.duration}
 		{playbackSpeed}
 		onPlayStateChange={(isPlaying) => {
-			videoIsPlaying = isPlaying;
+			timeline.isPlaying = isPlaying;
 		}}
 		onSkip={skip}
 		onPlay={play}
@@ -97,7 +96,7 @@
 	/>
 	{#if video && videoPlayerRef}
 		<Controls
-			isPlaying={videoIsPlaying}
+			isPlaying={timeline.isPlaying}
 			{skip}
 			{play}
 			{playbackSpeed}
@@ -111,7 +110,7 @@
 			duration={timeline.duration}
 			{toTimeString}
 			bind:progress
-			isPlaying={videoIsPlaying}
+			isPlaying={timeline.isPlaying}
 		/>
 	{/if}
 </div>
