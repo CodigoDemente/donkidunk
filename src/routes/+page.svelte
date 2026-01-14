@@ -47,22 +47,22 @@
 </script>
 
 <div class="flex h-full w-full flex-row gap-1">
-	<div class="flex h-full shrink-0 flex-col" style="width: {leftWidth}%">
-		<VideoPlayer video={projectStore.video?.path} />
-	</div>
-	<div
-		class="w-1 cursor-col-resize bg-gray-900"
-		onmousedown={startResize}
-		role="separator"
-		aria-orientation="horizontal"
-	></div>
-	<div class="flex h-full grow flex-col">
-		{#if projectStore.file?.originalPath}
+	{#if projectStore.file?.originalPath}
+		<div class="flex h-full shrink-0 flex-col" style="width: {leftWidth}%">
+			<VideoPlayer video={projectStore.video?.path} />
+		</div>
+		<div
+			class="w-1 cursor-col-resize bg-gray-900"
+			onmousedown={startResize}
+			role="separator"
+			aria-orientation="horizontal"
+		></div>
+		<div class="flex h-full grow flex-col">
 			<Board />
-		{:else}
-			<EmptyProjectState />
-		{/if}
-	</div>
+		</div>
+	{:else}
+		<EmptyProjectState />
+	{/if}
 </div>
 <Modal bind:modalStore={projectStore.modal} />
 <Snackbar bind:snackbarStore={projectStore.snackbar} />
