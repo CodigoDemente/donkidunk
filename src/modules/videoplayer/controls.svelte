@@ -61,10 +61,10 @@
 		}
 	});
 
-	// Handle Ctrl + V
+	// Handle Ctrl + .
 	$effect(() => {
 		function handleKeyDown(e: KeyboardEvent) {
-			if (e.ctrlKey && e.key === 'v' && onSpeedChange) {
+			if (e.ctrlKey && e.key === '.' && onSpeedChange) {
 				e.preventDefault();
 				const currentIndex = speedOptions.findIndex((opt) => opt.value === selectedSpeed);
 				const nextIndex = (currentIndex + 1) % speedOptions.length;
@@ -148,7 +148,7 @@
 
 	<div class="flex flex-1 items-center justify-end gap-2">
 		{#if onSpeedChange}
-			<Tooltip text="Ctrl + V" position="top" size="small">
+			<Tooltip text="Ctrl + ." position="top" size="small">
 				<Dropdown
 					options={speedOptions}
 					bind:value={selectedSpeed}
