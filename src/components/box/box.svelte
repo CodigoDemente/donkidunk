@@ -42,6 +42,11 @@
 		y = Math.max(0, Math.min(y, 100 - draggedHeightPercent));
 
 		board.updateCategoryPosition(type, draggedCategory.id, x, y);
+
+		// Move the dragged category to the end of the array so the div is painted last
+		// and therefore on top of the other categories
+		const index = categories.findIndex((category) => category.id === draggedCategory.id);
+		categories.splice(categories.length - 1, 0, categories.splice(index, 1)[0]);
 	}
 
 	function allowDrop(e: DragEvent) {
