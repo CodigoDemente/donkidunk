@@ -17,7 +17,7 @@
 	class="w-category-name-width max-w-category-name-width min-w-category-name-width flex h-5 items-center gap-2"
 >
 	<!-- Category name tag -->
-	<Tooltip text={category?.name || 'Unknown'} position="right" size="large">
+	<Tooltip text={category?.name || 'Unknown'} position="right" size="mini">
 		<div
 			class="flex h-5 w-[110px] items-center justify-start overflow-hidden rounded-xs border border-gray-700 bg-gray-800 px-2"
 			style="background-color: {category?.color}20; border-color: {category?.color}40;"

@@ -19,10 +19,11 @@
 	}: Props = $props();
 
 	const sizeToClass = {
-		mini: 'w-18',
-		small: 'w-28',
-		medium: 'w-46',
-		large: 'w-72',
+		mini: 'w-12',
+		small: 'w-20',
+		medium: 'w-28',
+		large: 'w-46',
+		extralarge: 'w-72',
 		full: 'w-full'
 	};
 
@@ -67,7 +68,7 @@
 		{/if}
 		{#if open}
 			<ul
-				class={`absolute top-[26px] left-0 z-10 mt-1 max-h-26 overflow-auto rounded border border-gray-700 bg-gray-800 shadow ${sizeToClass[size]}`}
+				class={`absolute top-[26px] left-0 z-10 mt-1 max-h-26 overflow-auto rounded border border-gray-700 bg-gray-800 shadow ${sizeToClass[size]} ${size === 'mini' ? 'scrollbar-hide' : ''}`}
 				role="listbox"
 			>
 				{#each options as opt (opt.value)}
@@ -84,3 +85,14 @@
 		{/if}
 	</div>
 </label>
+
+<style>
+	.scrollbar-hide {
+		-ms-overflow-style: none; /* IE and Edge */
+		scrollbar-width: none; /* Firefox */
+	}
+
+	.scrollbar-hide::-webkit-scrollbar {
+		display: none; /* Chrome, Safari and Opera */
+	}
+</style>
