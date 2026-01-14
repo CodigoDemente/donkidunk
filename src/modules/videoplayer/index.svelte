@@ -73,7 +73,7 @@
 <div
 	class="flex h-full flex-col overflow-x-hidden overflow-y-hidden rounded-md border border-gray-700 bg-gray-800 px-2"
 >
-	{#if video && videoPlayerRef}
+	{#if video}
 		<p
 			class="mb-2 inline-block border-b border-gray-700 px-2 py-1 text-xs font-semibold text-gray-200"
 		>
