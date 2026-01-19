@@ -4,7 +4,7 @@
 
 	interface Props {
 		text?: string;
-		size?: 'small' | 'medium' | 'large';
+		size?: 'mini' | 'small' | 'medium' | 'large';
 		position?: 'top' | 'bottom' | 'left' | 'right';
 		info?: boolean;
 		tooltipColor?: string;
@@ -35,7 +35,8 @@
 	const adjustedPosition = $derived(positionOverride ?? position);
 
 	const sizeToClass = {
-		small: 'text-[10px] font-light px-2 py-1',
+		mini: 'text-[12px] font-light px-1 py-0.5',
+		small: 'text-[12px] font-light px-2 py-1',
 		medium: 'text-xs font-light px-3 py-2',
 		large: 'text-xs font-light px-4 py-2'
 	};

@@ -126,7 +126,7 @@
 								<Dropdown
 									placeholder="Select range"
 									options={typeOptions}
-									size="small"
+									size="medium"
 									selectClass="bg-gray-800"
 									bind:value={btn.range}
 								/>
@@ -137,7 +137,7 @@
 									<Dropdown
 										placeholder="Select duration"
 										options={secondsDurationOptions}
-										size="mini"
+										size="small"
 										selectClass="bg-gray-800"
 										bind:value={btn.duration}
 									/>
@@ -146,7 +146,7 @@
 									<Dropdown
 										placeholder="Select before"
 										options={secondsBeforeOptions}
-										size="mini"
+										size="small"
 										selectClass="bg-gray-800"
 										bind:value={btn.before}
 									/>

@@ -12,6 +12,7 @@
 	import Dropdown from '../../components/dropdown/dropdown.svelte';
 	import { speedOptions, skipStepOptions } from './utils/controlsUtils';
 	import Tooltip from '../../components/tooltip/tooltip.svelte';
+	import { boardContext } from '../board/context.svelte';
 
 	type Props = {
 		skip: (type: SkipType, direction: SkipDirection) => void;
@@ -34,6 +35,8 @@
 		onSkipStepChange,
 		highlightedSkip = null
 	}: Props = $props();
+
+	const board = boardContext.get();
 
 	let selectedSpeed = $derived(playbackSpeed);
 	let selectedSkipStep = $derived(skipStep);
@@ -58,10 +61,10 @@
 		}
 	});
 
-	// Handle Ctrl + V
+	// Handle Ctrl + .
 	$effect(() => {
 		function handleKeyDown(e: KeyboardEvent) {
-			if (e.ctrlKey && e.key === 'v' && onSpeedChange) {
+			if (e.ctrlKey && e.key === '.' && onSpeedChange) {
 				e.preventDefault();
 				const currentIndex = speedOptions.findIndex((opt) => opt.value === selectedSpeed);
 				const nextIndex = (currentIndex + 1) % speedOptions.length;
@@ -108,13 +111,13 @@
 			<IconPlayerSkipBack />
 		</button>
 		<button
-			class="transition-all hover:cursor-pointer hover:text-white active:text-white {highlightedSkip ===
-			'play'
-				? 'text-tertiary scale-110'
-				: ''}"
+			class="transition-all hover:text-white active:text-white
+			{board.isEditing ? 'cursor-not-allowed opacity-50' : 'hover:cursor-pointer'}
+			{highlightedSkip === 'play' ? 'text-tertiary scale-110' : ''}"
 			onclick={play}
 			aria-label="Play/Pause"
 			title="Play/Pause"
+			disabled={board.isEditing}
 		>
 			{#if isPlaying}
 				<IconPlayerPause />
@@ -145,7 +148,7 @@
 
 	<div class="flex flex-1 items-center justify-end gap-2">
 		{#if onSpeedChange}
-			<Tooltip text="Ctrl + V" position="top" size="small">
+			<Tooltip text="Ctrl + ." position="top" size="small">
 				<Dropdown
 					options={speedOptions}
 					bind:value={selectedSpeed}

@@ -11,6 +11,7 @@
 	import { saveUIModeCommand } from '../config/commands/SaveUIMode';
 	import { boardContext } from '../board/context.svelte';
 	import Tooltip from '../../components/tooltip/tooltip.svelte';
+	import { timelineContext } from '../videoplayer/context.svelte';
 
 	type Props = {
 		disabled: boolean;
@@ -20,6 +21,9 @@
 
 	const config = configContext.get();
 	const board = boardContext.get();
+	const timeline = timelineContext.get();
+
+	const editModeDisabled = $derived(disabled || timeline.isPlaying);
 
 	function navigateTo(page: RouteId) {
 		goto(resolve(page)); // Navigate to the specified route
@@ -104,21 +108,25 @@
 		-->
 
 		<li class="ml-auto">
-			<Tooltip text={board.isEditing ? 'Edit Mode' : 'Play Mode'} size="small" position="bottom">
+			<Tooltip
+				text={board.isEditing ? 'Switch to Play Mode' : 'Switch to Edit Mode'}
+				size="small"
+				position="bottom"
+			>
 				<button
 					type="button"
 					class={`
-				${disabled ? 'cursor-not-allowed opacity-50' : 'hover:cursor-pointer'}
+				${editModeDisabled ? 'cursor-not-allowed opacity-50' : 'hover:cursor-pointer'}
 				${board.isEditing ? 'bg-tertiary text-white' : 'text-tertiary'}
 				flex items-center justify-center gap-2 rounded-sm p-1.5`}
 					onclick={() => toggleEditingMode()}
-					aria-label="Edit"
-					{disabled}
+					aria-label={board.isEditing ? 'Switch to Play Mode' : 'Switch to Edit Mode'}
+					disabled={editModeDisabled}
 				>
 					{#if board.isEditing}
-						<IconEdit class="h-4 w-4" />
-					{:else}
 						<IconPlayerPlay class="h-4 w-4" />
+					{:else}
+						<IconEdit class="h-4 w-4" />
 					{/if}
 				</button>
 			</Tooltip>

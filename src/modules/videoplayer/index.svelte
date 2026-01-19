@@ -14,7 +14,6 @@
 
 	const { video }: Props = $props();
 
-	let videoIsPlaying: boolean = $state(false);
 	let playbackSpeed = $state<number>(1.0);
 	let skipStep = $state<number>(15);
 	let highlightedSkip: 'forward' | 'backward' | 'play' | null = $state(null);
@@ -41,7 +40,7 @@
 	function play() {
 		if (!videoPlayerRef) return;
 
-		if (!videoIsPlaying) {
+		if (!timeline.isPlaying) {
 			videoPlayerRef.play();
 		} else {
 			videoPlayerRef.pause();
@@ -74,30 +73,30 @@
 <div
 	class="flex h-full flex-col overflow-x-hidden overflow-y-hidden rounded-md border border-gray-700 bg-gray-800 px-2"
 >
-	<p
-		class="mb-2 inline-block border-b border-gray-700 px-2 py-1 text-xs font-semibold text-gray-200"
-	>
-		Video / Timeline
-	</p>
+	{#if video}
+		<p
+			class="mb-2 inline-block border-b border-gray-700 px-2 py-1 text-xs font-semibold text-gray-200"
+		>
+			Video / Timeline
+		</p>
 
-	<Video
-		{video}
-		bind:currentTime={timeline.currentTime}
-		bind:duration={timeline.duration}
-		{playbackSpeed}
-		onPlayStateChange={(isPlaying) => {
-			videoIsPlaying = isPlaying;
-		}}
-		onSkip={skip}
-		onPlay={play}
-		onHighlightChange={(highlight) => {
-			highlightedSkip = highlight;
-		}}
-		bind:videoPlayerRef
-	/>
-	{#if video && videoPlayerRef}
+		<Video
+			{video}
+			bind:currentTime={timeline.currentTime}
+			bind:duration={timeline.duration}
+			{playbackSpeed}
+			onPlayStateChange={(isPlaying) => {
+				timeline.isPlaying = isPlaying;
+			}}
+			onSkip={skip}
+			onPlay={play}
+			onHighlightChange={(highlight) => {
+				highlightedSkip = highlight;
+			}}
+			bind:videoPlayerRef
+		/>
 		<Controls
-			isPlaying={videoIsPlaying}
+			isPlaying={timeline.isPlaying}
 			{skip}
 			{play}
 			{playbackSpeed}
@@ -111,7 +110,7 @@
 			duration={timeline.duration}
 			{toTimeString}
 			bind:progress
-			isPlaying={videoIsPlaying}
+			isPlaying={timeline.isPlaying}
 		/>
 	{/if}
 </div>

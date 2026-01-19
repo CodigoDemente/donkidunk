@@ -87,7 +87,7 @@
 				}
 			]}
 			bind:value={selectedBoardId}
-			size="medium"
+			size="large"
 			selectClass="bg-gray-700"
 			noErrors
 			horizontal

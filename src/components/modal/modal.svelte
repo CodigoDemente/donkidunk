@@ -8,6 +8,8 @@
 
 	const { modalStore = $bindable() }: Props = $props();
 
+	let modalElement = $state<HTMLDivElement | undefined>(undefined);
+
 	const sizesToClass = {
 		small: 'max-w-md',
 		medium: 'max-w-xl',
@@ -23,6 +25,14 @@
 			modalStore?.onSubmit?.();
 		}
 	}
+
+	$effect(() => {
+		if (modalStore.show && modalElement) {
+			setTimeout(() => {
+				modalElement?.focus();
+			}, 0);
+		}
+	});
 </script>
 
 <!-- !DO NOT USE THIS COMPONENT. This modal is called at the root of the application, then it can be reused throughout the app! -->
@@ -33,6 +43,7 @@
 	<div class="fixed inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-sm">
 		<!-- Modal window -->
 		<div
+			bind:this={modalElement}
 			class={`mx-4 flex w-full ${sizesToClass[modalStore.size as ModalSize]} flex-col rounded-lg bg-gray-800 p-0 shadow-lg`}
 			onkeydown={handleKeyDown}
 			role="dialog"

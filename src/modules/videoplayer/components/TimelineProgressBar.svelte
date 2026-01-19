@@ -127,6 +127,7 @@
 		{#each Object.keys(eventCategoriesById) as categoryId (categoryId)}
 			{@const category = eventCategoriesById[categoryId]}
 			<CategoryPlayer
+				disabled={!eventsByCategory[categoryId]?.length}
 				{category}
 				isActive={playingCategoryId === categoryId}
 				onPlay={() => onCategoryPlay?.(categoryId)}

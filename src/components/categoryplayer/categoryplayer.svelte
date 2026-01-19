@@ -7,16 +7,17 @@
 		category: Category | undefined;
 		isActive?: boolean;
 		onPlay?: () => void;
+		disabled?: boolean;
 	};
 
-	let { category, isActive = false, onPlay }: Props = $props();
+	let { category, isActive = false, onPlay, disabled = false }: Props = $props();
 </script>
 
 <div
-	class="flex h-5 w-[var(--spacing-category-name-width)] max-w-[var(--spacing-category-name-width)] min-w-[var(--spacing-category-name-width)] items-center gap-2"
+	class="w-category-name-width max-w-category-name-width min-w-category-name-width flex h-5 items-center gap-2"
 >
 	<!-- Category name tag -->
-	<Tooltip text={category?.name || 'Unknown'} position="right" size="large">
+	<Tooltip text={category?.name || 'Unknown'} position="right" size="mini">
 		<div
 			class="flex h-5 w-[110px] items-center justify-start overflow-hidden rounded-xs border border-gray-700 bg-gray-800 px-2"
 			style="background-color: {category?.color}20; border-color: {category?.color}40;"
@@ -37,15 +38,18 @@
 	<div
 		role="button"
 		tabindex="0"
-		class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-xs border bg-gray-800 text-gray-400 transition-colors hover:bg-gray-700 hover:text-gray-300 {isActive
+		class="flex h-5 w-5 shrink-0 items-center justify-center rounded-xs border bg-gray-800 text-gray-400 transition-colors hover:bg-gray-700 hover:text-gray-300 {isActive
 			? 'border-primary'
-			: 'border-gray-700'}"
+			: 'border-gray-700'}
+			{disabled ? 'cursor-not-allowed opacity-50' : 'hover:cursor-pointer'}"
 		aria-label="Play all category events"
 		onclick={(e) => {
+			if (disabled) return;
 			e.stopPropagation();
 			onPlay?.();
 		}}
 		onkeydown={(e) => {
+			if (disabled) return;
 			if (e.key === 'Enter' || e.key === ' ') {
 				e.preventDefault();
 				e.stopPropagation();

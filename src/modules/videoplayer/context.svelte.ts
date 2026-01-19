@@ -17,6 +17,7 @@ export const timelineContext = new Context<Timeline>('');
 export class Timeline {
 	#history!: StateHistory<TimelineData>;
 	#state = $state<TimelineData>(initialState);
+	#isPlaying = $state(false);
 	#eventPlaying = $state<RangeDataWithTags | null>(null);
 	#eventsPlaying = $state<SvelteMap<string, RangeDataWithTags>>(new SvelteMap());
 	#currentTime: number = $state(0);
@@ -306,7 +307,15 @@ export class Timeline {
 	}
 	//#endregion
 
-	//#region Selectors
+	//#region Selectors and setters
+	get isPlaying() {
+		return this.#isPlaying;
+	}
+
+	set isPlaying(value: boolean) {
+		this.#isPlaying = value;
+	}
+
 	get eventPlaying() {
 		return this.#eventPlaying;
 	}
