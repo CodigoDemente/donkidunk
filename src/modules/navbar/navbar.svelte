@@ -11,7 +11,6 @@
 	import { saveUIModeCommand } from '../config/commands/SaveUIMode';
 	import { boardContext } from '../board/context.svelte';
 	import Tooltip from '../../components/tooltip/tooltip.svelte';
-	import ProjectStore from '../../persistence/stores/project/store.svelte';
 	import { timelineContext } from '../videoplayer/context.svelte';
 
 	type Props = {
