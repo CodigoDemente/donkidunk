@@ -5,32 +5,32 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "lldb-dap",
+            "type": "lldb",
             "request": "launch",
             "name": "Tauri Development Debug",
-            "program": "${workspaceFolder}/src-tauri/target/debug/donkidunk",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--manifest-path=./src-tauri/Cargo.toml",
+                    "--no-default-features"
+                ]
+            },
             // task for the `beforeDevCommand` if used, must be configured in `.vscode/tasks.json`
             "preLaunchTask": "ui:dev"
         },
         {
-            "type": "lldb-dap",
+            "type": "lldb",
             "request": "launch",
             "name": "Tauri Production Debug",
-            "program": "${workspaceFolder}/src-tauri/target/release/donkidunk",
-            // task for the `beforeBuildCommand` if used, must be configured in `.vscode/tasks.json`
-            "preLaunchTask": "ui:build"
-        },
-        {
-            "type": "lldb-dap",
-            "request": "launch",
-            "name": "Debug unit tests in library 'yourprogram'",
             "cargo": {
                 "args": [
-                    "test",
+                    "build",
+                    "--release",
+                    "--manifest-path=./src-tauri/Cargo.toml"
                 ]
             },
-            "args": [],
-            "cwd": "${workspaceFolder}/src-tauri"
+            // task for the `beforeBuildCommand` if used, must be configured in `.vscode/tasks.json`
+            "preLaunchTask": "ui:build"
         }
     ]
 }

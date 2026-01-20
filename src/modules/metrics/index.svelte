@@ -5,6 +5,11 @@
 	import { getTextColorForBackground } from '../../components/box/colors';
 	import type { EventUsage } from './types/EventUsage';
 	import type { TagUsage } from './types/TagUsage';
+	import Button from '../../components/button/button.svelte';
+	import { save } from '@tauri-apps/plugin-dialog';
+	import { path } from '@tauri-apps/api';
+	import ProjectStore from '../../persistence/stores/project/store.svelte';
+	import { exportClipsCSV } from './commands/ExportClipsCSV';
 
 	const config = configContext.get();
 
@@ -13,6 +18,7 @@
 	let eventsUsed: EventUsage[] = $state([]);
 	let tagsUsed: TagUsage[] = $state([]);
 	let loading = $state(true);
+	let exporting = $state(false);
 
 	const totalEvents = $derived(eventsUsed.reduce((sum, event) => sum + event.count, 0));
 
@@ -31,6 +37,25 @@
 			}
 		} finally {
 			loading = false;
+		}
+	}
+
+	async function onExportHandler() {
+		exporting = true;
+		try {
+			const outPath = await save({
+				title: 'Select output CSV file',
+				defaultPath: await path.dirname(ProjectStore.getState().video.path!),
+				filters: [{ name: 'CSV', extensions: ['csv'] }]
+			});
+
+			if (!outPath) {
+				return;
+			}
+
+			await exportClipsCSV(outPath);
+		} finally {
+			exporting = false;
 		}
 	}
 
@@ -53,6 +78,14 @@
 					<p class="text-sm text-gray-500">{loading ? '...' : totalTags}</p>
 				</div>
 			{/if}
+			<div class="self-end">
+				<Button size="medium" primary disabled={exporting} onClick={() => onExportHandler()}
+					>Export in CSV</Button
+				>
+				{#if exporting}
+					<p class="mt-2 text-sm text-gray-600">Exporting CSV, please wait...</p>
+				{/if}
+			</div>
 		</div>
 
 		<!-- Detail tables -->

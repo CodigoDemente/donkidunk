@@ -17,6 +17,7 @@ import { Board } from '../../modules/board/context.svelte';
 import type { Timeline } from '../../modules/videoplayer/context.svelte';
 import { CategoryType } from '../../components/box/types';
 import { DashboardRepositoryFactory } from '../../factories/DashboardRepositoryFactory';
+import { disconnectDatabase, setDatabaseConnection } from '../commands/SetDatabaseConnection';
 
 const DB_BACKUP_EXTENSION = 'dnk';
 
@@ -127,6 +128,8 @@ export async function openDatabase(
 		await projectActions.setBackupId(backupId);
 	}
 
+	await setDatabaseConnection(dbPath);
+
 	return db;
 }
 
@@ -140,6 +143,8 @@ export async function closeDatabase(): Promise<void> {
 	projectActions.setFilePath('');
 	projectActions.setCurrentFilePath('');
 	projectActions.setDatabase(null);
+
+	await disconnectDatabase();
 
 	debug('Database closed successfully');
 }

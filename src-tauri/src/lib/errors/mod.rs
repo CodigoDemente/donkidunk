@@ -11,6 +11,15 @@ pub enum AppError {
     #[error(transparent)]
     ApplicationError(#[from] tauri::Error),
 
+    #[error("{0}")]
+    DatabaseError(#[from] DatabaseError),
+
+    #[error("[io] ERROR Failed to open file: {0}")]
+    IoError(String),
+
+    #[error("{0}")]
+    CsvError(#[from] CsvError),
+
     #[error(transparent)]
     Unexpected(#[from] anyhow::Error),
 }
@@ -61,4 +70,19 @@ pub enum ConfigError {
 
     #[error("[config-manager] ERROR invalid board size: {0}")]
     InvalidBoardSize(String),
+}
+
+#[derive(Debug, Error)]
+pub enum DatabaseError {
+    #[error("[database] ERROR while executing database operation: {0}")]
+    SqlError(#[from] sqlx::Error),
+
+    #[error("[database] ERROR pending references to the DB object")]
+    PendingReferences,
+}
+
+#[derive(Debug, Error)]
+pub enum CsvError {
+    #[error("[csv] ERROR while writing CSV file: {0}")]
+    WriteError(String),
 }
