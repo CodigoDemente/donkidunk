@@ -80,7 +80,7 @@ impl TimelineRepositoryTrait for TimelineRepository {
                 name
             FROM 
                 tag
-            ORDER BY name;
+            ORDER BY category_id, name;
         ",
         )
         .fetch(&self.db);
