@@ -8,6 +8,7 @@
 	import Button from '../../components/button/button.svelte';
 	import { save } from '@tauri-apps/plugin-dialog';
 	import { path } from '@tauri-apps/api';
+	import { join } from '@tauri-apps/api/path';
 	import ProjectStore from '../../persistence/stores/project/store.svelte';
 	import { exportClipsCSV } from './commands/ExportClipsCSV';
 
@@ -43,14 +44,27 @@
 	async function onExportHandler() {
 		exporting = true;
 		try {
-			const outPath = await save({
+			const videoPath = ProjectStore.getState().video.path!;
+			const videoDir = await path.dirname(videoPath);
+
+			// Extraer el nombre del archivo sin extensión
+			const videoFileName = videoPath.split(/[/\\]/).pop() || 'export';
+			const videoNameWithoutExt = videoFileName.replace(/\.[^/.]+$/, '');
+			const defaultPath = await join(videoDir, `${videoNameWithoutExt}_export.csv`);
+
+			let outPath = await save({
 				title: 'Select output CSV file',
-				defaultPath: await path.dirname(ProjectStore.getState().video.path!),
+				defaultPath: defaultPath,
 				filters: [{ name: 'CSV', extensions: ['csv'] }]
 			});
 
 			if (!outPath) {
 				return;
+			}
+
+			// Añadir extensión .csv si no la tiene
+			if (!outPath.toLowerCase().endsWith('.csv')) {
+				outPath = `${outPath}.csv`;
 			}
 
 			await exportClipsCSV(outPath);
