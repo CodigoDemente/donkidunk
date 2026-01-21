@@ -18,6 +18,7 @@ import type { Timeline } from '../../modules/videoplayer/context.svelte';
 import { CategoryType } from '../../components/box/types';
 import { DashboardRepositoryFactory } from '../../factories/DashboardRepositoryFactory';
 import { disconnectDatabase, setDatabaseConnection } from '../commands/SetDatabaseConnection';
+import ReplaceVideoModal from '../../modules/modalContent/replaceVideoModal/index.svelte';
 
 const DB_BACKUP_EXTENSION = 'dnk';
 
@@ -149,7 +150,7 @@ export async function closeDatabase(): Promise<void> {
 	debug('Database closed successfully');
 }
 
-export async function loadProjectFromDatabase(repository: ProjectRepository): Promise<void> {
+export async function loadProjectFromDatabase(repository: ProjectRepository): Promise<boolean> {
 	debug('Loading project from database');
 
 	// Here we don't use the repository nor the actions for setting the values because we know that in the
@@ -159,13 +160,51 @@ export async function loadProjectFromDatabase(repository: ProjectRepository): Pr
 
 	const videoPath = await repository.getVideoPath();
 	if (videoPath) {
-		projectStore.video.path = videoPath;
+		const videoExists = await exists(videoPath);
+
+		if (!videoExists) {
+			const newVideoPath = await requestVideoReplacement();
+
+			if (newVideoPath) {
+				projectStore.video.path = newVideoPath;
+
+				await repository.setVideoPath(newVideoPath);
+				await emit('project:dirty');
+			} else {
+				return false;
+			}
+		} else {
+			projectStore.video.path = videoPath;
+		}
 	}
 
 	const savedTimestamp = await repository.getLastSavedTimestamp();
 	if (savedTimestamp) {
 		projectStore.metadata.timestamp = savedTimestamp;
 	}
+
+	return true;
+}
+
+async function requestVideoReplacement(): Promise<string | null> {
+	return new Promise((resolve) => {
+		projectActions.setModal({
+			content: ReplaceVideoModal,
+			title: 'Video file not found',
+			onCancel: () => {
+				projectActions.closeAndResetModal();
+				resolve(null);
+			},
+			onSubmit: () => {
+				const videoPath = projectActions.getReplaceVideoFormData();
+				projectActions.closeAndResetModal();
+				resolve(videoPath);
+			},
+			onSubmitText: 'Select video',
+			show: true,
+			size: 'large'
+		});
+	});
 }
 
 export async function loadBoardFromDatabase(

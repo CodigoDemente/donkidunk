@@ -30,7 +30,8 @@ export const InitialProjectData: ProjectData = {
 		mode: 'auto'
 	},
 	database: null,
-	newProjectFormData: null
+	newProjectFormData: null,
+	replaceVideoFormData: null
 };
 
 let projectStore: ProjectData = $state(InitialProjectData);

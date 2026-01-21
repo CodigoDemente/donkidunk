@@ -119,5 +119,13 @@ export const projectActions = {
 
 	getNewProjectFormData(): NewProjectFormData | null {
 		return projectStore.newProjectFormData;
+	},
+
+	setReplaceVideoFormData(formData: string | null): void {
+		projectStore.replaceVideoFormData = formData;
+	},
+
+	getReplaceVideoFormData(): string | null {
+		return projectStore.replaceVideoFormData;
 	}
 };
