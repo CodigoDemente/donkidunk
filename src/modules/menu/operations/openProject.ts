@@ -89,7 +89,16 @@ export async function openProject(board: Board, timeline: Timeline, config: Conf
 		await openDatabase(backupPath, true);
 	}
 
-	await loadProjectFromDatabase(ProjectRepositoryFactory.getInstance());
+	const projectLoaded = await loadProjectFromDatabase(ProjectRepositoryFactory.getInstance());
+
+	if (!projectLoaded) {
+		debug('Project not loaded because the video file was not found');
+
+		await closeProject(board, timeline);
+
+		return;
+	}
+
 	await loadBoardFromDatabase(BoardRepositoryFactory.getInstance(), board);
 	await loadTimelineFromDatabase(TimelineRepositoryFactory.getInstance(), timeline);
 
