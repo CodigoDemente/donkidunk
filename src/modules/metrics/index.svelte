@@ -64,7 +64,17 @@
 
 <div class="flex h-full w-full flex-col overflow-hidden">
 	<div class="flex h-full min-h-0 flex-col gap-4 overflow-hidden p-4">
-		<h1 class="shrink-0 text-lg font-bold">Metrics</h1>
+		<div class="flex h-8 w-full shrink-0 flex-row items-start justify-between">
+			<h1 class="shrink-0 text-lg font-bold">Metrics</h1>
+			<div class="self-end">
+				<Button size="medium" primary disabled={exporting} onClick={() => onExportHandler()}
+					>Export in CSV</Button
+				>
+				{#if exporting}
+					<p class="mt-2 text-sm text-gray-600">Exporting CSV, please wait...</p>
+				{/if}
+			</div>
+		</div>
 
 		<!-- Summary tables -->
 		<div class="flex w-full shrink-0 flex-row gap-3">
@@ -78,14 +88,6 @@
 					<p class="text-sm text-gray-500">{loading ? '...' : totalTags}</p>
 				</div>
 			{/if}
-			<div class="self-end">
-				<Button size="medium" primary disabled={exporting} onClick={() => onExportHandler()}
-					>Export in CSV</Button
-				>
-				{#if exporting}
-					<p class="mt-2 text-sm text-gray-600">Exporting CSV, please wait...</p>
-				{/if}
-			</div>
 		</div>
 
 		<!-- Detail tables -->
