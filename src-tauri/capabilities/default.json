@@ -29,7 +29,7 @@
       "identifier": "fs:allow-exists",
       "allow": [
         {
-          "path": "$APPLOCALDATA/**"
+          "path": "**/*"
         }
       ]
     },

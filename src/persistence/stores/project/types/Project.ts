@@ -43,4 +43,5 @@ export type ProjectData = {
 	};
 	database: Database | null;
 	newProjectFormData: NewProjectFormData | null;
+	replaceVideoFormData: string | null;
 };
