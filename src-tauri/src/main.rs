@@ -8,15 +8,12 @@ mod menu;
 mod server;
 
 use commands::config::*;
+use commands::database::*;
 use commands::menu::*;
+use commands::metrics::*;
 use commands::video::*;
-use lib::configmanager::{ConfigManager, ConfigManagerTrait};
-use std::sync::Mutex;
+use lib::state::{AppState, AppStateTrait};
 use tauri::Manager;
-
-pub struct AppState {
-    config_manager: Mutex<ConfigManager>,
-}
 
 fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
     builder
@@ -30,6 +27,9 @@ fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
             save_button_board,
             save_board_size,
             save_ui_mode,
+            set_database_conn,
+            disconnect_database,
+            export_clips_csv,
         ])
         .setup(|app| {
             #[cfg(not(target_os = "windows"))]
@@ -37,14 +37,7 @@ fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
 
             menu::setup_menu(app)?;
 
-            let mut config_manager = ConfigManager::new(app);
-            config_manager.initialize_button_boards(app).unwrap();
-
-            let initial_state = AppState {
-                config_manager: Mutex::new(config_manager),
-            };
-
-            app.manage(initial_state);
+            app.manage(AppState::new(app));
 
             #[cfg(debug_assertions)]
             app.get_webview_window("main").unwrap().open_devtools();

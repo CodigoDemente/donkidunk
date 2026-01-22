@@ -5,6 +5,12 @@
 	import { getTextColorForBackground } from '../../components/box/colors';
 	import type { EventUsage } from './types/EventUsage';
 	import type { TagUsage } from './types/TagUsage';
+	import Button from '../../components/button/button.svelte';
+	import { save } from '@tauri-apps/plugin-dialog';
+	import { path } from '@tauri-apps/api';
+	import { join } from '@tauri-apps/api/path';
+	import ProjectStore from '../../persistence/stores/project/store.svelte';
+	import { exportClipsCSV } from './commands/ExportClipsCSV';
 
 	const config = configContext.get();
 
@@ -13,6 +19,7 @@
 	let eventsUsed: EventUsage[] = $state([]);
 	let tagsUsed: TagUsage[] = $state([]);
 	let loading = $state(true);
+	let exporting = $state(false);
 
 	const totalEvents = $derived(eventsUsed.reduce((sum, event) => sum + event.count, 0));
 
@@ -34,12 +41,54 @@
 		}
 	}
 
+	async function onExportHandler() {
+		exporting = true;
+		try {
+			const videoPath = ProjectStore.getState().video.path!;
+			const videoDir = await path.dirname(videoPath);
+
+			// Extraer el nombre del archivo sin extensión
+			const videoFileName = videoPath.split(/[/\\]/).pop() || 'export';
+			const videoNameWithoutExt = videoFileName.replace(/\.[^/.]+$/, '');
+			const defaultPath = await join(videoDir, `${videoNameWithoutExt}_export.csv`);
+
+			let outPath = await save({
+				title: 'Select output CSV file',
+				defaultPath: defaultPath,
+				filters: [{ name: 'CSV', extensions: ['csv'] }]
+			});
+
+			if (!outPath) {
+				return;
+			}
+
+			// Añadir extensión .csv si no la tiene
+			if (!outPath.toLowerCase().endsWith('.csv')) {
+				outPath = `${outPath}.csv`;
+			}
+
+			await exportClipsCSV(outPath);
+		} finally {
+			exporting = false;
+		}
+	}
+
 	loadMetrics();
 </script>
 
 <div class="flex h-full w-full flex-col overflow-hidden">
 	<div class="flex h-full min-h-0 flex-col gap-4 overflow-hidden p-4">
-		<h1 class="shrink-0 text-lg font-bold">Metrics</h1>
+		<div class="flex h-8 w-full shrink-0 flex-row items-start justify-between">
+			<h1 class="shrink-0 text-lg font-bold">Metrics</h1>
+			<div class="self-end">
+				<Button size="medium" primary disabled={exporting} onClick={() => onExportHandler()}
+					>Export in CSV</Button
+				>
+				{#if exporting}
+					<p class="mt-2 text-sm text-gray-600">Exporting CSV, please wait...</p>
+				{/if}
+			</div>
+		</div>
 
 		<!-- Summary tables -->
 		<div class="flex w-full shrink-0 flex-row gap-3">
