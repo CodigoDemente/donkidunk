@@ -34,7 +34,6 @@ const initialCategory = (section: CategoryType): Category => ({
 export const boardContext = new Context<Board>('');
 export class Board {
 	#history!: StateHistory<BoardData>;
-	#isEditing = $state(false);
 	#tempCategory = $state<Category>(initialCategory(CategoryType.Event));
 	#state = $state<BoardData>(initialState);
 	#eventCategoriesById!: Record<string, Category>;
@@ -118,14 +117,9 @@ export class Board {
 	//#region Actions
 	reset() {
 		this.#state = initialState;
-		this.#isEditing = false;
 		this.#tempCategory = initialCategory(CategoryType.Event);
 		this.#errorsForm = {};
 		this.#history.clear();
-	}
-
-	setEditingMode(value: boolean) {
-		this.#isEditing = value;
 	}
 
 	resetCategoryForm(section: CategoryType) {
@@ -504,10 +498,6 @@ export class Board {
 	//#endregion
 
 	//#region Selectors
-	get isEditing() {
-		return this.#isEditing;
-	}
-
 	get categoryToCreate() {
 		return this.#tempCategory;
 	}

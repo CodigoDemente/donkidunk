@@ -25,14 +25,12 @@
 	}: Props = $props();
 
 	const MARGIN = 8;
+	const TOOLTIP_GAP = 4;
 
 	let show = $state(false);
 	let tooltipRef: HTMLDivElement | null = $state(null);
-	let containerRef: HTMLSpanElement | null = $state(null);
-	let positionOverride: typeof position | null = $state(null);
-	let alignRight = $state(false);
-	let alignLeft = $state(false);
-	const adjustedPosition = $derived(positionOverride ?? position);
+	let triggerRef: HTMLSpanElement | null = $state(null);
+	let tooltipStyle = $state('');
 
 	const sizeToClass = {
 		mini: 'text-[12px] font-light px-1 py-0.5',
@@ -41,81 +39,83 @@
 		large: 'text-xs font-light px-4 py-2'
 	};
 
-	// Adjust position if tooltip would overflow viewport
+	// Calculate tooltip position using fixed positioning
 	$effect(() => {
-		if (show && tooltipRef && containerRef) {
+		if (show && tooltipRef && triggerRef) {
+			const triggerRect = triggerRef.getBoundingClientRect();
 			const tooltipRect = tooltipRef.getBoundingClientRect();
-			const containerRect = containerRef.getBoundingClientRect();
 			const viewportWidth = window.innerWidth;
 			const viewportHeight = window.innerHeight;
 
-			let newPosition = position;
-			let newAlignRight = false;
-			let newAlignLeft = false;
+			let finalPosition = position;
+			let top = 0;
+			let left = 0;
 
-			// Check vertical overflow (for top/bottom positions)
-			if (position === 'top' && tooltipRect.top < MARGIN) {
-				newPosition = 'bottom';
-			} else if (position === 'bottom' && tooltipRect.bottom > viewportHeight - MARGIN) {
-				newPosition = 'top';
+			// Check if preferred position would overflow and flip if needed
+			if (position === 'top' && triggerRect.top - tooltipRect.height - TOOLTIP_GAP < MARGIN) {
+				finalPosition = 'bottom';
+			} else if (
+				position === 'bottom' &&
+				triggerRect.bottom + tooltipRect.height + TOOLTIP_GAP > viewportHeight - MARGIN
+			) {
+				finalPosition = 'top';
+			} else if (
+				position === 'left' &&
+				triggerRect.left - tooltipRect.width - TOOLTIP_GAP < MARGIN
+			) {
+				finalPosition = 'right';
+			} else if (
+				position === 'right' &&
+				triggerRect.right + tooltipRect.width + TOOLTIP_GAP > viewportWidth - MARGIN
+			) {
+				finalPosition = 'left';
 			}
 
-			// Check horizontal overflow (for left/right positions)
-			if (position === 'left' && tooltipRect.left < MARGIN) {
-				newPosition = 'right';
-			} else if (position === 'right' && tooltipRect.right > viewportWidth - MARGIN) {
-				newPosition = 'left';
+			// Calculate coordinates based on final position
+			if (finalPosition === 'top') {
+				top = triggerRect.top - tooltipRect.height - TOOLTIP_GAP;
+				left = triggerRect.left + triggerRect.width / 2 - tooltipRect.width / 2;
+			} else if (finalPosition === 'bottom') {
+				top = triggerRect.bottom + TOOLTIP_GAP;
+				left = triggerRect.left + triggerRect.width / 2 - tooltipRect.width / 2;
+			} else if (finalPosition === 'left') {
+				top = triggerRect.top + triggerRect.height / 2 - tooltipRect.height / 2;
+				left = triggerRect.left - tooltipRect.width - TOOLTIP_GAP;
+			} else {
+				// right
+				top = triggerRect.top + triggerRect.height / 2 - tooltipRect.height / 2;
+				left = triggerRect.right + TOOLTIP_GAP;
 			}
 
-			// For top/bottom positions, check if tooltip overflows left or right edges
-			const effectivePosition = newPosition !== position ? newPosition : position;
-			if (effectivePosition === 'top' || effectivePosition === 'bottom') {
-				if (containerRect.left + tooltipRect.width > viewportWidth - MARGIN) {
-					// Would overflow right edge - align to right
-					newAlignRight = true;
-				} else if (containerRect.right - tooltipRect.width < MARGIN) {
-					// Would overflow left edge - align to left
-					newAlignLeft = true;
-				}
+			// Clamp horizontal position to viewport
+			if (left < MARGIN) {
+				left = MARGIN;
+			} else if (left + tooltipRect.width > viewportWidth - MARGIN) {
+				left = viewportWidth - tooltipRect.width - MARGIN;
 			}
 
-			positionOverride = newPosition !== position ? newPosition : null;
-			alignRight = newAlignRight;
-			alignLeft = newAlignLeft;
+			// Clamp vertical position to viewport
+			if (top < MARGIN) {
+				top = MARGIN;
+			} else if (top + tooltipRect.height > viewportHeight - MARGIN) {
+				top = viewportHeight - tooltipRect.height - MARGIN;
+			}
+
+			tooltipStyle = `top: ${top}px; left: ${left}px;`;
 		}
 	});
 
-	// Reset adjustments when tooltip closes
+	// Reset when tooltip closes
 	$effect(() => {
 		if (!show) {
-			positionOverride = null;
-			alignRight = false;
-			alignLeft = false;
-		}
-	});
-
-	// Build position classes dynamically
-	const positionClasses = $derived(() => {
-		const pos = adjustedPosition;
-		if (pos === 'top' || pos === 'bottom') {
-			const vertical = pos === 'top' ? 'bottom-full mb-1' : 'top-full mt-1';
-			if (alignRight) {
-				return `${vertical} right-0`;
-			} else if (alignLeft) {
-				return `${vertical} left-0`;
-			} else {
-				return `${vertical} left-1/2 -translate-x-1/2`;
-			}
-		} else if (pos === 'left') {
-			return 'right-full top-1/2 -translate-y-1/2 mr-2';
-		} else {
-			return 'left-full top-1/2 -translate-y-1/2 ml-2';
+			tooltipStyle = '';
 		}
 	});
 </script>
 
-<span bind:this={containerRef} class="relative inline-flex">
+<span class="inline-flex">
 	<span
+		bind:this={triggerRef}
 		class="flex cursor-pointer items-start justify-start"
 		onmouseenter={() => (show = true)}
 		onmouseleave={() => (show = false)}
@@ -134,8 +134,8 @@
 	{#if show && text && !disabled}
 		<div
 			bind:this={tooltipRef}
-			class={`absolute z-50 w-max max-w-xs rounded-sm bg-gray-900 whitespace-nowrap text-white shadow-lg ${sizeToClass[size]} ${positionClasses()}`}
-			style="box-shadow: 0 2px 8px rgba(0,0,0,0.18);"
+			class={`fixed z-50 max-w-xs rounded-sm bg-gray-900 text-white shadow-lg ${sizeToClass[size]}`}
+			style="box-shadow: 0 2px 8px rgba(0,0,0,0.18); {tooltipStyle}"
 		>
 			{text}
 		</div>

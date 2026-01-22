@@ -34,7 +34,7 @@
 </script>
 
 <div class="flex h-6">
-	<div class="w-[var(--spacing-category-name-width)]"></div>
+	<div class="w-category-name-width"></div>
 	<div class="relative flex-1">
 		{#each markerPositions as markerTime (markerTime)}
 			{@const position = getPosition(markerTime)}

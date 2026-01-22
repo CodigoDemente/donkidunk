@@ -151,14 +151,12 @@
 			{category.name}
 		</p>
 		<div class="ml-2 flex w-5 items-center justify-end gap-1">
-			{#if board.isEditing}
-				<button class="hover:cursor-pointer" onclick={() => removeCategory()}>
-					<IconTrash class="h-3 w-3 text-gray-400 hover:text-white" />
-				</button>
-				<button class="hover:cursor-pointer" onclick={() => editCategory()}>
-					<IconPencil class="h-3 w-3 text-gray-400 hover:text-white" />
-				</button>
-			{/if}
+			<button class="hover:cursor-pointer" onclick={() => removeCategory()}>
+				<IconTrash class="h-3 w-3 text-gray-400 hover:text-white" />
+			</button>
+			<button class="hover:cursor-pointer" onclick={() => editCategory()}>
+				<IconPencil class="h-3 w-3 text-gray-400 hover:text-white" />
+			</button>
 		</div>
 	</div>
 	<div bind:this={contentElement} class="flex w-full flex-wrap items-start gap-2 p-2">

@@ -83,7 +83,7 @@
 				})),
 				{
 					label: 'Empty board',
-					value: ''
+					value: 'empty'
 				}
 			]}
 			bind:value={selectedBoardId}

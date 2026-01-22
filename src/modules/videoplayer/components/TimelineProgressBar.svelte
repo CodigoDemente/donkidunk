@@ -124,15 +124,19 @@
 
 <div class="custom-scrollbar overflow-y relative flex overflow-x-hidden">
 	<div class="relative mt-2 mb-1 flex flex-col gap-2">
-		{#each Object.keys(eventCategoriesById) as categoryId (categoryId)}
-			{@const category = eventCategoriesById[categoryId]}
-			<CategoryPlayer
-				disabled={!eventsByCategory[categoryId]?.length}
-				{category}
-				isActive={playingCategoryId === categoryId}
-				onPlay={() => onCategoryPlay?.(categoryId)}
-			/>
-		{/each}
+		{#if Object.entries(eventCategoriesById).length > 0}
+			{#each Object.keys(eventCategoriesById) as categoryId (categoryId)}
+				{@const category = eventCategoriesById[categoryId]}
+				<CategoryPlayer
+					disabled={!eventsByCategory[categoryId]?.length}
+					{category}
+					isActive={playingCategoryId === categoryId}
+					onPlay={() => onCategoryPlay?.(categoryId)}
+				/>
+			{/each}
+		{:else}
+			<CategoryPlayer skeleton />
+		{/if}
 	</div>
 	<button
 		aria-label="Progress Bar"
@@ -141,11 +145,8 @@
 		class="relative flex-1"
 	>
 		<!-- Event categories -->
-		{#if Object.entries(eventCategoriesById).length > 0}
-			<div
-				bind:this={eventlinesContainer}
-				class="relative mt-2 mb-1 flex flex-col items-start gap-2"
-			>
+		<div bind:this={eventlinesContainer} class="relative mt-2 mb-1 flex flex-col items-start gap-2">
+			{#if Object.entries(eventCategoriesById).length > 0}
 				{#each Object.keys(eventCategoriesById) as categoryId (categoryId)}
 					<Eventline
 						{categoryId}
@@ -162,24 +163,25 @@
 						{onEventResize}
 					/>
 				{/each}
-
-				<!-- Time marker (cursor) - Inside eventlines container to span full height -->
-				{#if relativeProgress >= 0 && relativeProgress <= 1 && eventlinesContainer}
-					<div
-						id="time-marker"
-						class="absolute top-0 left-0 z-10 w-[2px] cursor-ew-resize rounded-full bg-sky-400"
-						style="left: clamp(0%, {relativeProgress * 100}%, calc(100% - 2px)); height: 100%;"
-						onmousedown={onMarkerDragStart}
-						role="slider"
-						aria-label="Time marker"
-						aria-valuenow={currentTime}
-						aria-valuemin={0}
-						aria-valuemax={duration}
-						tabindex="0"
-					></div>
-				{/if}
-			</div>
-		{/if}
+			{:else}
+				<Eventline skeleton />
+			{/if}
+			<!-- Time marker (cursor) - Inside eventlines container to span full height -->
+			{#if relativeProgress >= 0 && relativeProgress <= 1 && eventlinesContainer}
+				<div
+					id="time-marker"
+					class="absolute top-0 left-0 z-10 w-[2px] cursor-ew-resize rounded-full bg-sky-400"
+					style="left: clamp(0%, {relativeProgress * 100}%, calc(100% - 2px)); height: 100%;"
+					onmousedown={onMarkerDragStart}
+					role="slider"
+					aria-label="Time marker"
+					aria-valuenow={currentTime}
+					aria-valuemin={0}
+					aria-valuemax={duration}
+					tabindex="0"
+				></div>
+			{/if}
+		</div>
 	</button>
 </div>
 
