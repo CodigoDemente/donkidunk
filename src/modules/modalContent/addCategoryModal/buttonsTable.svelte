@@ -80,7 +80,7 @@
 							size="medium"
 							text="Time lapse before the click. Enabled ONLY when it is a Fixed range."
 							position="bottom"
-							info>Before</Tooltip
+							info>Pre-delay</Tooltip
 						>
 					</th>
 				{/if}
