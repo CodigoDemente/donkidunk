@@ -75,7 +75,7 @@
 	<div
 		class="flex h-6 items-center justify-between rounded-t-md border-b border-gray-600 bg-gray-800 px-4"
 	>
-		<p class="text-xs font-semibold text-white">{title}</p>
+		<p class="text-sm font-semibold text-white">{title}</p>
 		<button
 			class="ml-2 rounded p-1 transition hover:text-gray-200"
 			onclick={() => (isOpened = !isOpened)}

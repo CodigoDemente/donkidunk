@@ -43,7 +43,7 @@
 				style="left: {position}%; transform: translateX(-50%)"
 			>
 				<!-- Time label on top, centered -->
-				<span class="text-[10px] whitespace-nowrap text-gray-400">
+				<span class="text-xs whitespace-nowrap text-gray-400">
 					{toTimeString(markerTime)}
 				</span>
 				<!-- Marker line -->

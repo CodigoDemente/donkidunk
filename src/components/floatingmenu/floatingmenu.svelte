@@ -82,7 +82,7 @@
 	<button
 		bind:this={triggerRef}
 		type="button"
-		class={`flex items-center justify-center rounded p-1.5 text-sm transition-colors hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-50 ${triggerClass}`}
+		class={`flex items-center justify-center rounded text-sm transition-colors hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-50 ${triggerClass}`}
 		onclick={toggleMenu}
 		{disabled}
 		aria-haspopup="menu"
@@ -97,9 +97,9 @@
 	</button>
 {/snippet}
 
-<div class="relative inline-flex">
+<div class="relative flex items-center justify-center">
 	{#if tooltip}
-		<Tooltip text={tooltip} size="small" position="bottom" disabled={open}>
+		<Tooltip text={tooltip} size="medium" position="bottom" disabled={open}>
 			{@render triggerButton()}
 		</Tooltip>
 	{:else}

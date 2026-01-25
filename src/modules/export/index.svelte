@@ -171,12 +171,12 @@
 	<div class="relative mt-auto border-t border-gray-600 pt-4">
 		<!-- Button in top right corner -->
 		<div class="absolute top-0 right-0 pt-2">
-			<Button customClass="" tertiary size="medium" onClick={addRule}>Add this rule</Button>
+			<Button customClass="" tertiary size="large" onClick={addRule}>Add this rule</Button>
 		</div>
 
 		<div class="grid grid-cols-2 gap-4">
 			<div class="flex flex-col gap-2">
-				<p class="text-sm text-gray-400">Choose the event you want to appear:</p>
+				<p class="text-base text-gray-400">Choose the event you want to appear:</p>
 				<div class="grid max-h-58 grid-cols-2 gap-2 overflow-y-auto">
 					{#each allEventOptions as option (option.value)}
 						<label
@@ -202,7 +202,7 @@
 				</div>
 			</div>
 			<div class="flex flex-col gap-2">
-				<p class="text-sm text-gray-400">Choose the related tags:</p>
+				<p class="text-base text-gray-400">Choose the related tags:</p>
 				<Multiselect
 					options={availableTags}
 					size="full"
@@ -225,7 +225,7 @@
 
 		<div class="w-full rounded-full bg-gray-200 dark:bg-gray-700">
 			<div
-				class="rounded-full bg-blue-600 p-0.5 text-center text-xs leading-none font-medium text-blue-100
+				class="rounded-full bg-blue-600 p-0.5 text-center text-sm leading-none font-medium text-blue-100
 				transition-[width] duration-150 ease-in"
 				style="width: {export_progress}%"
 			>

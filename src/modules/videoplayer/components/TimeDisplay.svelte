@@ -13,7 +13,7 @@
 	let { currentTime, duration, toTimeString }: Props = $props();
 </script>
 
-<div class="flex w-full flex-row justify-between text-xs text-sky-400">
+<div class="flex w-full flex-row justify-between text-base text-sky-400">
 	<span>
 		{currentTime >= 0 ? toTimeString(currentTime) : '00:00:00'}
 	</span>

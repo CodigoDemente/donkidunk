@@ -55,7 +55,7 @@
 			{id}
 			{name}
 		>
-			<span class={value ? 'leading-4' : 'w-full text-xs text-gray-400'}>
+			<span class={value ? 'leading-4' : 'w-full text-sm text-gray-400'}>
 				{options.find((o) => o.value === value)?.label ?? placeholder}
 			</span>
 			<IconChevronDown

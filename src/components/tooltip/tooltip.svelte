@@ -33,10 +33,10 @@
 	let tooltipStyle = $state('');
 
 	const sizeToClass = {
-		mini: 'text-[12px] font-light px-1 py-0.5',
-		small: 'text-[12px] font-light px-2 py-1',
-		medium: 'text-xs font-light px-3 py-2',
-		large: 'text-xs font-light px-4 py-2'
+		mini: 'text-xs font-light px-1 py-0.5',
+		small: 'text-xs font-light px-2 py-1',
+		medium: 'text-sm font-light px-3 py-2',
+		large: 'text-sm font-light px-4 py-2'
 	};
 
 	// Calculate tooltip position using fixed positioning

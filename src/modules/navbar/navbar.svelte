@@ -46,7 +46,7 @@
 	}
 </script>
 
-<navbar class="my-0.5 bg-gray-900 px-4">
+<navbar class="bg-gray-900 px-2 py-1">
 	<ul class="flex flex-row items-center">
 		<li>
 			<button
@@ -59,33 +59,33 @@
 				{disabled}
 				onclick={() => navigateTo('/')}
 			>
-				<IconHome class="mr-0.5 h-3 w-3" />
+				<IconHome class="h-4 w-4" />
 			</button>
 		</li>
 		<li>
 			<button
 				class={`
 				${disabled ? 'cursor-not-allowed opacity-50' : 'hover:cursor-pointer'}
-				${isActive('/export') ? 'bg-tertiary text-white' : 'text-tertiary'}
+				${isActive('/export') ? 'bg-tertiary text-white' : 'text-white'}
 				flex items-center justify-center gap-2 rounded-sm p-1.5`}
 				type="button"
 				{disabled}
 				onclick={() => navigateTo('/export')}
 			>
-				<span class="h-3 text-xs">Export</span>
+				<span class="h-4 text-sm">Export</span>
 			</button>
 		</li>
 		<li>
 			<button
 				class={`
 					${disabled ? 'cursor-not-allowed opacity-50' : 'hover:cursor-pointer'}
-					${isActive('/metrics') ? 'bg-tertiary text-white' : 'text-tertiary'}
+					${isActive('/metrics') ? 'bg-tertiary text-white' : 'text-white'}
 					flex items-center justify-center gap-2 rounded-sm p-1.5`}
 				type="button"
 				{disabled}
 				onclick={() => navigateTo('/metrics')}
 			>
-				<span class="h-3 text-xs">Metrics</span>
+				<span class="h-4 text-sm">Metrics</span>
 			</button>
 		</li>
 		<!-- 
@@ -101,7 +101,7 @@
 				selectedValue={config.uiMode.toString()}
 				onoptionselected={handleUIModeChange}
 				triggerClass="text-tertiary hover:cursor-pointer"
-				iconClass="h-4 w-4"
+				iconClass="h-5 w-5"
 				tooltip="Layout Mode"
 				{disabled}
 			/>

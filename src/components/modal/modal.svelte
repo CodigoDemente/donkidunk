@@ -71,6 +71,7 @@
 			<!-- Footer -->
 			<div class="flex justify-end gap-2 border-t border-gray-700 px-4 py-2">
 				<Button
+					size="large"
 					onClick={async () => {
 						if (modalStore?.onCancel) {
 							modalStore.onCancel();
@@ -82,6 +83,7 @@
 				</Button>
 				<Button
 					primary
+					size="large"
 					onClick={() => {
 						if (modalStore?.onSubmit) {
 							modalStore.onSubmit();

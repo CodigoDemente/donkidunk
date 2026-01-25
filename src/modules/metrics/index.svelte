@@ -81,7 +81,7 @@
 		<div class="flex h-8 w-full shrink-0 flex-row items-start justify-between">
 			<h1 class="shrink-0 text-lg font-bold">Metrics</h1>
 			<div class="self-end">
-				<Button size="medium" primary disabled={exporting} onClick={() => onExportHandler()}
+				<Button size="large" primary disabled={exporting} onClick={() => onExportHandler()}
 					>Export in CSV</Button
 				>
 				{#if exporting}
@@ -115,9 +115,9 @@
 							class="text-body bg-neutral-secondary-soft rounded-base border-default sticky top-0 border-b text-sm"
 						>
 							<tr>
-								<th scope="col" class="px-6 py-3 font-medium">Event</th>
-								<th scope="col" class="px-6 py-3 font-medium">Category</th>
-								<th scope="col" class="px-6 py-3 font-medium">Uses</th>
+								<th scope="col" class="px-6 py-3 text-base font-medium">Event</th>
+								<th scope="col" class="px-6 py-3 text-base font-medium">Category</th>
+								<th scope="col" class="px-6 py-3 text-base font-medium">Uses</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -169,9 +169,9 @@
 								class="text-body bg-neutral-secondary-soft rounded-base border-default sticky top-0 border-b text-sm"
 							>
 								<tr>
-									<th scope="col" class="px-6 py-3 font-medium">Tag</th>
-									<th scope="col" class="px-6 py-3 font-medium">Category</th>
-									<th scope="col" class="px-6 py-3 font-medium">Uses</th>
+									<th scope="col" class="px-6 py-3 text-base font-medium">Tag</th>
+									<th scope="col" class="px-6 py-3 text-base font-medium">Category</th>
+									<th scope="col" class="px-6 py-3 text-base font-medium">Uses</th>
 								</tr>
 							</thead>
 							<tbody>

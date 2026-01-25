@@ -29,7 +29,7 @@
 						class="shrink-0 rounded-full"
 						style="background-color: {category?.color}; width: 0.5rem; height: 0.5rem; display: inline-block;"
 					></span>
-					<span class="min-w-0 truncate text-xs font-medium text-gray-200">
+					<span class="min-w-0 truncate text-sm font-medium text-gray-200">
 						{category?.name || 'Unknown'}
 					</span>
 				</div>
