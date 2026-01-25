@@ -106,7 +106,12 @@
 	}
 
 	function handleCategoryPlayAll(categoryId: string) {
-		timeline.playAllEventsFromCategory(categoryId);
+		// Toggle: si la categoría ya está activa, detenerla; si no, iniciarla
+		if (timeline.currentPlaybackCategoryId === categoryId) {
+			timeline.stopCategoryPlayback();
+		} else {
+			timeline.playAllEventsFromCategory(categoryId);
+		}
 	}
 
 	/* ==================== DERIVED STATE ==================== */
