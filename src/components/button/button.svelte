@@ -24,8 +24,8 @@
 	const sizeToText = {
 		mini: 'text-sm',
 		small: 'text-sm',
-		medium: 'text-base',
-		large: 'text-lg',
+		medium: 'text-sm',
+		large: 'text-base',
 		extralarge: 'text-xl',
 		fluid: 'text-base'
 	};
