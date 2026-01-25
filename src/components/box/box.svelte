@@ -53,21 +53,6 @@
 		e.preventDefault();
 	}
 
-	function handleModalDelete(categoryId: string) {
-		projectActions.setModal({
-			content: deleteCategoryModal,
-			contentProps: {
-				categoryType: type
-			},
-			title: `Delete category`,
-			onCancel: () => projectActions.closeAndResetModal(),
-			onSubmit: () => board.deleteCategory(type, categoryId, timeline),
-			onSubmitText: 'Delete',
-			show: true,
-			size: 'small'
-		});
-	}
-
 	function handleModalOpen(type: CategoryType, categoryId?: string) {
 		board.loadCategoryToAddOrEdit(type, categoryId);
 		projectActions.setModal({
@@ -120,7 +105,7 @@
 			aria-label="Drop area"
 		>
 			{#each categories as category (category.id)}
-				<Category {type} {category} {handleModalOpen} {handleModalDelete} bind:draggedCategory />
+				<Category {type} {category} {handleModalOpen} bind:draggedCategory />
 			{/each}
 		</div>
 	{/if}

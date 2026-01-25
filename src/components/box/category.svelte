@@ -23,16 +23,9 @@
 		category: Category;
 		draggedCategory: DraggedCategory;
 		handleModalOpen: (type: CategoryType, categoryId?: string) => void;
-		handleModalDelete: (categoryId: string) => void;
 	};
 
-	let {
-		type,
-		category,
-		handleModalOpen,
-		handleModalDelete,
-		draggedCategory = $bindable()
-	}: Props = $props();
+	let { type, category, handleModalOpen, draggedCategory = $bindable() }: Props = $props();
 
 	let categoryElement: HTMLDivElement;
 	let headerElement: HTMLDivElement;
@@ -100,10 +93,6 @@
 		);
 	}
 
-	function removeCategory() {
-		handleModalDelete(category.id);
-	}
-
 	function editCategory() {
 		handleModalOpen(type, category.id);
 	}
@@ -150,10 +139,7 @@
 			></span>
 			{category.name}
 		</p>
-		<div class="ml-2 flex w-5 items-center justify-end gap-1">
-			<button class="hover:cursor-pointer" onclick={() => removeCategory()}>
-				<IconTrash class="h-3 w-3 text-gray-400 hover:text-white" />
-			</button>
+		<div class="ml-2 flex w-5 items-center justify-end">
 			<button class="hover:cursor-pointer" onclick={() => editCategory()}>
 				<IconPencil class="h-3 w-3 text-gray-400 hover:text-white" />
 			</button>
