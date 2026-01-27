@@ -71,19 +71,24 @@
 		{/if}
 		{#if playingObjects && playingObjects.size > 0}
 			{#each playingObjects.entries() as [eventId, playingObject] (eventId)}
-				{#if playingObject && categoryId === playingObject.categoryId && isEventVisible(playingObject.timestamp.start, currentTime)}
-					<Clip
-						start={playingObject.timestamp.start}
-						end={currentTime}
-						timelineStart={leftLimit}
-						timelineEnd={rightLimit}
-						color={boardCategoriesById[categoryId]?.color}
-						borderColor={buttonsListById[playingObject.buttonId]?.color}
-						name={buttonsListById[playingObject.buttonId]?.name}
-						onClick={() => {}}
-						onDblClick={() =>
-							onEventDblClick(playingObject.timestamp.start, eventId, playingObject.buttonId)}
-					/>
+				{#if playingObject && categoryId === playingObject.categoryId}
+					{@const originalStart = playingObject.timestamp.start}
+					{@const isReversed = currentTime < originalStart}
+					{@const clipStart = isReversed ? currentTime : originalStart}
+					{@const clipEnd = isReversed ? originalStart : currentTime}
+					{#if isEventVisible(clipStart, clipEnd)}
+						<Clip
+							start={clipStart}
+							end={clipEnd}
+							timelineStart={leftLimit}
+							timelineEnd={rightLimit}
+							color={boardCategoriesById[categoryId]?.color}
+							borderColor={buttonsListById[playingObject.buttonId]?.color}
+							name={buttonsListById[playingObject.buttonId]?.name}
+							onClick={() => {}}
+							onDblClick={() => onEventDblClick(originalStart, eventId, playingObject.buttonId)}
+						/>
+					{/if}
 				{/if}
 			{/each}
 		{/if}
