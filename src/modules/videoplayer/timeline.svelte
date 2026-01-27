@@ -82,6 +82,11 @@
 		}
 	}
 
+	function handleEventBlur() {
+		if (timeline.eventsPlaying.size > 0) return;
+		timeline.setEventSelected(null);
+	}
+
 	function handleEventDblClick(startTimestamp: number, eventId: string, buttonId: string) {
 		if (timeline.eventsPlaying.size > 0) return;
 		currentTime = startTimestamp;
@@ -263,6 +268,7 @@
 			eventsPlaying={timeline.eventsPlaying}
 			eventSelected={timeline.eventSelected}
 			onEventClick={handleEventClick}
+			onEventBlur={handleEventBlur}
 			onEventDblClick={handleEventDblClick}
 			onEventResize={handleEventResize}
 			onTimeChange={handleTimeChange}

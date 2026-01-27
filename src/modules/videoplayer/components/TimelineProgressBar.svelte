@@ -21,6 +21,7 @@
 		eventsPlaying: SvelteMap<string, RangeDataWithTags>;
 		eventSelected: string | null;
 		onEventClick: (eventId: string, buttonId: string) => void;
+		onEventBlur: () => void;
 		onEventDblClick: (startTimestamp: number, eventId: string, buttonId: string) => void;
 		onEventResize: (
 			eventId: string,
@@ -50,6 +51,7 @@
 		eventsPlaying,
 		eventSelected,
 		onEventClick,
+		onEventBlur,
 		onEventDblClick,
 		onEventResize,
 		onTimeChange,
@@ -71,6 +73,7 @@
 
 		event.preventDefault();
 		event.stopPropagation();
+		onEventBlur();
 
 		const rect = progressBarElement.getBoundingClientRect();
 		const newTime = calculateTimeFromPosition(

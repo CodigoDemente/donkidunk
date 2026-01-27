@@ -78,6 +78,7 @@
 						timelineStart={leftLimit}
 						timelineEnd={rightLimit}
 						color={boardCategoriesById[categoryId]?.color}
+						borderColor={buttonsListById[playingObject.buttonId]?.color}
 						name={buttonsListById[playingObject.buttonId]?.name}
 						onClick={() => {}}
 						onDblClick={() =>

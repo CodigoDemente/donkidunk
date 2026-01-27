@@ -196,7 +196,7 @@ export class Timeline {
 		await emit('project:dirty');
 	}
 
-	setEventSelected(eventId: string) {
+	setEventSelected(eventId: string | null) {
 		this.#eventSelected = eventId;
 	}
 
