@@ -12,7 +12,7 @@
 
 	const config = configContext.get();
 
-	let selectedBoardId = $state(config.defaultButtonBoard.id);
+	let selectedBoardId = $state('empty');
 	let buttonBoard = $derived(config.buttonBoards.find((b) => b.id === selectedBoardId));
 
 	// Sync local state with projectStore
@@ -75,16 +75,16 @@
 
 	<div class="flex items-end gap-2">
 		<Dropdown
-			label="Button board"
+			label="Board"
 			options={[
-				...config.buttonBoards.map((buttonBoard) => ({
-					label: buttonBoard.name,
-					value: buttonBoard.id
-				})),
 				{
 					label: 'Empty board',
 					value: 'empty'
-				}
+				},
+				...config.buttonBoards.map((buttonBoard) => ({
+					label: buttonBoard.name,
+					value: buttonBoard.id
+				}))
 			]}
 			bind:value={selectedBoardId}
 			size="large"

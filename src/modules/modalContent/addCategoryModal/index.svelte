@@ -33,11 +33,10 @@
 	]);
 
 	$effect(() => {
-		if (selectedCategoryId) {
-			context.loadCategoryToAddOrEdit(categoryType, selectedCategoryId);
-		}
 		if (selectedCategoryId === 'NEW_CATEGORY') {
 			context.loadCategoryToAddOrEdit(categoryType);
+		} else if (selectedCategoryId) {
+			context.loadCategoryToAddOrEdit(categoryType, selectedCategoryId);
 		}
 		showDeleteConfirmation = false;
 	});
