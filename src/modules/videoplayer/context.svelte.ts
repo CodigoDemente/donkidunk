@@ -459,5 +459,9 @@ export class Timeline {
 		this.#currentTime = nextEvent.timestamp.start;
 		return true;
 	}
+
+	isEventPlaying(buttonId: string): boolean {
+		return this.#eventsPlaying.has(buttonId);
+	}
 	//#endregion
 }

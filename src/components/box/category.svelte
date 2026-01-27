@@ -149,14 +149,16 @@
 		{#if type === CategoryType.Event}
 			{#each category.buttons as button, idx (button.id ?? `temp-${category.id}-${idx}`)}
 				{@const disabled = button.id ? isButtonDisabled(button.id) : false}
+				{@const active = timeline.isEventPlaying(button.id)}
 				<button
 					style={`
 					background-color: ${button.color};
 					color: ${getTextColorForBackground(button.color)};
+					${active ? 'box-shadow: 0 0 10px rgba(251, 146, 60, 0.6), 0 0 15px rgba(251, 146, 60, 0.3);' : ''}
 				`}
-					class="shrink-0 rounded-xs border border-gray-800 px-2 py-1 text-sm shadow-sm transition-opacity {disabled
-						? 'cursor-not-allowed opacity-50'
-						: 'hover:cursor-pointer hover:brightness-120'}"
+					class="shrink-0 rounded-sm border px-2 py-1 text-base shadow-sm transition-all duration-300
+					{disabled ? 'cursor-not-allowed opacity-50' : 'hover:cursor-pointer hover:brightness-120'}
+					{active ? 'border-2 border-orange-400 ' : 'border-2 border-transparent'}"
 					{disabled}
 					onclick={() => !disabled && addEvent(button as Button)}
 				>
