@@ -1,7 +1,7 @@
 use anyhow::Result;
 use tauri::{
-    menu::{Menu, MenuEvent, MenuId, MenuItemBuilder, MenuItemKind, Submenu, SubmenuBuilder},
     App, AppHandle, Emitter, Error,
+    menu::{Menu, MenuEvent, MenuId, MenuItemBuilder, MenuItemKind, Submenu, SubmenuBuilder},
 };
 
 pub trait MenuExtensions {

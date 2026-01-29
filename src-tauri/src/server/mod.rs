@@ -1,7 +1,7 @@
 #[cfg(not(target_os = "windows"))]
 use {
-    axum::{extract::Query, routing::get, Router},
-    axum_extra::{headers::Range, TypedHeader},
+    axum::{Router, extract::Query, routing::get},
+    axum_extra::{TypedHeader, headers::Range},
     axum_range::{KnownSize, Ranged},
     std::{collections::HashMap, env},
     tokio::{fs::File, net::TcpListener},

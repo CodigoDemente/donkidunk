@@ -1,5 +1,5 @@
 use std::{
-    fs::{self, create_dir_all, File},
+    fs::{self, File, create_dir_all},
     io::Write,
     path::PathBuf,
 };
@@ -7,7 +7,7 @@ use std::{
 use log::warn;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-use tauri::{path::BaseDirectory, App, Manager, Runtime};
+use tauri::{App, Manager, Runtime, path::BaseDirectory};
 
 use crate::errors::ConfigError;
 
@@ -208,8 +208,7 @@ impl ConfigManagerTrait for ConfigManager {
     }
 
     fn get_button_board_paths(&self) -> Vec<ButtonBoardWithPath> {
-        let button_board_paths = self
-            .config
+        self.config
             .button_boards
             .iter()
             .map(|button_board| ButtonBoardWithPath {
@@ -218,9 +217,7 @@ impl ConfigManagerTrait for ConfigManager {
                     .join(format!("{}.json", button_board.id)),
                 button_board: button_board.clone(),
             })
-            .collect();
-
-        button_board_paths
+            .collect()
     }
 
     fn save_button_board(

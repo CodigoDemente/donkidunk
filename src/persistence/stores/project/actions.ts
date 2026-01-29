@@ -53,7 +53,8 @@ export const projectActions = {
 		onSubmit,
 		onSubmitText,
 		show,
-		size
+		size,
+		dismissible = true
 	}: ProjectData['modal']): void {
 		projectStore.modal = {
 			content,
@@ -63,7 +64,8 @@ export const projectActions = {
 			onSubmit,
 			onSubmitText,
 			show,
-			size
+			size,
+			dismissible
 		};
 	},
 
@@ -75,6 +77,7 @@ export const projectActions = {
 			onSubmit: undefined,
 			onSubmitText: undefined,
 			show: false,
+			dismissible: true,
 			size: undefined
 		};
 	},

@@ -9,13 +9,15 @@ mod server;
 
 use commands::config::*;
 use commands::database::*;
+use commands::license::*;
 use commands::menu::*;
 use commands::metrics::*;
 use commands::video::*;
+use lib::license;
 use lib::state::{AppState, AppStateTrait};
 use tauri::Manager;
 
-fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
+fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>, is_expired: bool) -> tauri::App<R> {
     builder
         .invoke_handler(tauri::generate_handler![
             #[cfg(not(target_os = "windows"))]
@@ -30,14 +32,15 @@ fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
             set_database_conn,
             disconnect_database,
             export_clips_csv,
+            get_is_expired,
         ])
-        .setup(|app| {
+        .setup(move |app| {
             #[cfg(not(target_os = "windows"))]
             tokio::spawn(server::setup_webserver());
 
             menu::setup_menu(app)?;
 
-            app.manage(AppState::new(app));
+            app.manage(AppState::new(app, is_expired));
 
             #[cfg(debug_assertions)]
             app.get_webview_window("main").unwrap().open_devtools();
@@ -63,7 +66,12 @@ async fn main() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_sql::Builder::default().build());
 
-    let app = create_app(builder);
+    let is_expired = license::is_installation_expired().unwrap_or_else(|err| {
+        log::error!("Failed to check expired installation: {err}");
+        true
+    });
+
+    let app = create_app(builder, is_expired);
 
     app.run(|_, event| {
         if !matches!(event, tauri::RunEvent::MainEventsCleared) {
@@ -81,14 +89,14 @@ mod tests {
     use std::process::Command;
 
     use super::*;
-    use tauri::{path, Manager};
+    use tauri::{Manager, path};
     use tauri_plugin_shell::ShellExt;
 
     #[ignore]
     #[tokio::test]
     async fn it_should_run_ffmpeg_command() -> Result<(), String> {
         let builder = tauri::test::mock_builder().plugin(tauri_plugin_shell::init());
-        let app = create_app(builder);
+        let app = create_app(builder, false);
 
         let path = path::PathResolver::app_data_dir(app.path()).unwrap();
 
