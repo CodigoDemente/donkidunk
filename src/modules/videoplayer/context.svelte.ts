@@ -115,14 +115,30 @@ export class Timeline {
 	private async persistEvent(event: RangeDataWithTags) {
 		const repository = TimelineRepositoryFactory.getInstance();
 
-		await repository.addEntry(event);
+		// If end is before start, invert the timestamps
+		let eventToPersist = { ...event };
+		if (
+			eventToPersist.timestamp.end !== undefined &&
+			eventToPersist.timestamp.end !== null &&
+			eventToPersist.timestamp.end < eventToPersist.timestamp.start
+		) {
+			eventToPersist = {
+				...eventToPersist,
+				timestamp: {
+					start: eventToPersist.timestamp.end,
+					end: eventToPersist.timestamp.start
+				}
+			};
+		}
+
+		await repository.addEntry(eventToPersist);
 
 		this.#state = {
 			...this.#state,
-			eventTimeline: [...this.#state.eventTimeline, event]
+			eventTimeline: [...this.#state.eventTimeline, eventToPersist]
 		};
 
-		this.#eventSelected = event.id;
+		this.#eventSelected = eventToPersist.id;
 		this.#eventsPlaying.delete(event.buttonId);
 
 		await emit('project:dirty');
@@ -153,20 +169,29 @@ export class Timeline {
 
 		const eventPlaying = this.#eventsPlaying.get(buttonId);
 		if (eventPlaying) {
-			// Check if the playing event's range (from start to timeCursor) overlaps with any existing event
 			const categoryEvents = this.#timelineEventsByCategory[categoryId] || [];
 			const playingEventStart = eventPlaying.timestamp.start;
-			const playingEventEnd = timeCursor;
+			const isReversed = timeCursor < playingEventStart;
+
+			// Calculate the actual range boundaries (min as start, max as end)
+			const actualStart = isReversed ? timeCursor : playingEventStart;
+			const actualEnd = isReversed ? playingEventStart : timeCursor;
 
 			const overlappingEvent = categoryEvents.find((event) => {
 				const existingEventStart = event.timestamp.start;
 				const existingEventEnd = event.timestamp.end ?? Infinity;
-				return playingEventStart < existingEventEnd && playingEventEnd > existingEventStart;
+				return actualStart < existingEventEnd && actualEnd > existingEventStart;
 			});
 
 			if (overlappingEvent) {
-				// End the playing event one microsecond before the overlapping event starts
-				eventPlaying.timestamp.end = overlappingEvent.timestamp.start - 0.001;
+				if (isReversed) {
+					// Going backward: the event will be inverted in persistEvent
+					eventPlaying.timestamp.start = overlappingEvent.timestamp.start - 0.001;
+					eventPlaying.timestamp.end = timeCursor;
+				} else {
+					// Going forward: end the playing event one microsecond before the overlapping event starts
+					eventPlaying.timestamp.end = overlappingEvent.timestamp.start - 0.001;
+				}
 			} else {
 				// No overlap, end at timeCursor as usual
 				eventPlaying.timestamp.end = timeCursor;
@@ -196,7 +221,7 @@ export class Timeline {
 		await emit('project:dirty');
 	}
 
-	setEventSelected(eventId: string) {
+	setEventSelected(eventId: string | null) {
 		this.#eventSelected = eventId;
 	}
 
@@ -433,6 +458,10 @@ export class Timeline {
 		const nextEvent = this.#categoryPlaybackQueue[this.#currentPlaybackIndex];
 		this.#currentTime = nextEvent.timestamp.start;
 		return true;
+	}
+
+	isEventPlaying(buttonId: string): boolean {
+		return this.#eventsPlaying.has(buttonId);
 	}
 	//#endregion
 }

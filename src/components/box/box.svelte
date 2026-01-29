@@ -88,12 +88,12 @@
 
 	{#if isOpened}
 		<Button
-			customClass="absolute right-5 top-14 z-11"
+			customClass="absolute right-5 top-14 w-7 z-11"
 			size="mini"
 			primary
 			onClick={() => handleModalOpen(type)}
 		>
-			<IconPlus class="text-white" />
+			<IconPlus class="size-7 text-white" />
 		</Button>
 		<div
 			class="relative min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto"
