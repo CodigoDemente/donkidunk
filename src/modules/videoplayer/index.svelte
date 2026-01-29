@@ -75,7 +75,7 @@
 >
 	{#if video}
 		<p
-			class="mb-2 inline-block border-b border-gray-700 px-2 py-1 text-xs font-semibold text-gray-200"
+			class="mb-2 inline-block border-b border-gray-700 px-2 py-1 text-sm font-semibold text-gray-200"
 		>
 			Video / Timeline
 		</p>

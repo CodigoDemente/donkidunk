@@ -3,15 +3,12 @@
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import type { RouteId } from '$app/types';
-	import { IconEdit, IconHome, IconLayoutBoard, IconPlayerPlay } from '@tabler/icons-svelte';
+	import { IconHome, IconLayoutBoard } from '@tabler/icons-svelte';
 	import Floatingmenu from '../../components/floatingmenu/floatingmenu.svelte';
 	import { UIMode } from '../config/types/Config';
 	import { configContext } from '../config/context.svelte';
 	import type { FloatingMenuOption } from '../../components/floatingmenu/types';
 	import { saveUIModeCommand } from '../config/commands/SaveUIMode';
-	import { boardContext } from '../board/context.svelte';
-	import Tooltip from '../../components/tooltip/tooltip.svelte';
-	import { timelineContext } from '../videoplayer/context.svelte';
 
 	type Props = {
 		disabled: boolean;
@@ -20,10 +17,6 @@
 	let { disabled }: Props = $props();
 
 	const config = configContext.get();
-	const board = boardContext.get();
-	const timeline = timelineContext.get();
-
-	const editModeDisabled = $derived(disabled || timeline.isPlaying);
 
 	function navigateTo(page: RouteId) {
 		goto(resolve(page)); // Navigate to the specified route
@@ -51,14 +44,9 @@
 
 		await saveUIModeCommand(config.uiMode);
 	}
-
-	function toggleEditingMode(): void {
-		const value = !board.isEditing;
-		board.setEditingMode(value);
-	}
 </script>
 
-<navbar class="my-0.5 bg-gray-900 px-4">
+<navbar class="bg-gray-900 px-2 py-1">
 	<ul class="flex flex-row items-center">
 		<li>
 			<button
@@ -71,33 +59,33 @@
 				{disabled}
 				onclick={() => navigateTo('/')}
 			>
-				<IconHome class="mr-0.5 h-3 w-3" />
+				<IconHome class="h-4 w-4" />
 			</button>
 		</li>
 		<li>
 			<button
 				class={`
 				${disabled ? 'cursor-not-allowed opacity-50' : 'hover:cursor-pointer'}
-				${isActive('/export') ? 'bg-tertiary text-white' : 'text-tertiary'}
+				${isActive('/export') ? 'bg-tertiary text-white' : 'text-white'}
 				flex items-center justify-center gap-2 rounded-sm p-1.5`}
 				type="button"
 				{disabled}
 				onclick={() => navigateTo('/export')}
 			>
-				<span class="h-3 text-xs">Export</span>
+				<span class="h-4 text-sm">Export</span>
 			</button>
 		</li>
 		<li>
 			<button
 				class={`
 					${disabled ? 'cursor-not-allowed opacity-50' : 'hover:cursor-pointer'}
-					${isActive('/metrics') ? 'bg-tertiary text-white' : 'text-tertiary'}
+					${isActive('/metrics') ? 'bg-tertiary text-white' : 'text-white'}
 					flex items-center justify-center gap-2 rounded-sm p-1.5`}
 				type="button"
 				{disabled}
 				onclick={() => navigateTo('/metrics')}
 			>
-				<span class="h-3 text-xs">Metrics</span>
+				<span class="h-4 text-sm">Metrics</span>
 			</button>
 		</li>
 		<!-- 
@@ -106,40 +94,14 @@
 			<button type="button" onclick={() => navigateTo('/graphics')}>Graphics</button>
 		</li> 
 		-->
-
 		<li class="ml-auto">
-			<Tooltip
-				text={board.isEditing ? 'Switch to Play Mode' : 'Switch to Edit Mode'}
-				size="small"
-				position="bottom"
-			>
-				<button
-					type="button"
-					class={`
-				${editModeDisabled ? 'cursor-not-allowed opacity-50' : 'hover:cursor-pointer'}
-				${board.isEditing ? 'bg-tertiary text-white' : 'text-tertiary'}
-				flex items-center justify-center gap-2 rounded-sm p-1.5`}
-					onclick={() => toggleEditingMode()}
-					aria-label={board.isEditing ? 'Switch to Play Mode' : 'Switch to Edit Mode'}
-					disabled={editModeDisabled}
-				>
-					{#if board.isEditing}
-						<IconPlayerPlay class="h-4 w-4" />
-					{:else}
-						<IconEdit class="h-4 w-4" />
-					{/if}
-				</button>
-			</Tooltip>
-		</li>
-
-		<li>
 			<Floatingmenu
 				trigger={IconLayoutBoard}
 				options={floatingmenuOptions}
 				selectedValue={config.uiMode.toString()}
 				onoptionselected={handleUIModeChange}
 				triggerClass="text-tertiary hover:cursor-pointer"
-				iconClass="h-4 w-4"
+				iconClass="h-5 w-5"
 				tooltip="Layout Mode"
 				{disabled}
 			/>

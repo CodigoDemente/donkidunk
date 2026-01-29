@@ -18,7 +18,7 @@
 			<div class="flex flex-wrap gap-2">
 				{#if timeline.eventsPlaying.size > 0}
 					{#if Array.from(timeline.eventsPlaying)[timeline.eventsPlaying.size - 1][1].tagsRelated.length === 0}
-						<p class="text-sm text-gray-400">No tags related to the current play.</p>
+						<p class="text-base text-gray-400">No tags related to the current play.</p>
 					{:else}
 						{#each Array.from(timeline.eventsPlaying)[timeline.eventsPlaying.size - 1][1].tagsRelated || [] as tag (tag)}
 							<Tag color={board.tagsById[tag]?.color} disabled text={board.tagsById[tag]?.name} />
@@ -28,7 +28,7 @@
 					{#if timeline
 						.getState()
 						.eventTimeline.find((event) => event.id === timeline.eventSelected)?.tagsRelated?.length === 0}
-						<p class="text-sm text-gray-400">Add tags to the selected event.</p>
+						<p class="text-base text-gray-400">Add tags to the selected event.</p>
 					{:else}
 						{#each timeline
 							.getState()
@@ -37,7 +37,7 @@
 						{/each}
 					{/if}
 				{:else}
-					<p class="text-sm text-gray-400">Select an event to see its tags.</p>
+					<p class="text-base text-gray-400">Select an event to see its tags.</p>
 				{/if}
 			</div>
 		</div>
@@ -50,7 +50,7 @@
 		class:-mt-[1px]={isBoxOpen}
 		onclick={() => (isBoxOpen = !isBoxOpen)}
 	>
-		<p class="px-2 text-xs font-semibold">Tags related</p>
+		<p class="px-2 text-base font-semibold">Tags related</p>
 		<IconChevronDown
 			class="ml-auto p-1 transition-transform duration-200"
 			style="transform: {isBoxOpen ? 'rotate(0deg)' : 'rotate(180deg)'}"

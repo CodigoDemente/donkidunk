@@ -37,7 +37,7 @@
 		<span class="text-gray-200">or</span>
 		<Button size="extralarge" tertiary onClick={handleOpenProject}>Open Project</Button>
 	</div>
-	<p class="text-md relative z-10 w-2/4 text-center text-gray-200">
+	<p class="relative z-10 text-center text-xl text-gray-200">
 		Create a new project or open an existing one to get started
 	</p>
 </div>

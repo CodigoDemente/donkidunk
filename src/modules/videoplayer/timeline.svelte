@@ -82,6 +82,11 @@
 		}
 	}
 
+	function handleEventBlur() {
+		if (timeline.eventsPlaying.size > 0) return;
+		timeline.setEventSelected(null);
+	}
+
 	function handleEventDblClick(startTimestamp: number, eventId: string, buttonId: string) {
 		if (timeline.eventsPlaying.size > 0) return;
 		currentTime = startTimestamp;
@@ -106,7 +111,12 @@
 	}
 
 	function handleCategoryPlayAll(categoryId: string) {
-		timeline.playAllEventsFromCategory(categoryId);
+		// Toggle: si la categoría ya está activa, detenerla; si no, iniciarla
+		if (timeline.currentPlaybackCategoryId === categoryId) {
+			timeline.stopCategoryPlayback();
+		} else {
+			timeline.playAllEventsFromCategory(categoryId);
+		}
 	}
 
 	/* ==================== DERIVED STATE ==================== */
@@ -258,6 +268,7 @@
 			eventsPlaying={timeline.eventsPlaying}
 			eventSelected={timeline.eventSelected}
 			onEventClick={handleEventClick}
+			onEventBlur={handleEventBlur}
 			onEventDblClick={handleEventDblClick}
 			onEventResize={handleEventResize}
 			onTimeChange={handleTimeChange}

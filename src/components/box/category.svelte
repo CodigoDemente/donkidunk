@@ -23,16 +23,9 @@
 		category: Category;
 		draggedCategory: DraggedCategory;
 		handleModalOpen: (type: CategoryType, categoryId?: string) => void;
-		handleModalDelete: (categoryId: string) => void;
 	};
 
-	let {
-		type,
-		category,
-		handleModalOpen,
-		handleModalDelete,
-		draggedCategory = $bindable()
-	}: Props = $props();
+	let { type, category, handleModalOpen, draggedCategory = $bindable() }: Props = $props();
 
 	let categoryElement: HTMLDivElement;
 	let headerElement: HTMLDivElement;
@@ -100,10 +93,6 @@
 		);
 	}
 
-	function removeCategory() {
-		handleModalDelete(category.id);
-	}
-
 	function editCategory() {
 		handleModalOpen(type, category.id);
 	}
@@ -143,36 +132,33 @@
 		bind:this={headerElement}
 		class="flex items-start justify-between gap-2 border-b border-gray-800 px-2 py-1 pb-0"
 	>
-		<p class="flex items-start gap-1 text-xs font-semibold text-gray-200">
+		<p class="flex items-start gap-1 text-sm font-semibold text-gray-200">
 			<span
 				class="rounded-full"
 				style="background-color: {category.color}; width: 0.75rem; height: 0.75rem; display: inline-block; margin-right: 0.25rem;"
 			></span>
 			{category.name}
 		</p>
-		<div class="ml-2 flex w-5 items-center justify-end gap-1">
-			{#if board.isEditing}
-				<button class="hover:cursor-pointer" onclick={() => removeCategory()}>
-					<IconTrash class="h-3 w-3 text-gray-400 hover:text-white" />
-				</button>
-				<button class="hover:cursor-pointer" onclick={() => editCategory()}>
-					<IconPencil class="h-3 w-3 text-gray-400 hover:text-white" />
-				</button>
-			{/if}
+		<div class="ml-2 flex w-5 items-center justify-end">
+			<button class="hover:cursor-pointer" onclick={() => editCategory()}>
+				<IconPencil class="h-3 w-3 text-gray-400 hover:text-white" />
+			</button>
 		</div>
 	</div>
 	<div bind:this={contentElement} class="flex w-full flex-wrap items-start gap-2 p-2">
 		{#if type === CategoryType.Event}
 			{#each category.buttons as button, idx (button.id ?? `temp-${category.id}-${idx}`)}
 				{@const disabled = button.id ? isButtonDisabled(button.id) : false}
+				{@const active = timeline.isEventPlaying(button.id)}
 				<button
 					style={`
 					background-color: ${button.color};
 					color: ${getTextColorForBackground(button.color)};
+					${active ? 'box-shadow: 0 0 10px rgba(251, 146, 60, 0.6), 0 0 15px rgba(251, 146, 60, 0.3);' : ''}
 				`}
-					class="shrink-0 rounded-xs border border-gray-800 px-2 py-1 text-sm shadow-sm transition-opacity {disabled
-						? 'cursor-not-allowed opacity-50'
-						: 'hover:cursor-pointer hover:brightness-120'}"
+					class="shrink-0 rounded-sm border px-2 py-1 text-base shadow-sm transition-all duration-300
+					{disabled ? 'cursor-not-allowed opacity-50' : 'hover:cursor-pointer hover:brightness-120'}
+					{active ? 'border-2 border-orange-400 ' : 'border-2 border-transparent'}"
 					{disabled}
 					onclick={() => !disabled && addEvent(button as Button)}
 				>

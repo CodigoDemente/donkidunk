@@ -33,7 +33,7 @@
 </script>
 
 <label
-	class={`${sizeToClass[size]} flex ${horizontal ? 'flex-row items-start' : 'flex-col items-start gap-2'} text-xs text-gray-200 ${labelClass}`}
+	class={`${sizeToClass[size]} flex ${horizontal ? 'flex-row items-start' : 'flex-col items-start gap-2'} text-sm text-gray-200 ${labelClass}`}
 >
 	{#if label}
 		<p class={`${horizontal ? ' mt-2 w-[130px]' : ''}`}>{label}</p>
@@ -54,10 +54,10 @@
 			{maxlength}
 		/>
 		{#if warning}
-			<p class="mt-1 w-full text-xs text-yellow-400">{warning}</p>
+			<p class="mt-1 w-full text-sm text-yellow-400">{warning}</p>
 		{/if}
 		{#if error}
-			<p class="mt-1 w-full text-xs text-red-400">{error}</p>
+			<p class="mt-1 w-full text-sm text-red-400">{error}</p>
 		{/if}
 	</div>
 </label>

@@ -29,7 +29,7 @@
 
 <div class={`ml-1 flex items-center gap-2 py-2 ${className}`}>
 	{#if labelFalsy}
-		<span class="text-xs select-none">{labelFalsy}</span>
+		<span class="text-sm select-none">{labelFalsy}</span>
 	{/if}
 	<button
 		type="button"
@@ -47,6 +47,6 @@
 		></span>
 	</button>
 	{#if labelTruthy}
-		<span class="text-xs select-none">{labelTruthy}</span>
+		<span class="text-sm select-none">{labelTruthy}</span>
 	{/if}
 </div>

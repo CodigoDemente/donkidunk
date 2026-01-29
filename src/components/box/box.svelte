@@ -53,21 +53,6 @@
 		e.preventDefault();
 	}
 
-	function handleModalDelete(categoryId: string) {
-		projectActions.setModal({
-			content: deleteCategoryModal,
-			contentProps: {
-				categoryType: type
-			},
-			title: `Delete category`,
-			onCancel: () => projectActions.closeAndResetModal(),
-			onSubmit: () => board.deleteCategory(type, categoryId, timeline),
-			onSubmitText: 'Delete',
-			show: true,
-			size: 'small'
-		});
-	}
-
 	function handleModalOpen(type: CategoryType, categoryId?: string) {
 		board.loadCategoryToAddOrEdit(type, categoryId);
 		projectActions.setModal({
@@ -90,7 +75,7 @@
 	<div
 		class="flex h-6 items-center justify-between rounded-t-md border-b border-gray-600 bg-gray-800 px-4"
 	>
-		<p class="text-xs font-semibold text-white">{title}</p>
+		<p class="text-sm font-semibold text-white">{title}</p>
 		<button
 			class="ml-2 rounded p-1 transition hover:text-gray-200"
 			onclick={() => (isOpened = !isOpened)}
@@ -104,12 +89,12 @@
 
 	{#if isOpened}
 		<Button
-			customClass="absolute right-5 top-14 z-11"
+			customClass="absolute right-5 top-14 w-7 z-11"
 			size="mini"
 			primary
 			onClick={() => handleModalOpen(type)}
 		>
-			<IconPlus class="text-white" />
+			<IconPlus class="size-7 text-white" />
 		</Button>
 		<div
 			class="relative min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto"
@@ -120,7 +105,7 @@
 			aria-label="Drop area"
 		>
 			{#each categories as category (category.id)}
-				<Category {type} {category} {handleModalOpen} {handleModalDelete} bind:draggedCategory />
+				<Category {type} {category} {handleModalOpen} bind:draggedCategory />
 			{/each}
 		</div>
 	{/if}

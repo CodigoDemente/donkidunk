@@ -39,7 +39,7 @@
 	class={`flex ${horizontal ? 'flex-row items-start' : 'flex-col items-start gap-2'} text-sm text-white ${labelClass}`}
 >
 	{#if label}
-		<p class={`text-sm ${horizontal ? ' w-[130px]' : ''}`}>{label}</p>
+		<p class={`text-sm ${horizontal ? ' w-[100px]' : ''}`}>{label}</p>
 	{/if}
 	<div class="relative flex {!noErrors && `h-[48px]`} w-full flex-col">
 		<button
@@ -55,7 +55,7 @@
 			{id}
 			{name}
 		>
-			<span class={value ? 'leading-4' : 'w-full text-xs text-gray-400'}>
+			<span class={value ? 'leading-4' : 'w-full text-sm text-gray-400'}>
 				{options.find((o) => o.value === value)?.label ?? placeholder}
 			</span>
 			<IconChevronDown
@@ -64,7 +64,7 @@
 			/>
 		</button>
 		{#if error}
-			<p class="mt-1 w-full text-xs text-red-400">{error}</p>
+			<p class="mt-1 w-full text-sm text-red-400">{error}</p>
 		{/if}
 		{#if open}
 			<ul

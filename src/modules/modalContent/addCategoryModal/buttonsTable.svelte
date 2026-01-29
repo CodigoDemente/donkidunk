@@ -80,7 +80,7 @@
 							size="medium"
 							text="Time lapse before the click. Enabled ONLY when it is a Fixed range."
 							position="bottom"
-							info>Before</Tooltip
+							info>Pre-delay</Tooltip
 						>
 					</th>
 				{/if}
@@ -92,7 +92,7 @@
 				<tr>
 					<td colspan={isEventType ? 6 : 3} class="px-4 py-6 text-center text-gray-400">
 						{#if context.errorsForm.buttons}
-							<p class="mt-2 w-full text-xs text-red-400">{context.errorsForm.buttons.message}</p>
+							<p class="mt-2 w-full text-sm text-red-400">{context.errorsForm.buttons.message}</p>
 						{/if}
 						No buttons yet. Click
 						<span class="text-tertiary font-semibold">{isEventType ? 'ADD BUTTON' : 'ADD TAG'}</span
@@ -172,7 +172,7 @@
 				<td colspan={isEventType ? 6 : 3} class="p-2">
 					<div class="flex justify-center">
 						<Button onClick={addButton} size="large" tertiary customClass="self-end justify-center">
-							<p class="text-xs leading-5">{isEventType ? 'ADD BUTTON' : 'ADD TAG'}</p>
+							<p class="text-sm leading-5">{isEventType ? 'ADD BUTTON' : 'ADD TAG'}</p>
 						</Button>
 					</div>
 				</td>

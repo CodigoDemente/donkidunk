@@ -34,7 +34,7 @@
 </script>
 
 <div class="flex h-6">
-	<div class="w-[var(--spacing-category-name-width)]"></div>
+	<div class="w-category-name-width"></div>
 	<div class="relative flex-1">
 		{#each markerPositions as markerTime (markerTime)}
 			{@const position = getPosition(markerTime)}
@@ -43,7 +43,7 @@
 				style="left: {position}%; transform: translateX(-50%)"
 			>
 				<!-- Time label on top, centered -->
-				<span class="text-[10px] whitespace-nowrap text-gray-400">
+				<span class="text-xs whitespace-nowrap text-gray-400">
 					{toTimeString(markerTime)}
 				</span>
 				<!-- Marker line -->
