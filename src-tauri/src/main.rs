@@ -17,7 +17,7 @@ use lib::license;
 use lib::state::{AppState, AppStateTrait};
 use tauri::Manager;
 
-fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>, is_expired: bool) -> tauri::App<R> {
+fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
     builder
         .invoke_handler(tauri::generate_handler![
             #[cfg(not(target_os = "windows"))]
@@ -39,6 +39,15 @@ fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>, is_expired: bool) -
             tokio::spawn(server::setup_webserver());
 
             menu::setup_menu(app)?;
+
+            let is_expired = license::is_installation_expired(
+                &app.config().identifier,
+                &app.package_info().name,
+            )
+            .unwrap_or_else(|err| {
+                log::error!("Failed to check expired installation: {err}");
+                true
+            });
 
             app.manage(AppState::new(app, is_expired));
 
@@ -66,12 +75,7 @@ async fn main() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_sql::Builder::default().build());
 
-    let is_expired = license::is_installation_expired().unwrap_or_else(|err| {
-        log::error!("Failed to check expired installation: {err}");
-        true
-    });
-
-    let app = create_app(builder, is_expired);
+    let app = create_app(builder);
 
     app.run(|_, event| {
         if !matches!(event, tauri::RunEvent::MainEventsCleared) {
@@ -96,7 +100,7 @@ mod tests {
     #[tokio::test]
     async fn it_should_run_ffmpeg_command() -> Result<(), String> {
         let builder = tauri::test::mock_builder().plugin(tauri_plugin_shell::init());
-        let app = create_app(builder, false);
+        let app = create_app(builder);
 
         let path = path::PathResolver::app_data_dir(app.path()).unwrap();
 
