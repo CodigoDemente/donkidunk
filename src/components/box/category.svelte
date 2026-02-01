@@ -4,7 +4,7 @@
 	import { boardContext } from '../../modules/board/context.svelte';
 	import { CategoryType, type DraggedCategory } from './types';
 	import type { Button } from '../../modules/board/types/Button';
-	import { IconPencil, IconTrash } from '@tabler/icons-svelte';
+	import { IconPencil } from '@tabler/icons-svelte';
 	import { getTextColorForBackground } from './colors';
 	import Tag from '../tag/tag.svelte';
 	import {

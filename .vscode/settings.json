@@ -9,7 +9,8 @@
 		"export",
 		"config-manager",
 		"components",
-		"metrics"
+		"metrics",
+		"license"
 	],
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": null,

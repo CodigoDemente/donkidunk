@@ -14,6 +14,9 @@ pub enum AppError {
     #[error("{0}")]
     DatabaseError(#[from] DatabaseError),
 
+    #[error(transparent)]
+    DateError(#[from] chrono::ParseError),
+
     #[error("[io] ERROR Failed to open file: {0}")]
     IoError(String),
 
@@ -22,6 +25,9 @@ pub enum AppError {
 
     #[error(transparent)]
     Unexpected(#[from] anyhow::Error),
+
+    #[error("[license] ERROR while checking expired installation: {0}")]
+    LicenseError(String),
 }
 
 impl serde::Serialize for AppError {

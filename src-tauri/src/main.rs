@@ -9,9 +9,11 @@ mod server;
 
 use commands::config::*;
 use commands::database::*;
+use commands::license::*;
 use commands::menu::*;
 use commands::metrics::*;
 use commands::video::*;
+use lib::license;
 use lib::state::{AppState, AppStateTrait};
 use tauri::Manager;
 
@@ -30,14 +32,24 @@ fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
             set_database_conn,
             disconnect_database,
             export_clips_csv,
+            get_is_expired,
         ])
-        .setup(|app| {
+        .setup(move |app| {
             #[cfg(not(target_os = "windows"))]
             tokio::spawn(server::setup_webserver());
 
             menu::setup_menu(app)?;
 
-            app.manage(AppState::new(app));
+            let is_expired = license::is_installation_expired(
+                &app.config().identifier,
+                &app.package_info().name,
+            )
+            .unwrap_or_else(|err| {
+                log::error!("Failed to check expired installation: {err}");
+                true
+            });
+
+            app.manage(AppState::new(app, is_expired));
 
             #[cfg(debug_assertions)]
             app.get_webview_window("main").unwrap().open_devtools();
@@ -81,7 +93,7 @@ mod tests {
     use std::process::Command;
 
     use super::*;
-    use tauri::{path, Manager};
+    use tauri::{Manager, path};
     use tauri_plugin_shell::ShellExt;
 
     #[ignore]

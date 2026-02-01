@@ -32,6 +32,7 @@ export type ProjectData = {
 		onSubmit?: () => void;
 		onSubmitText?: string;
 		show: boolean;
+		dismissible?: boolean;
 		size?: ModalSize;
 	};
 	snackbar: {

@@ -10,7 +10,7 @@ use std::{
 
 use anyhow::anyhow;
 use serde::Serialize;
-use tauri::{ipc::Channel, AppHandle, Manager, Runtime};
+use tauri::{AppHandle, Manager, Runtime, ipc::Channel};
 use tauri_plugin_shell::ShellExt;
 
 use tokio::{
@@ -122,7 +122,7 @@ impl Ffmpeg {
                     return Err(FfmpegError::FfmpegSidecarAccess(format!(
                         "[ffmpeg-sidecar] Error: {e}"
                     ))
-                    .into())
+                    .into());
                 }
             };
 

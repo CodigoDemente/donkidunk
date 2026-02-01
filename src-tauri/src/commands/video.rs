@@ -2,7 +2,7 @@ use lib::{
     errors::AppError,
     ffmpeg::{self, ExportEvent},
 };
-use tauri::{ipc::Channel, Runtime};
+use tauri::{Runtime, ipc::Channel};
 
 #[tauri::command]
 pub async fn cut_video<R: Runtime>(

@@ -9,6 +9,8 @@
 	import { Config, configContext } from '../modules/config/context.svelte';
 	import { getConfig } from '../modules/config/commands/GetConfig';
 	import ProjectStore from '../persistence/stores/project/store.svelte';
+	import { getIsExpiredCommand } from '../modules/launch/commands/getIsExpired';
+	import { lockAppUsage } from '../modules/launch/operations/lockAppUsage';
 
 	const board = boardContext.set(new Board());
 	const timeline = timelineContext.set(new Timeline());
@@ -26,6 +28,12 @@
 		// Initialize the menu
 		await bindMenuEvents(board, timeline, config);
 		await initEvents();
+
+		const isExpired = await getIsExpiredCommand();
+
+		if (isExpired) {
+			lockAppUsage();
+		}
 	});
 
 	onDestroy(() => {

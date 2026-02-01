@@ -45,7 +45,7 @@
 		<div
 			bind:this={modalElement}
 			class={`mx-4 flex w-full ${sizesToClass[modalStore.size as ModalSize]} flex-col rounded-lg bg-gray-800 p-0 shadow-lg`}
-			onkeydown={handleKeyDown}
+			onkeydown={modalStore.dismissible ? handleKeyDown : undefined}
 			role="dialog"
 			aria-modal="true"
 			tabindex="0"
@@ -53,46 +53,50 @@
 			<!-- Header -->
 			<div class="flex items-center justify-between border-b border-gray-700 px-3 py-1">
 				<span class="text-sm text-gray-400">{modalStore.title}</span>
-				<button
-					class="text-2xl text-gray-400 transition hover:cursor-pointer hover:text-white"
-					aria-label="Close"
-					onclick={async () => {
-						if (modalStore?.onCancel) {
-							modalStore.onCancel();
-						}
-						modalStore.show = false;
-					}}
-				>
-					&times;
-				</button>
+				{#if modalStore.dismissible}
+					<button
+						class="text-2xl text-gray-400 transition hover:cursor-pointer hover:text-white"
+						aria-label="Close"
+						onclick={async () => {
+							if (modalStore?.onCancel) {
+								modalStore.onCancel();
+							}
+							modalStore.show = false;
+						}}
+					>
+						&times;
+					</button>
+				{/if}
 			</div>
 			<!-- Content -->
 			<modalStore.content {...modalStore.contentProps} />
 			<!-- Footer -->
-			<div class="flex justify-end gap-2 border-t border-gray-700 px-4 py-2">
-				<Button
-					size="large"
-					onClick={async () => {
-						if (modalStore?.onCancel) {
-							modalStore.onCancel();
-						}
-						modalStore.show = false;
-					}}
-				>
-					Cancel
-				</Button>
-				<Button
-					primary
-					size="large"
-					onClick={() => {
-						if (modalStore?.onSubmit) {
-							modalStore.onSubmit();
-						}
-					}}
-				>
-					{modalStore.onSubmitText || 'Submit'}
-				</Button>
-			</div>
+			{#if modalStore.dismissible}
+				<div class="flex justify-end gap-2 border-t border-gray-700 px-4 py-2">
+					<Button
+						size="large"
+						onClick={async () => {
+							if (modalStore?.onCancel) {
+								modalStore.onCancel();
+							}
+							modalStore.show = false;
+						}}
+					>
+						Cancel
+					</Button>
+					<Button
+						primary
+						size="large"
+						onClick={() => {
+							if (modalStore?.onSubmit) {
+								modalStore.onSubmit();
+							}
+						}}
+					>
+						{modalStore.onSubmitText || 'Submit'}
+					</Button>
+				</div>
+			{/if}
 		</div>
 	</div>
 {/if}

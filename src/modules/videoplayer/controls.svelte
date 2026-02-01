@@ -12,7 +12,6 @@
 	import Dropdown from '../../components/dropdown/dropdown.svelte';
 	import { speedOptions, skipStepOptions } from './utils/controlsUtils';
 	import Tooltip from '../../components/tooltip/tooltip.svelte';
-	import { boardContext } from '../board/context.svelte';
 
 	type Props = {
 		skip: (type: SkipType, direction: SkipDirection) => void;
@@ -35,8 +34,6 @@
 		onSkipStepChange,
 		highlightedSkip = null
 	}: Props = $props();
-
-	const board = boardContext.get();
 
 	let selectedSpeed = $derived(playbackSpeed);
 	let selectedSkipStep = $derived(skipStep);
@@ -112,12 +109,10 @@
 		</button>
 		<button
 			class="transition-all hover:text-white active:text-white
-			{board.isEditing ? 'cursor-not-allowed opacity-50' : 'hover:cursor-pointer'}
 			{highlightedSkip === 'play' ? 'text-tertiary scale-110' : ''}"
 			onclick={play}
 			aria-label="Play/Pause"
 			title="Play/Pause"
-			disabled={board.isEditing}
 		>
 			{#if isPlaying}
 				<IconPlayerPause />
