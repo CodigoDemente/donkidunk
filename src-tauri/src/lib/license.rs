@@ -353,11 +353,11 @@ mod tests {
         #[cfg(target_os = "macos")]
         #[test]
         fn test_get_license_dir_macos() {
+            use std::path::PathBuf;
+
             let dir = get_license_dir("com.test.app", "testapp");
 
-            let expected = dirs::home_dir()
-                .unwrap()
-                .join("Library/Application Support/com.test.app");
+            let expected = PathBuf::from(shellexpand::tilde("~/Library/Application Support/com.test.app").as_ref());
             assert_eq!(dir, expected);
         }
     }
