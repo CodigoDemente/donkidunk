@@ -357,7 +357,9 @@ mod tests {
 
             let dir = get_license_dir("com.test.app", "testapp");
 
-            let expected = PathBuf::from(shellexpand::tilde("~/Library/Application Support/com.test.app").as_ref());
+            let expected = PathBuf::from(
+                shellexpand::tilde("~/Library/Application Support/com.test.app").as_ref(),
+            );
             assert_eq!(dir, expected);
         }
     }
