@@ -11,8 +11,11 @@
 	import { join } from '@tauri-apps/api/path';
 	import ProjectStore from '../../persistence/stores/project/store.svelte';
 	import { exportClipsCSV } from './commands/ExportClipsCSV';
+	import { onMount } from 'svelte';
+	import { timelineContext } from '../videoplayer/context.svelte';
 
 	const config = configContext.get();
+	const timeline = timelineContext.get();
 
 	const dashboardRepository = DashboardRepositoryFactory.getInstance();
 
@@ -32,6 +35,8 @@
 	async function loadMetrics() {
 		loading = true;
 		try {
+			await timeline.closeOpenedEvent();
+
 			eventsUsed = await dashboardRepository.getEventsUsed();
 			if (config.uiMode === UIMode.Advanced) {
 				tagsUsed = await dashboardRepository.getTagsUsed();
@@ -73,7 +78,9 @@
 		}
 	}
 
-	loadMetrics();
+	onMount(async () => {
+		await loadMetrics();
+	});
 </script>
 
 <div class="flex h-full w-full flex-col overflow-hidden">

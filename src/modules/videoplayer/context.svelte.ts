@@ -18,7 +18,6 @@ export class Timeline {
 	#history!: StateHistory<TimelineData>;
 	#state = $state<TimelineData>(initialState);
 	#isPlaying = $state(false);
-	#eventPlaying = $state<RangeDataWithTags | null>(null);
 	#eventsPlaying = $state<SvelteMap<string, RangeDataWithTags>>(new SvelteMap());
 	#currentTime: number = $state(0);
 	#duration: number = $state(0);
@@ -56,7 +55,6 @@ export class Timeline {
 	reset() {
 		this.#state = initialState;
 		this.#history.clear();
-		this.#eventPlaying = null;
 		this.#eventsPlaying = new SvelteMap();
 		this.#currentTime = 0;
 		this.#duration = 0;
@@ -133,6 +131,10 @@ export class Timeline {
 
 		await repository.addEntry(eventToPersist);
 
+		for (const tag of eventToPersist.tagsRelated) {
+			await repository.addTagToEntry(eventToPersist.id, tag);
+		}
+
 		this.#state = {
 			...this.#state,
 			eventTimeline: [...this.#state.eventTimeline, eventToPersist]
@@ -145,6 +147,19 @@ export class Timeline {
 	}
 
 	//#region Actions
+	async closeOpenedEvent() {
+		if (!this.#eventsPlaying.size) {
+			return;
+		}
+
+		const eventsToClose = Array.from(this.#eventsPlaying.values());
+
+		for (const event of eventsToClose) {
+			this.fixEventTimestamps(event, this.#currentTime);
+			await this.persistEvent(event);
+		}
+	}
+
 	async addEvent(
 		buttonId: string,
 		categoryId: string,
@@ -169,35 +184,38 @@ export class Timeline {
 
 		const eventPlaying = this.#eventsPlaying.get(buttonId);
 		if (eventPlaying) {
-			const categoryEvents = this.#timelineEventsByCategory[categoryId] || [];
-			const playingEventStart = eventPlaying.timestamp.start;
-			const isReversed = timeCursor < playingEventStart;
-
-			// Calculate the actual range boundaries (min as start, max as end)
-			const actualStart = isReversed ? timeCursor : playingEventStart;
-			const actualEnd = isReversed ? playingEventStart : timeCursor;
-
-			const overlappingEvent = categoryEvents.find((event) => {
-				const existingEventStart = event.timestamp.start;
-				const existingEventEnd = event.timestamp.end ?? Infinity;
-				return actualStart < existingEventEnd && actualEnd > existingEventStart;
-			});
-
-			if (overlappingEvent) {
-				if (isReversed) {
-					// Going backward: the event will be inverted in persistEvent
-					eventPlaying.timestamp.start = overlappingEvent.timestamp.start - 0.001;
-					eventPlaying.timestamp.end = timeCursor;
-				} else {
-					// Going forward: end the playing event one microsecond before the overlapping event starts
-					eventPlaying.timestamp.end = overlappingEvent.timestamp.start - 0.001;
-				}
-			} else {
-				// No overlap, end at timeCursor as usual
-				eventPlaying.timestamp.end = timeCursor;
-			}
-
+			this.fixEventTimestamps(eventPlaying, timeCursor);
 			return await this.persistEvent(eventPlaying);
+		}
+	}
+
+	fixEventTimestamps(event: RangeDataWithTags, timeCursor: number) {
+		const categoryEvents = this.#timelineEventsByCategory[event.categoryId] || [];
+		const playingEventStart = event.timestamp.start;
+		const isReversed = timeCursor < playingEventStart;
+
+		// Calculate the actual range boundaries (min as start, max as end)
+		const actualStart = isReversed ? timeCursor : playingEventStart;
+		const actualEnd = isReversed ? playingEventStart : timeCursor;
+
+		const overlappingEvent = categoryEvents.find((event) => {
+			const existingEventStart = event.timestamp.start;
+			const existingEventEnd = event.timestamp.end ?? Infinity;
+			return actualStart < existingEventEnd && actualEnd > existingEventStart;
+		});
+
+		if (overlappingEvent) {
+			if (isReversed) {
+				// Going backward: the event will be inverted in persistEvent
+				event.timestamp.start = overlappingEvent.timestamp.start - 0.001;
+				event.timestamp.end = timeCursor;
+			} else {
+				// Going forward: end the playing event one microsecond before the overlapping event starts
+				event.timestamp.end = overlappingEvent.timestamp.start - 0.001;
+			}
+		} else {
+			// No overlap, end at timeCursor as usual
+			event.timestamp.end = timeCursor;
 		}
 	}
 
@@ -245,9 +263,13 @@ export class Timeline {
 		const lastEvent = eventsPlaying[eventsPlaying.length - 1];
 
 		if (eventsPlaying.length > 0) {
-			this.#eventsPlaying.get(lastEvent[0])!.tagsRelated = toggleTag(
-				this.#eventsPlaying.get(lastEvent[0])!.tagsRelated
-			);
+			const currentTags = this.#eventsPlaying.get(lastEvent[0])!.tagsRelated;
+			const newTags = toggleTag(currentTags);
+
+			this.#eventsPlaying.set(lastEvent[0], {
+				...this.#eventsPlaying.get(lastEvent[0])!,
+				tagsRelated: newTags
+			});
 			return;
 		} else if (this.#eventSelected) {
 			const newEventTimeline = this.#state.eventTimeline.map((event) =>
@@ -339,10 +361,6 @@ export class Timeline {
 
 	set isPlaying(value: boolean) {
 		this.#isPlaying = value;
-	}
-
-	get eventPlaying() {
-		return this.#eventPlaying;
 	}
 
 	get eventsPlaying() {

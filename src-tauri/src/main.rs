@@ -93,18 +93,13 @@ mod tests {
     use std::process::Command;
 
     use super::*;
-    use tauri::{Manager, path};
     use tauri_plugin_shell::ShellExt;
 
-    #[ignore]
     #[tokio::test]
+    #[ignore]
     async fn it_should_run_ffmpeg_command() -> Result<(), String> {
         let builder = tauri::test::mock_builder().plugin(tauri_plugin_shell::init());
         let app = create_app(builder);
-
-        let path = path::PathResolver::app_data_dir(app.path()).unwrap();
-
-        println!("App data path: {path:?}");
 
         let ffmpeg = app.shell().sidecar("donkidunk_ffmpeg").unwrap();
 
