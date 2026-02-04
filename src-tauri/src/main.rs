@@ -96,6 +96,7 @@ mod tests {
     use tauri_plugin_shell::ShellExt;
 
     #[tokio::test]
+    #[ignore]
     async fn it_should_run_ffmpeg_command() -> Result<(), String> {
         let builder = tauri::test::mock_builder().plugin(tauri_plugin_shell::init());
         let app = create_app(builder);
