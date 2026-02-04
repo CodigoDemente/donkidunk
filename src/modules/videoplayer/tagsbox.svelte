@@ -8,8 +8,6 @@
 	let isBoxOpen: boolean = $state(true);
 
 	const timeline = timelineContext.get();
-
-	$inspect(timeline.eventsPlaying);
 </script>
 
 <div class="mb-2 flex flex-col">
