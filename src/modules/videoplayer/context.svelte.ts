@@ -133,6 +133,10 @@ export class Timeline {
 
 		await repository.addEntry(eventToPersist);
 
+		for (const tag of eventToPersist.tagsRelated) {
+			await repository.addTagToEntry(eventToPersist.id, tag);
+		}
+
 		this.#state = {
 			...this.#state,
 			eventTimeline: [...this.#state.eventTimeline, eventToPersist]
@@ -245,9 +249,13 @@ export class Timeline {
 		const lastEvent = eventsPlaying[eventsPlaying.length - 1];
 
 		if (eventsPlaying.length > 0) {
-			this.#eventsPlaying.get(lastEvent[0])!.tagsRelated = toggleTag(
-				this.#eventsPlaying.get(lastEvent[0])!.tagsRelated
-			);
+			const currentTags = this.#eventsPlaying.get(lastEvent[0])!.tagsRelated;
+			const newTags = toggleTag(currentTags);
+
+			this.#eventsPlaying.set(lastEvent[0], {
+				...this.#eventsPlaying.get(lastEvent[0])!,
+				tagsRelated: newTags
+			});
 			return;
 		} else if (this.#eventSelected) {
 			const newEventTimeline = this.#state.eventTimeline.map((event) =>
