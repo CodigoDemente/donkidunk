@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onDestroy, onMount } from 'svelte';
+	import { onDestroy, onMount, type Snippet } from 'svelte';
 	import { bindMenuEvents } from '../modules/menu';
 	import '../styles/page.css';
 	import Navbar from '../modules/navbar/navbar.svelte';
@@ -11,6 +11,9 @@
 	import ProjectStore from '../persistence/stores/project/store.svelte';
 	import { getIsExpiredCommand } from '../modules/launch/commands/getIsExpired';
 	import { lockAppUsage } from '../modules/launch/operations/lockAppUsage';
+	import { exportActions } from '../persistence/stores/export/actions';
+
+	let { children }: { children: Snippet } = $props();
 
 	const board = boardContext.set(new Board());
 	const timeline = timelineContext.set(new Timeline());
@@ -20,6 +23,8 @@
 	// uses the undo manager internally, who accesses both contexts
 	board.wrapForUndo();
 	timeline.wrapForUndo();
+
+	const navbarDisabled = $derived(!projectStore.file?.originalPath || exportActions.getExporting());
 
 	onMount(async () => {
 		const configData = await getConfig();
@@ -49,8 +54,8 @@
 </script>
 
 <main class="container flex h-screen flex-col overflow-hidden">
-	<Navbar disabled={!projectStore.file?.originalPath} />
+	<Navbar disabled={navbarDisabled} />
 	<div class="flex min-h-0 flex-1 flex-col">
-		<slot />
+		{@render children()}
 	</div>
 </main>

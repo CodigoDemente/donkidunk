@@ -15,6 +15,7 @@
 	import Button from '../../components/button/button.svelte';
 	import Tag from '../../components/tag/tag.svelte';
 	import { SvelteSet } from 'svelte/reactivity';
+	import { exportActions } from '../../persistence/stores/export/actions';
 
 	const board = boardContext.get();
 	const timeline = timelineContext.get();
@@ -76,12 +77,10 @@
 	}
 
 	const projectStore = ProjectStore.getState();
-	let exporting = $state(false);
-	let export_progress = $state(0);
 
 	async function export_video(): Promise<void> {
-		exporting = false;
-		export_progress = 0;
+		exportActions.setExporting(false);
+		exportActions.setExportProgress(0);
 
 		const inVideoFolder = await path.dirname(projectStore.video.path!);
 
@@ -95,7 +94,7 @@
 			return;
 		}
 
-		exporting = true;
+		exportActions.setExporting(true);
 
 		const ranges = await timelineRepository.getRangesForExport(exportingRules);
 
@@ -103,12 +102,12 @@
 		onEvent.onmessage = (message) => {
 			const progress = message.progress;
 			debug(`Exporting progress: ${message.progress}`);
-			export_progress = Math.trunc(progress * 100);
+			exportActions.setExportProgress(Math.trunc(progress * 100));
 		};
 
 		await cutVideo(projectStore.video.path!, outPath, ranges, onEvent);
 
-		exporting = false;
+		exportActions.setExporting(false);
 	}
 </script>
 
@@ -218,18 +217,18 @@
 		primary
 		size="large"
 		onClick={export_video}
-		disabled={exporting}>Export Video</Button
+		disabled={exportingRules.length === 0 || exportActions.getExporting()}>Export Video</Button
 	>
-	{#if exporting}
+	{#if exportActions.getExporting()}
 		<p class="mt-2 text-sm text-gray-600">Exporting video, please wait...</p>
 
 		<div class="w-full rounded-full bg-gray-200 dark:bg-gray-700">
 			<div
 				class="rounded-full bg-blue-600 p-0.5 text-center text-sm leading-none font-medium text-blue-100
 				transition-[width] duration-150 ease-in"
-				style="width: {export_progress}%"
+				style="width: {exportActions.getExportProgress()}%"
 			>
-				{export_progress}%
+				{exportActions.getExportProgress()}%
 			</div>
 		</div>
 	{/if}
