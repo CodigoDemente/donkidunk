@@ -10,9 +10,12 @@ import type { BoardData } from '../../board/types/Board';
 import type { Board } from '../../board/context.svelte';
 import type { Config } from '../../config/context.svelte';
 import { UIMode } from '../../config/types/Config';
+import { closeProject } from '../../menu/operations/closeProject';
+import type { Timeline } from '../../videoplayer/context.svelte';
 
 export async function createNewProject(
 	board: Board,
+	timeline: Timeline,
 	config: Config,
 	buttonBoard?: ButtonBoard,
 	providedPath?: string
@@ -39,6 +42,10 @@ export async function createNewProject(
 	if (!path) {
 		debug('No valid path available');
 		return;
+	}
+
+	if (projectActions.getDatabase()) {
+		await closeProject(board, timeline);
 	}
 
 	projectActions.setFilePath(path);

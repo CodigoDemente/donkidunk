@@ -12,7 +12,7 @@
 	const config = configContext.get();
 
 	function handleCreateProject() {
-		createNewProject(board, config);
+		createNewProject(board, timeline, config);
 	}
 
 	async function handleOpenProject() {
