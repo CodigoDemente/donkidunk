@@ -33,7 +33,8 @@
 			onmousedown={() =>
 				startResize(
 					(h) => (eventsBoxHeight = h),
-					(h) => (tagsBoxHeight = h)
+					(h) => (tagsBoxHeight = h),
+					config
 				)}
 			aria-label="Resize sections"
 			tabindex="0"
