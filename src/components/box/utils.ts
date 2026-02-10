@@ -1,6 +1,7 @@
 import type { Board } from '../../modules/board/context.svelte';
 import type { Category } from '../../modules/board/types/Category';
 import { saveBoardSizeCommand } from '../../modules/config/commands/SaveBoardSize';
+import type { Config } from '../../modules/config/context.svelte';
 import type { CategoryType } from './types';
 let isResizing = false;
 
@@ -154,7 +155,8 @@ export function handleResizeEnd(state: ResizeState): void {
 
 export function startResize(
 	setFirstBoxHeight: (h: number) => void,
-	setSecondBoxHeight: (h: number) => void
+	setSecondBoxHeight: (h: number) => void,
+	config: Config
 ) {
 	isResizing = true;
 	// Disable transitions on boxes during resize for smooth performance
@@ -201,6 +203,10 @@ export function startResize(
 
 	async function saveBoardSize() {
 		await saveBoardSizeCommand(firstBoxHeight, secondBoxHeight);
+		config.boardSize = {
+			events: firstBoxHeight,
+			tags: secondBoxHeight
+		};
 		document.removeEventListener('mouseup', saveBoardSize);
 	}
 
