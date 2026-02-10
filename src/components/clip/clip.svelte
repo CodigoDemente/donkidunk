@@ -54,6 +54,11 @@
 
 	const currentEnd = $derived(end || timelineEnd);
 
+	const collisionLimits = $derived({
+		minStart: timelineStart,
+		maxEnd: timelineEnd
+	});
+
 	function propsMatchTemp(): boolean {
 		return Math.abs(start - tempStart) < 0.01 && Math.abs(currentEnd - tempEnd) < 0.01;
 	}
@@ -134,48 +139,26 @@
 		document.addEventListener('mouseup', upHandler);
 	}
 
-	function getCollisionLimits(): { minStart: number; maxEnd: number } {
-		let minStart = timelineStart;
-		let maxEnd = timelineEnd;
-
-		for (const event of otherEvents) {
-			const eventEnd = event.end ?? timelineEnd;
-
-			// Find closest event to the left: event ends before current clip starts
-			if (eventEnd <= drag!.startTime && eventEnd > minStart) {
-				minStart = eventEnd;
-			}
-
-			// Find closest event to the right: event starts after current clip ends
-			if (event.start >= drag!.endTime && event.start < maxEnd) {
-				maxEnd = event.start;
-			}
-		}
-
-		return { minStart, maxEnd };
-	}
-
 	function handleMove(e: MouseEvent) {
 		if (!drag || !onResize) return;
 
 		const deltaX = e.clientX - drag.startX;
 		const deltaTime = (deltaX / drag.container.getBoundingClientRect().width) * total;
-		const limits = getCollisionLimits();
 
 		if (drag.type === 'move') {
 			const proposedStart = drag.startTime + deltaTime;
 			const newStart = Math.max(
-				limits.minStart,
-				Math.min(limits.maxEnd - drag.duration, proposedStart)
+				collisionLimits.minStart,
+				Math.min(collisionLimits.maxEnd - drag.duration, proposedStart)
 			);
 			tempStart = newStart;
 			tempEnd = newStart + drag.duration;
 		} else if (drag.type === 'left') {
 			const proposedStart = drag.startTime + deltaTime;
-			tempStart = Math.max(limits.minStart, Math.min(proposedStart, drag.endTime - 0.1));
+			tempStart = Math.max(collisionLimits.minStart, Math.min(proposedStart, drag.endTime - 0.1));
 		} else {
 			const proposedEnd = drag.endTime + deltaTime;
-			tempEnd = Math.min(limits.maxEnd, Math.max(drag.startTime + 0.1, proposedEnd));
+			tempEnd = Math.min(collisionLimits.maxEnd, Math.max(drag.startTime + 0.1, proposedEnd));
 		}
 	}
 
@@ -208,7 +191,7 @@
 </script>
 
 <div
-	class={`border-rounded-xs absolute h-full rounded-xs border-2 opacity-80 hover:opacity-100 ${isSelected ? 'opacity-100' : ''} ${drag?.type === 'move' ? 'cursor-grab' : ''}`}
+	class={`border-rounded-xs absolute h-full rounded-xs border-2 opacity-70 hover:opacity-90 ${isSelected ? 'opacity-90' : ''} ${drag?.type === 'move' ? 'cursor-grab' : ''}`}
 	style="left: {(drag ? displayLeft : leftPercentage) * 100}%; width: {(drag
 		? displayWidth
 		: widthPercentage) * 100}%; background-color: {color}; border-color: {borderColor || color};"

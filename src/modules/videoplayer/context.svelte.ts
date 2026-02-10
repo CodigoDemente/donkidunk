@@ -155,7 +155,6 @@ export class Timeline {
 		const eventsToClose = Array.from(this.#eventsPlaying.values());
 
 		for (const event of eventsToClose) {
-			this.fixEventTimestamps(event, this.#currentTime);
 			await this.persistEvent(event);
 		}
 	}
@@ -184,38 +183,7 @@ export class Timeline {
 
 		const eventPlaying = this.#eventsPlaying.get(buttonId);
 		if (eventPlaying) {
-			this.fixEventTimestamps(eventPlaying, timeCursor);
 			return await this.persistEvent(eventPlaying);
-		}
-	}
-
-	fixEventTimestamps(event: RangeDataWithTags, timeCursor: number) {
-		const categoryEvents = this.#timelineEventsByCategory[event.categoryId] || [];
-		const playingEventStart = event.timestamp.start;
-		const isReversed = timeCursor < playingEventStart;
-
-		// Calculate the actual range boundaries (min as start, max as end)
-		const actualStart = isReversed ? timeCursor : playingEventStart;
-		const actualEnd = isReversed ? playingEventStart : timeCursor;
-
-		const overlappingEvent = categoryEvents.find((event) => {
-			const existingEventStart = event.timestamp.start;
-			const existingEventEnd = event.timestamp.end ?? Infinity;
-			return actualStart < existingEventEnd && actualEnd > existingEventStart;
-		});
-
-		if (overlappingEvent) {
-			if (isReversed) {
-				// Going backward: the event will be inverted in persistEvent
-				event.timestamp.start = overlappingEvent.timestamp.start - 0.001;
-				event.timestamp.end = timeCursor;
-			} else {
-				// Going forward: end the playing event one microsecond before the overlapping event starts
-				event.timestamp.end = overlappingEvent.timestamp.start - 0.001;
-			}
-		} else {
-			// No overlap, end at timeCursor as usual
-			event.timestamp.end = timeCursor;
 		}
 	}
 
