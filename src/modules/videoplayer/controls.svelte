@@ -77,6 +77,15 @@
 				selectedSkipStep = nextSkipStep;
 				onSkipStepChange(nextSkipStep);
 			}
+
+			// Ctrl + (Shift) + ->/<-
+			if (e.ctrlKey && ['ArrowLeft', 'ArrowRight'].includes(e.key)) {
+				e.preventDefault();
+				skip(
+					e.shiftKey ? SkipType.SHORT : SkipType.LONG,
+					e.key === 'ArrowRight' ? SkipDirection.FORWARD : SkipDirection.BACKWARD
+				);
+			}
 		}
 
 		document.addEventListener('keydown', handleKeyDown);
@@ -93,16 +102,16 @@
 			'backward'
 				? 'text-tertiary scale-110'
 				: ''}"
-			aria-label="Rewind Long"
-			title="Rewind Long"
+			aria-label="Skip Backward Fast"
+			title="Skip Backward Fast"
 			onclick={() => skip(SkipType.LONG, SkipDirection.BACKWARD)}
 		>
 			<IconPlayerTrackPrev />
 		</button>
 		<button
 			class="hover:cursor-pointer hover:text-white active:text-white"
-			aria-label="Rewind Slow"
-			title="Rewind Slow"
+			aria-label="Skip Backward Precise"
+			title="Skip Backward Precise"
 			onclick={() => skip(SkipType.SHORT, SkipDirection.BACKWARD)}
 		>
 			<IconPlayerSkipBack />
@@ -122,8 +131,8 @@
 		</button>
 		<button
 			class="hover:cursor-pointer hover:text-white active:text-white"
-			aria-label="Rewind"
-			title="Rewind"
+			aria-label="Skip Forward Precise"
+			title="Skip Forward Precise"
 			onclick={() => skip(SkipType.SHORT, SkipDirection.FORWARD)}
 		>
 			<IconPlayerSkipForward />
@@ -133,8 +142,8 @@
 			'forward'
 				? 'text-tertiary scale-110'
 				: ''}"
-			aria-label="Skip Forward Long"
-			title="Skip Forward Long"
+			aria-label="Skip Forward Fast"
+			title="Skip Forward Fast"
 			onclick={() => skip(SkipType.LONG, SkipDirection.FORWARD)}
 		>
 			<IconPlayerTrackNext />
