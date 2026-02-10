@@ -1,3 +1,4 @@
+import { dumpIntoOriginalDatabase } from '../../../persistence/database/actions';
 import { projectActions } from '../../../persistence/stores/project/actions';
 import type { Board } from '../../board/context.svelte';
 import type { Config } from '../../config/context.svelte';
@@ -30,6 +31,12 @@ async function handleSubmit(board: Board, timeline: Timeline, config: Config) {
 	if (formData.videoPath) {
 		await projectActions.setVideoPath(formData.videoPath);
 	}
+
+	const timeStamp = new Date().toISOString();
+
+	await projectActions.setLastSavedTimestamp(timeStamp);
+
+	await dumpIntoOriginalDatabase(projectActions.getFilePath());
 
 	projectActions.setNewProjectFormData(null);
 	projectActions.closeAndResetModal();
