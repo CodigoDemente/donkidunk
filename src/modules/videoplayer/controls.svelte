@@ -79,7 +79,7 @@
 			}
 
 			// Ctrl + (Shift) + ->/<-
-			if (e.ctrlKey && ['ArrowLeft', 'ArrowRight'].includes(e.key)) {
+			if ((e.ctrlKey || e.metaKey) && ['ArrowLeft', 'ArrowRight'].includes(e.key)) {
 				e.preventDefault();
 				skip(
 					e.shiftKey ? SkipType.SHORT : SkipType.LONG,
