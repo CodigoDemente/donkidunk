@@ -44,6 +44,8 @@
 				end: event.timestamp.end ?? timeline.duration
 			}));
 	}
+
+	$inspect(allTagsByCategory[categoryId]);
 </script>
 
 <div class="relative h-5 w-full rounded-xs bg-gray-900">

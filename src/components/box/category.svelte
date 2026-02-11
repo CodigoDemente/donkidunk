@@ -104,7 +104,7 @@
 			}
 		}
 
-		return timeline.isTimeOverlappingWithCategoryEvent(category.id, buttonId);
+		return false;
 	}
 </script>
 
