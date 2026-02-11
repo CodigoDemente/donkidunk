@@ -33,19 +33,6 @@
 		const eventEnd = end ?? currentTime;
 		return start < rightLimit && eventEnd > leftLimit;
 	}
-
-	// Get other events for collision detection (excluding the current event)
-	function getOtherEvents(currentEventId: string) {
-		const events = allTagsByCategory[categoryId] || [];
-		return events
-			.filter((event) => event.id !== currentEventId)
-			.map((event) => ({
-				start: event.timestamp.start,
-				end: event.timestamp.end ?? timeline.duration
-			}));
-	}
-
-	$inspect(allTagsByCategory[categoryId]);
 </script>
 
 <div class="relative h-5 w-full rounded-xs bg-gray-900">
@@ -66,7 +53,6 @@
 						onDblClick={() => onEventDblClick(event.timestamp.start, event.id, event.buttonId)}
 						onResize={(newStart, newEnd) =>
 							onEventResize(event.id, event.buttonId, event.categoryId, newStart, newEnd)}
-						otherEvents={getOtherEvents(event.id)}
 					/>
 				{/if}
 			{/each}
