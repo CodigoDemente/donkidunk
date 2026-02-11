@@ -11,7 +11,6 @@
 		onClick: () => void;
 		onDblClick?: () => void;
 		onResize?: (start: number, end: number) => void;
-		otherEvents?: { start: number; end: number | null }[];
 	}
 
 	let {
@@ -25,8 +24,7 @@
 		name,
 		onClick,
 		onDblClick,
-		onResize,
-		otherEvents = []
+		onResize
 	}: Props = $props();
 
 	const total = $derived(timelineEnd - timelineStart);
