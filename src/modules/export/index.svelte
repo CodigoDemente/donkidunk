@@ -16,6 +16,8 @@
 	import Tag from '../../components/tag/tag.svelte';
 	import { SvelteSet } from 'svelte/reactivity';
 	import { exportActions } from '../../persistence/stores/export/actions';
+	import { IconTrash, IconChevronUp, IconChevronDown } from '@tabler/icons-svelte';
+	import Tooltip from '../../components/tooltip/tooltip.svelte';
 
 	const board = boardContext.get();
 	const timeline = timelineContext.get();
@@ -86,6 +88,24 @@
 		return board.tagsById[tagId];
 	}
 
+	function deleteRule(idx: number) {
+		exportingRules = exportingRules.filter((_, i) => i !== idx);
+	}
+
+	function moveRuleUp(idx: number) {
+		if (idx <= 0) return;
+		const rules = [...exportingRules];
+		[rules[idx - 1], rules[idx]] = [rules[idx], rules[idx - 1]];
+		exportingRules = rules;
+	}
+
+	function moveRuleDown(idx: number) {
+		if (idx >= exportingRules.length - 1) return;
+		const rules = [...exportingRules];
+		[rules[idx], rules[idx + 1]] = [rules[idx + 1], rules[idx]];
+		exportingRules = rules;
+	}
+
 	const projectStore = ProjectStore.getState();
 
 	async function export_video(): Promise<void> {
@@ -134,13 +154,14 @@
 						<th class="w-[200px] border-r border-b border-gray-600 px-4 py-2 text-left">
 							Include
 						</th>
-						<th class="border-b border-gray-600 px-4 py-2 text-left">Tagged with</th>
+						<th class="border-r border-b border-gray-600 px-4 py-2 text-left">Tagged with</th>
+						<th class="w-[100px] border-b border-gray-600 px-2 py-2 text-center">Actions</th>
 					</tr>
 				</thead>
 				<tbody>
 					{#if exportingRules.length === 0}
 						<tr>
-							<td colspan="2" class="px-4 py-8 text-center text-gray-400">
+							<td colspan="3" class="px-4 py-8 text-center text-gray-400">
 								The table is empty, add rule to start exporting your video
 							</td>
 						</tr>
@@ -152,7 +173,7 @@
 										{getEventLabel(rule.include)}
 									</div>
 								</td>
-								<td class="px-4 py-3">
+								<td class="border-r border-gray-600 px-4 py-3">
 									<div class="max-h-24 overflow-y-auto">
 										<div class="flex flex-wrap gap-2">
 											{#if rule.taggedWith.length === 0}
@@ -166,6 +187,41 @@
 												{/each}
 											{/if}
 										</div>
+									</div>
+								</td>
+								<td class="px-2 py-3">
+									<div class="flex items-center justify-center gap-1">
+										<Tooltip text="Move up" size="medium" position="bottom" disabled={idx === 0}>
+											<button
+												class="cursor-pointer rounded p-1 text-gray-400 transition-colors hover:text-white disabled:pointer-events-none disabled:opacity-30"
+												disabled={idx === 0}
+												onclick={() => moveRuleUp(idx)}
+											>
+												<IconChevronUp size={16} />
+											</button>
+										</Tooltip>
+										<Tooltip
+											text="Move down"
+											size="medium"
+											position="bottom"
+											disabled={idx === exportingRules.length - 1}
+										>
+											<button
+												class="cursor-pointer rounded p-1 text-gray-400 transition-colors hover:text-white disabled:pointer-events-none disabled:opacity-30"
+												disabled={idx === exportingRules.length - 1}
+												onclick={() => moveRuleDown(idx)}
+											>
+												<IconChevronDown size={16} />
+											</button>
+										</Tooltip>
+										<Tooltip text="Delete" size="medium" position="bottom">
+											<button
+												class="hover:text-tertiary cursor-pointer rounded p-1 text-gray-400 transition-colors"
+												onclick={() => deleteRule(idx)}
+											>
+												<IconTrash size={16} />
+											</button>
+										</Tooltip>
 									</div>
 								</td>
 							</tr>
