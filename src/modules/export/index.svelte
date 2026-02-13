@@ -1,143 +1,25 @@
 <script lang="ts">
-	import { Channel } from '@tauri-apps/api/core';
 	import ProjectStore from '../../persistence/stores/project/store.svelte';
 	import { boardContext } from '../../modules/board/context.svelte';
 	import { timelineContext } from '../../modules/videoplayer/context.svelte';
 	import { TimelineRepositoryFactory } from '../../factories/TimelineRepositoryFactory';
-	import { save } from '@tauri-apps/plugin-dialog';
-	import { path } from '@tauri-apps/api';
-	import type { ExportEvent } from '../../events/types/ExportEvent';
-	import { debug } from '@tauri-apps/plugin-log';
-	import type { ExportingRule } from './types';
-	import { CategoryType } from '../../components/box/types';
-	import Multiselect from '../../components/multiselect';
-	import { cutVideo } from './commands/CutVideo';
-	import Button from '../../components/button/button.svelte';
-	import Tag from '../../components/tag/tag.svelte';
-	import { SvelteSet } from 'svelte/reactivity';
 	import { exportActions } from '../../persistence/stores/export/actions';
-	import { IconTrash, IconChevronUp, IconChevronDown } from '@tabler/icons-svelte';
-	import Tooltip from '../../components/tooltip/tooltip.svelte';
+	import Button from '../../components/button/button.svelte';
+	import { ExportContext } from './context.svelte';
+	import { exportVideo } from './operations/exportVideo';
+	import ExportRulesTable from './components/ExportRulesTable.svelte';
+	import ExportRuleForm from './components/ExportRuleForm.svelte';
+	import ExportProgress from './components/ExportProgress.svelte';
 
 	const board = boardContext.get();
 	const timeline = timelineContext.get();
 	const timelineRepository = TimelineRepositoryFactory.getInstance();
-
-	let exportingRules: ExportingRule[] = $state([]);
-
-	const allEventOptions = $derived.by(() => {
-		const buttonIdsWithEvents = new Set(
-			timeline.getState().eventTimeline.map((event) => event.buttonId)
-		);
-
-		return Object.values(board.eventButtonsById)
-			.filter((button) => buttonIdsWithEvents.has(button.id))
-			.map((button) => ({
-				value: button.id,
-				label: button.name
-			}));
-	});
-
-	const allTags = $derived(
-		Object.values(board.tagsById).map((tag) => ({
-			id: tag.id,
-			value: tag.id,
-			label: tag.name,
-			color: tag.color
-		}))
-	);
-
-	const availableTags = $derived.by(() => {
-		if (!newRule.include) {
-			return [];
-		}
-
-		const eventsWithButtonId = timeline
-			.getState()
-			.eventTimeline.filter((event) => event.buttonId === newRule.include);
-
-		const tagIds = new SvelteSet<string>();
-		eventsWithButtonId.forEach((event) => {
-			event.tagsRelated.forEach((tagId) => tagIds.add(tagId));
-		});
-
-		return allTags.filter((tag) => tagIds.has(tag.value));
-	});
-
-	const initialRule: ExportingRule = {
-		type: CategoryType.Event,
-		include: '',
-		taggedWith: [],
-		temp: true
-	};
-
-	let newRule = $state({ ...initialRule });
-
-	function addRule() {
-		if (newRule.include) {
-			exportingRules = [...exportingRules, { ...newRule, temp: false }];
-			newRule = { ...initialRule };
-		}
-	}
-
-	function getEventLabel(eventId: string): string {
-		return board.eventButtonsById[eventId]?.name || eventId;
-	}
-
-	function getTagById(tagId: string) {
-		return board.tagsById[tagId];
-	}
-
-	function deleteRule(idx: number) {
-		exportingRules = exportingRules.filter((_, i) => i !== idx);
-	}
-
-	function moveRuleUp(idx: number) {
-		if (idx <= 0) return;
-		const rules = [...exportingRules];
-		[rules[idx - 1], rules[idx]] = [rules[idx], rules[idx - 1]];
-		exportingRules = rules;
-	}
-
-	function moveRuleDown(idx: number) {
-		if (idx >= exportingRules.length - 1) return;
-		const rules = [...exportingRules];
-		[rules[idx], rules[idx + 1]] = [rules[idx + 1], rules[idx]];
-		exportingRules = rules;
-	}
-
 	const projectStore = ProjectStore.getState();
 
-	async function export_video(): Promise<void> {
-		exportActions.setExporting(false);
-		exportActions.setExportProgress(0);
+	const context = new ExportContext(board, timeline);
 
-		const inVideoFolder = await path.dirname(projectStore.video.path!);
-
-		const outPath = await save({
-			title: 'Select output video file',
-			defaultPath: inVideoFolder,
-			filters: [{ name: 'Video', extensions: ['mp4'] }]
-		});
-
-		if (!outPath) {
-			return;
-		}
-
-		exportActions.setExporting(true);
-
-		const ranges = await timelineRepository.getRangesForExport(exportingRules);
-
-		const onEvent = new Channel<ExportEvent>();
-		onEvent.onmessage = (message) => {
-			const progress = message.progress;
-			debug(`Exporting progress: ${message.progress}`);
-			exportActions.setExportProgress(Math.trunc(progress * 100));
-		};
-
-		await cutVideo(projectStore.video.path!, outPath, ranges, onEvent);
-
-		exportActions.setExporting(false);
+	async function onExport() {
+		await exportVideo(projectStore.video.path!, context.rules, timelineRepository);
 	}
 </script>
 
@@ -147,155 +29,19 @@
 
 	<!-- Main content area -->
 	<div class="flex-1 overflow-y-auto">
-		<div class="relative min-h-[200px]">
-			<table class="w-full border border-gray-600">
-				<thead class="sticky top-0 z-10 bg-gray-800">
-					<tr>
-						<th class="w-[200px] border-r border-b border-gray-600 px-4 py-2 text-left">
-							Include
-						</th>
-						<th class="border-r border-b border-gray-600 px-4 py-2 text-left">Tagged with</th>
-						<th class="w-[100px] border-b border-gray-600 px-2 py-2 text-center">Actions</th>
-					</tr>
-				</thead>
-				<tbody>
-					{#if exportingRules.length === 0}
-						<tr>
-							<td colspan="3" class="px-4 py-8 text-center text-gray-400">
-								The table is empty, add rule to start exporting your video
-							</td>
-						</tr>
-					{:else}
-						{#each exportingRules as rule, idx (idx)}
-							<tr class="border-b border-gray-700">
-								<td class="w-[200px] border-r border-gray-600 px-4 py-3">
-									<div class="truncate" title={getEventLabel(rule.include)}>
-										{getEventLabel(rule.include)}
-									</div>
-								</td>
-								<td class="border-r border-gray-600 px-4 py-3">
-									<div class="max-h-24 overflow-y-auto">
-										<div class="flex flex-wrap gap-2">
-											{#if rule.taggedWith.length === 0}
-												<span class="text-sm text-gray-500">No tags</span>
-											{:else}
-												{#each rule.taggedWith as tagId (tagId)}
-													{@const tag = getTagById(tagId)}
-													{#if tag}
-														<Tag color={tag.color} text={tag.name} disabled />
-													{/if}
-												{/each}
-											{/if}
-										</div>
-									</div>
-								</td>
-								<td class="px-2 py-3">
-									<div class="flex items-center justify-center gap-1">
-										<Tooltip text="Move up" size="medium" position="bottom" disabled={idx === 0}>
-											<button
-												class="cursor-pointer rounded p-1 text-gray-400 transition-colors hover:text-white disabled:pointer-events-none disabled:opacity-30"
-												disabled={idx === 0}
-												onclick={() => moveRuleUp(idx)}
-											>
-												<IconChevronUp size={16} />
-											</button>
-										</Tooltip>
-										<Tooltip
-											text="Move down"
-											size="medium"
-											position="bottom"
-											disabled={idx === exportingRules.length - 1}
-										>
-											<button
-												class="cursor-pointer rounded p-1 text-gray-400 transition-colors hover:text-white disabled:pointer-events-none disabled:opacity-30"
-												disabled={idx === exportingRules.length - 1}
-												onclick={() => moveRuleDown(idx)}
-											>
-												<IconChevronDown size={16} />
-											</button>
-										</Tooltip>
-										<Tooltip text="Delete" size="medium" position="bottom">
-											<button
-												class="hover:text-tertiary cursor-pointer rounded p-1 text-gray-400 transition-colors"
-												onclick={() => deleteRule(idx)}
-											>
-												<IconTrash size={16} />
-											</button>
-										</Tooltip>
-									</div>
-								</td>
-							</tr>
-						{/each}
-					{/if}
-				</tbody>
-			</table>
-		</div>
+		<ExportRulesTable {context} />
 	</div>
 
 	<!-- Form always visible at the bottom -->
-	<div class="relative mt-auto border-t border-gray-600 pt-4">
-		<!-- Button in top right corner -->
-		<div class="absolute top-0 right-0 pt-2">
-			<Button customClass="" tertiary size="large" onClick={addRule}>Add this rule</Button>
-		</div>
-
-		<div class="grid grid-cols-2 gap-4">
-			<div class="flex flex-col gap-2">
-				<p class="text-base text-gray-400">Choose the event you want to appear:</p>
-				<div class="grid max-h-58 grid-cols-2 gap-2 overflow-y-auto">
-					{#each allEventOptions as option (option.value)}
-						<label
-							class="flex cursor-pointer items-center gap-2 rounded border border-gray-600 bg-gray-800 px-3 py-2 text-sm text-gray-200 transition-colors hover:bg-gray-700 {newRule.include ===
-							option.value
-								? 'border-primary bg-gray-700'
-								: ''}"
-						>
-							<input
-								type="radio"
-								name="event-radio"
-								value={option.value}
-								checked={newRule.include === option.value}
-								onchange={() => {
-									newRule.include = option.value;
-									newRule.taggedWith = [];
-								}}
-								class="accent-primary h-4 w-4 cursor-pointer"
-							/>
-							<span>{option.label}</span>
-						</label>
-					{/each}
-				</div>
-			</div>
-			<div class="flex flex-col gap-2">
-				<p class="text-base text-gray-400">Choose the related tags:</p>
-				<Multiselect
-					options={availableTags}
-					size="full"
-					selectClass="bg-gray-800"
-					bind:selectedValues={newRule.taggedWith}
-				/>
-			</div>
-		</div>
-	</div>
+	<ExportRuleForm {context} />
 
 	<Button
 		customClass="self-center my-8"
 		primary
 		size="large"
-		onClick={export_video}
-		disabled={exportingRules.length === 0 || exportActions.getExporting()}>Export Video</Button
+		onClick={onExport}
+		disabled={context.rules.length === 0 || exportActions.getExporting()}>Export Video</Button
 	>
-	{#if exportActions.getExporting()}
-		<p class="mt-2 text-sm text-gray-600">Exporting video, please wait...</p>
 
-		<div class="w-full rounded-full bg-gray-200 dark:bg-gray-700">
-			<div
-				class="rounded-full bg-blue-600 p-0.5 text-center text-sm leading-none font-medium text-blue-100
-				transition-[width] duration-150 ease-in"
-				style="width: {exportActions.getExportProgress()}%"
-			>
-				{exportActions.getExportProgress()}%
-			</div>
-		</div>
-	{/if}
+	<ExportProgress />
 </div>
