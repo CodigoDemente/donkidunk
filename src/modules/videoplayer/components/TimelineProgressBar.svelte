@@ -32,6 +32,7 @@
 		) => void;
 		onTimeChange: (time: number) => void;
 		onCategoryPlay?: (categoryId: string) => void;
+		onEventContextMenu?: (eventId: string) => void;
 		isDraggingTimeMarker: boolean;
 		handleDraggingTimeMarker: (isDragging: boolean) => void;
 		playingCategoryId: string | null;
@@ -56,6 +57,7 @@
 		onEventResize,
 		onTimeChange,
 		onCategoryPlay,
+		onEventContextMenu,
 		isDraggingTimeMarker,
 		handleDraggingTimeMarker,
 		playingCategoryId
@@ -164,6 +166,7 @@
 						{onEventClick}
 						{onEventDblClick}
 						{onEventResize}
+						{onEventContextMenu}
 					/>
 				{/each}
 			{:else}

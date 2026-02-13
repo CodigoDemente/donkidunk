@@ -11,6 +11,7 @@
 		onClick: () => void;
 		onDblClick?: () => void;
 		onResize?: (start: number, end: number) => void;
+		onContextMenu?: () => void;
 	}
 
 	let {
@@ -24,7 +25,8 @@
 		name,
 		onClick,
 		onDblClick,
-		onResize
+		onResize,
+		onContextMenu
 	}: Props = $props();
 
 	const total = $derived(timelineEnd - timelineStart);
@@ -106,6 +108,7 @@
 	}
 
 	function startMove(e: MouseEvent) {
+		if (e.button !== 0) return; // Only left-click starts drag
 		const target = e.target as HTMLElement;
 		if (target.closest('.cursor-ew-resize') || !onResize) return;
 
@@ -199,6 +202,13 @@
 	tabindex="0"
 	onmousedown={startMove}
 	ondblclick={() => !drag && onDblClick && onDblClick()}
+	oncontextmenu={(e) => {
+		if (onContextMenu) {
+			e.preventDefault();
+			e.stopPropagation();
+			onContextMenu();
+		}
+	}}
 	onkeydown={(e) => {
 		if (e.key === 'Enter' || e.key === ' ') {
 			onClick();
