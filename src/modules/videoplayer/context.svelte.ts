@@ -155,6 +155,7 @@ export class Timeline {
 		const eventsToClose = Array.from(this.#eventsPlaying.values());
 
 		for (const event of eventsToClose) {
+			event.timestamp.end = this.#currentTime;
 			await this.persistEvent(event);
 		}
 	}
@@ -304,6 +305,27 @@ export class Timeline {
 		this.#state.eventTimeline.forEach((event) => {
 			event.tagsRelated = event.tagsRelated.filter((tag) => !buttonIds.includes(tag));
 		});
+	}
+
+	async clearAllEvents(): Promise<void> {
+		const repository = TimelineRepositoryFactory.getInstance();
+		await repository.clearAllEntries();
+
+		this.#state = {
+			...this.#state,
+			eventTimeline: []
+		};
+
+		this.#eventsPlaying = new SvelteMap();
+		this.#eventSelected = null;
+		this.stopCategoryPlayback();
+		this.#history.clear();
+
+		await emit('project:dirty');
+	}
+
+	hasEvents(): boolean {
+		return this.#state.eventTimeline.length > 0;
 	}
 
 	wrapForUndo() {

@@ -51,6 +51,7 @@
 		<div class="flex h-full shrink-0 flex-col" style="width: {leftWidth}%">
 			<VideoPlayer video={projectStore.video?.path} />
 		</div>
+		<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 		<div
 			class="w-1 cursor-col-resize bg-gray-900"
 			onmousedown={startResize}

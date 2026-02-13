@@ -230,7 +230,7 @@ export class SQLiteBoardRepository implements BoardRepository {
 					categoryId
 				);
 				allValues.push(
-					`(${index++}, $${index++}, $${index++}, $${index++}, $${index++}, $${index++}, $${index++})`
+					`($${index++}, $${index++}, $${index++}, $${index++}, $${index++}, $${index++}, $${index++})`
 				);
 			}
 
@@ -254,7 +254,7 @@ export class SQLiteBoardRepository implements BoardRepository {
 				const databaseTag = TagMapper.toPersistence(tag);
 
 				allArgs.push(databaseTag.id, databaseTag.name, databaseTag.color, categoryId);
-				allValues.push(`(${index++}, $${index++}, $${index++}, $${index++})`);
+				allValues.push(`($${index++}, $${index++}, $${index++}, $${index++})`);
 			}
 
 			fullInsertQuery += ` ${allValues.join(',')} ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, color = EXCLUDED.color`;

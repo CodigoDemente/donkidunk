@@ -96,16 +96,6 @@
 	function editCategory() {
 		handleModalOpen(type, category.id);
 	}
-
-	function isButtonDisabled(buttonId: string): boolean {
-		for (const [, event] of timeline.eventsPlaying) {
-			if (event.categoryId === category.id && event.buttonId !== buttonId) {
-				return true;
-			}
-		}
-
-		return false;
-	}
 </script>
 
 <!-- Draggable element absolutely positioned by percentage -->
@@ -148,7 +138,7 @@
 	<div bind:this={contentElement} class="flex w-full flex-wrap items-start gap-2 p-2">
 		{#if type === CategoryType.Event}
 			{#each category.buttons as button, idx (button.id ?? `temp-${category.id}-${idx}`)}
-				{@const disabled = button.id ? isButtonDisabled(button.id) : false}
+				{@const disabled = false}
 				{@const active = timeline.isEventPlaying(button.id)}
 				<button
 					style={`

@@ -97,4 +97,9 @@ export class SQLiteTimelineRepository implements TimelineRepository {
 	async removeEntry(entryId: string): Promise<void> {
 		await this.db.execute(`DELETE FROM timeline_entry WHERE id = $1`, [entryId]);
 	}
+
+	async clearAllEntries(): Promise<void> {
+		await this.db.execute(`DELETE FROM timeline_entry_tag`);
+		await this.db.execute(`DELETE FROM timeline_entry`);
+	}
 }

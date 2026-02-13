@@ -24,8 +24,12 @@
 	board.wrapForUndo();
 	timeline.wrapForUndo();
 
+	const navbarDisabled = $derived(
+		!projectStore.file?.originalPath ||
+			exportActions.getExporting() ||
+			timeline.eventsPlaying.size > 0
+	);
 	const isDev = (import.meta as unknown as { env: { DEV: boolean } }).env.DEV;
-	const navbarDisabled = $derived(!projectStore.file?.originalPath || exportActions.getExporting());
 
 	onMount(async () => {
 		const configData = await getConfig();
