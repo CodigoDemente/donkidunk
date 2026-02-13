@@ -91,4 +91,8 @@
 			{/if}
 		</tbody>
 	</table>
+	<p class="mt-2 text-sm text-gray-400">
+		* The videos will be exported in the order the rules are listed in the table (soon you will be
+		able to choose a custom order from the videos extracted).
+	</p>
 </div>
