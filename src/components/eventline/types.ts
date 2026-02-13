@@ -22,4 +22,5 @@ export type Props = {
 		newStart: number,
 		newEnd: number
 	) => void;
+	onEventContextMenu?: (eventId: string) => void;
 };

@@ -22,6 +22,7 @@
 		onEventClick = () => {},
 		onEventDblClick = () => {},
 		onEventResize = () => {},
+		onEventContextMenu,
 		skeleton = false
 	}: EventlineProps = $props();
 
@@ -53,6 +54,7 @@
 						onDblClick={() => onEventDblClick(event.timestamp.start, event.id, event.buttonId)}
 						onResize={(newStart, newEnd) =>
 							onEventResize(event.id, event.buttonId, event.categoryId, newStart, newEnd)}
+						onContextMenu={onEventContextMenu ? () => onEventContextMenu(event.id) : undefined}
 					/>
 				{/if}
 			{/each}

@@ -24,15 +24,26 @@
 	board.wrapForUndo();
 	timeline.wrapForUndo();
 
+	const isDev = (import.meta as unknown as { env: { DEV: boolean } }).env.DEV;
 	const navbarDisabled = $derived(!projectStore.file?.originalPath || exportActions.getExporting());
 
 	onMount(async () => {
 		const configData = await getConfig();
 		config.state = configData;
 
+		// Disable default browser context menu in production
+		if (!isDev) {
+			document.addEventListener('contextmenu', (event) => {
+				event.preventDefault();
+			});
+		}
+
 		// Initialize the menu
 		await bindMenuEvents(board, timeline, config);
 		await initEvents();
+
+		// Skip license check in dev mode
+		if (isDev) return;
 
 		const isExpired = await getIsExpiredCommand();
 
