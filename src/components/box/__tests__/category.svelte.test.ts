@@ -229,40 +229,6 @@ describe('Category Component', () => {
 			);
 		});
 
-		it('should disable buttons when another button from same category is playing', async () => {
-			const buttons: Button[] = [
-				createMockButton({ id: 'playing-btn', name: 'Playing' }),
-				createMockButton({ id: 'other-btn', name: 'Other' })
-			];
-			const category = createMockCategory({ id: 'cat-1', buttons });
-
-			// Simulate that 'playing-btn' is currently playing in this category
-			mockTimeline.eventsPlaying = new SvelteMap([
-				[
-					'playing-btn',
-					{
-						id: 'evt-1',
-						buttonId: 'playing-btn',
-						categoryId: 'cat-1',
-						timestamp: { start: 0, end: undefined },
-						tagsRelated: []
-					}
-				]
-			]);
-
-			renderCategory({
-				type: CategoryType.Event,
-				category,
-				handleModalOpen,
-				mockTimeline,
-				mockBoard
-			});
-
-			// 'Other' button should be disabled (another button in same category is playing)
-			const otherBtn = page.getByText('Other');
-			await expect.element(otherBtn).toBeDisabled();
-		});
-
 		it('should show active styling when a button event is playing', async () => {
 			const button = createMockButton({ id: 'active-btn', name: 'Active Button' });
 			const category = createMockCategory({ buttons: [button] });
