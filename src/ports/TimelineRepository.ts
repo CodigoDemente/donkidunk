@@ -9,4 +9,5 @@ export interface TimelineRepository {
 	addTagToEntry(entryId: string, tagId: string): Promise<void>;
 	removeTagFromEntry(entryId: string, tagId: string): Promise<void>;
 	removeEntry(entryId: string): Promise<void>;
+	clearAllEntries(): Promise<void>;
 }

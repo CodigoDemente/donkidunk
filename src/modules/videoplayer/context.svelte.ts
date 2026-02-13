@@ -306,6 +306,27 @@ export class Timeline {
 		});
 	}
 
+	async clearAllEvents(): Promise<void> {
+		const repository = TimelineRepositoryFactory.getInstance();
+		await repository.clearAllEntries();
+
+		this.#state = {
+			...this.#state,
+			eventTimeline: []
+		};
+
+		this.#eventsPlaying = new SvelteMap();
+		this.#eventSelected = null;
+		this.stopCategoryPlayback();
+		this.#history.clear();
+
+		await emit('project:dirty');
+	}
+
+	hasEvents(): boolean {
+		return this.#state.eventTimeline.length > 0;
+	}
+
 	wrapForUndo() {
 		Object.assign(
 			this,
