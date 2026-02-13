@@ -25,7 +25,8 @@ const mockRepository: TimelineRepository = {
 	updateEntry: vi.fn().mockResolvedValue(undefined),
 	addTagToEntry: vi.fn().mockResolvedValue(undefined),
 	removeTagFromEntry: vi.fn().mockResolvedValue(undefined),
-	removeEntry: vi.fn().mockResolvedValue(undefined)
+	removeEntry: vi.fn().mockResolvedValue(undefined),
+	clearAllEntries: vi.fn().mockResolvedValue(undefined)
 };
 
 vi.mock('../../../factories/TimelineRepositoryFactory', () => ({
@@ -499,6 +500,101 @@ describe('Timeline', () => {
 			expect(timeline.categoryPlaybackQueue[0].timestamp.start).toBe(5);
 			expect(timeline.categoryPlaybackQueue[1].timestamp.start).toBe(10);
 			expect(timeline.categoryPlaybackQueue[2].timestamp.start).toBe(20);
+		});
+	});
+
+	// ── hasEvents ────────────────────────────────────────────────────────────
+
+	describe('hasEvents', () => {
+		it('should return false when there are no events', () => {
+			expect(timeline.hasEvents()).toBe(false);
+		});
+
+		it('should return true when there are persisted events', async () => {
+			await timeline.addEvent('btn-1', 'cat-1', 0, 10);
+			expect(timeline.hasEvents()).toBe(true);
+		});
+
+		it('should return false after all events are removed', async () => {
+			await timeline.addEvent('btn-1', 'cat-1', 0, 10);
+			const eventId = timeline.getState().eventTimeline[0].id;
+			await timeline.removeEvent(eventId);
+			expect(timeline.hasEvents()).toBe(false);
+		});
+	});
+
+	// ── clearAllEvents ───────────────────────────────────────────────────────
+
+	describe('clearAllEvents', () => {
+		it('should clear all persisted events from state', async () => {
+			await timeline.addEvent('btn-1', 'cat-1', 0, 10);
+			await timeline.addEvent('btn-2', 'cat-1', 15, 5);
+			expect(timeline.getState().eventTimeline).toHaveLength(2);
+
+			await timeline.clearAllEvents();
+
+			expect(timeline.getState().eventTimeline).toEqual([]);
+		});
+
+		it('should call repository.clearAllEntries', async () => {
+			await timeline.addEvent('btn-1', 'cat-1', 0, 10);
+			vi.clearAllMocks();
+
+			await timeline.clearAllEvents();
+
+			expect(mockRepository.clearAllEntries).toHaveBeenCalledOnce();
+		});
+
+		it('should clear all currently playing events', async () => {
+			// Start two dynamic events
+			await timeline.addEvent('btn-1', 'cat-1', 5);
+			await timeline.addEvent('btn-2', 'cat-1', 8);
+			expect(timeline.eventsPlaying.size).toBe(2);
+
+			await timeline.clearAllEvents();
+
+			expect(timeline.eventsPlaying.size).toBe(0);
+		});
+
+		it('should clear event selected', async () => {
+			await timeline.addEvent('btn-1', 'cat-1', 0, 10);
+			const eventId = timeline.getState().eventTimeline[0].id;
+			timeline.setEventSelected(eventId);
+
+			await timeline.clearAllEvents();
+
+			expect(timeline.eventSelected).toBeNull();
+		});
+
+		it('should stop category playback', async () => {
+			await timeline.addEvent('btn-1', 'cat-1', 0, 5);
+			await timeline.addEvent('btn-2', 'cat-1', 10, 5);
+			flushSync();
+			timeline.playAllEventsFromCategory('cat-1');
+			expect(timeline.categoryPlaybackQueue).toHaveLength(2);
+
+			await timeline.clearAllEvents();
+
+			expect(timeline.categoryPlaybackQueue).toEqual([]);
+			expect(timeline.currentPlaybackIndex).toBe(-1);
+			expect(timeline.currentPlaybackCategoryId).toBeNull();
+		});
+
+		it('should emit project:dirty', async () => {
+			vi.clearAllMocks();
+
+			await timeline.clearAllEvents();
+
+			expect(emit).toHaveBeenCalledWith('project:dirty');
+		});
+
+		it('should work when timeline is already empty', async () => {
+			expect(timeline.getState().eventTimeline).toEqual([]);
+
+			await timeline.clearAllEvents();
+
+			expect(timeline.getState().eventTimeline).toEqual([]);
+			expect(mockRepository.clearAllEntries).toHaveBeenCalledOnce();
 		});
 	});
 
