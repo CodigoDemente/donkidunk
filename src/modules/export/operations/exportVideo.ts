@@ -1,12 +1,14 @@
 import { Channel } from '@tauri-apps/api/core';
 import { save } from '@tauri-apps/plugin-dialog';
 import { path } from '@tauri-apps/api';
-import { debug } from '@tauri-apps/plugin-log';
+import { debug, error as logError } from '@tauri-apps/plugin-log';
 import type { ExportEvent } from '../../../events/types/ExportEvent';
 import type { ExportingRule } from '../types';
 import type { TimelineRepository } from '../../../ports/TimelineRepository';
 import { cutVideo } from '../commands/CutVideo';
 import { exportActions } from '../../../persistence/stores/export/actions';
+import { projectActions } from '../../../persistence/stores/project/actions';
+import { feedbackMessages } from '../../../utils/messages';
 
 export async function exportVideo(
 	videoPath: string,
@@ -39,7 +41,13 @@ export async function exportVideo(
 		exportActions.setExportProgress(Math.trunc(progress * 100));
 	};
 
-	await cutVideo(videoPath, outPath, ranges, onEvent);
-
-	exportActions.setExporting(false);
+	try {
+		await cutVideo(videoPath, outPath, ranges, onEvent);
+		projectActions.setSnackbar(feedbackMessages.EXPORT_SUCCESS);
+	} catch (err) {
+		logError(`Export failed: ${err}`);
+		projectActions.setSnackbar(feedbackMessages.EXPORT_ERROR);
+	} finally {
+		exportActions.setExporting(false);
+	}
 }
