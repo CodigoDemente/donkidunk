@@ -23,17 +23,27 @@
 
 	let exportingRules: ExportingRule[] = $state([]);
 
-	const allEventOptions = Object.values(board.eventButtonsById).map((button) => ({
-		value: button.id,
-		label: button.name
-	}));
+	const allEventOptions = $derived.by(() => {
+		const buttonIdsWithEvents = new Set(
+			timeline.getState().eventTimeline.map((event) => event.buttonId)
+		);
 
-	const allTags = Object.values(board.tagsById).map((tag) => ({
-		id: tag.id,
-		value: tag.id,
-		label: tag.name,
-		color: tag.color
-	}));
+		return Object.values(board.eventButtonsById)
+			.filter((button) => buttonIdsWithEvents.has(button.id))
+			.map((button) => ({
+				value: button.id,
+				label: button.name
+			}));
+	});
+
+	const allTags = $derived(
+		Object.values(board.tagsById).map((tag) => ({
+			id: tag.id,
+			value: tag.id,
+			label: tag.name,
+			color: tag.color
+		}))
+	);
 
 	const availableTags = $derived.by(() => {
 		if (!newRule.include) {
