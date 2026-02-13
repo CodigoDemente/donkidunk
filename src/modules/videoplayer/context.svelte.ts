@@ -155,6 +155,7 @@ export class Timeline {
 		const eventsToClose = Array.from(this.#eventsPlaying.values());
 
 		for (const event of eventsToClose) {
+			event.timestamp.end = this.#currentTime;
 			await this.persistEvent(event);
 		}
 	}

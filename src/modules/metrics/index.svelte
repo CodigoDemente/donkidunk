@@ -35,8 +35,6 @@
 	async function loadMetrics() {
 		loading = true;
 		try {
-			await timeline.closeOpenedEvent();
-
 			eventsUsed = await dashboardRepository.getEventsUsed();
 			if (config.uiMode === UIMode.Advanced) {
 				tagsUsed = await dashboardRepository.getTagsUsed();

@@ -24,7 +24,11 @@
 	board.wrapForUndo();
 	timeline.wrapForUndo();
 
-	const navbarDisabled = $derived(!projectStore.file?.originalPath || exportActions.getExporting());
+	const navbarDisabled = $derived(
+		!projectStore.file?.originalPath ||
+			exportActions.getExporting() ||
+			timeline.eventsPlaying.size > 0
+	);
 
 	onMount(async () => {
 		const configData = await getConfig();
