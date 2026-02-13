@@ -12,10 +12,8 @@
 	import ProjectStore from '../../persistence/stores/project/store.svelte';
 	import { exportClipsCSV } from './commands/ExportClipsCSV';
 	import { onMount } from 'svelte';
-	import { timelineContext } from '../videoplayer/context.svelte';
 
 	const config = configContext.get();
-	const timeline = timelineContext.get();
 
 	const dashboardRepository = DashboardRepositoryFactory.getInstance();
 

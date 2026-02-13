@@ -39,7 +39,7 @@
 		await initEvents();
 
 		// Skip license check in dev mode
-		if ((import.meta as any).env.DEV) {
+		if ((import.meta as unknown as { env: { DEV: boolean } }).env.DEV) {
 			return;
 		}
 
