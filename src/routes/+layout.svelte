@@ -34,6 +34,11 @@
 		await bindMenuEvents(board, timeline, config);
 		await initEvents();
 
+		// Skip license check in dev mode
+		if ((import.meta as any).env.DEV) {
+			return;
+		}
+
 		const isExpired = await getIsExpiredCommand();
 
 		if (isExpired) {
