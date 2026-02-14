@@ -37,7 +37,7 @@ export async function bindMenuEvents(board: Board, timeline: Timeline, config: C
 				await closeProject(board, timeline);
 				break;
 			case 'import_video':
-				await importVideo();
+				await importVideo(timeline);
 				break;
 			case 'undo':
 				undo();

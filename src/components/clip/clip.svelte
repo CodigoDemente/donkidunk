@@ -11,7 +11,7 @@
 		onClick: () => void;
 		onDblClick?: () => void;
 		onResize?: (start: number, end: number) => void;
-		otherEvents?: { start: number; end: number | null }[];
+		onContextMenu?: () => void;
 	}
 
 	let {
@@ -26,7 +26,7 @@
 		onClick,
 		onDblClick,
 		onResize,
-		otherEvents = []
+		onContextMenu
 	}: Props = $props();
 
 	const total = $derived(timelineEnd - timelineStart);
@@ -108,6 +108,7 @@
 	}
 
 	function startMove(e: MouseEvent) {
+		if (e.button !== 0) return; // Only left-click starts drag
 		const target = e.target as HTMLElement;
 		if (target.closest('.cursor-ew-resize') || !onResize) return;
 
@@ -191,16 +192,22 @@
 </script>
 
 <div
-	class={`border-rounded-xs absolute h-full rounded-xs border-2 opacity-70 hover:opacity-90 ${isSelected ? 'opacity-90' : ''} ${drag?.type === 'move' ? 'cursor-grab' : ''}`}
+	class={`group border-rounded-xs absolute h-full rounded-xs border-2 opacity-70 hover:opacity-90 ${isSelected ? 'opacity-90' : ''} ${drag?.type === 'move' ? 'cursor-grab' : ''}`}
 	style="left: {(drag ? displayLeft : leftPercentage) * 100}%; width: {(drag
 		? displayWidth
 		: widthPercentage) * 100}%; background-color: {color}; border-color: {borderColor || color};"
 	aria-label={name}
-	title={name}
 	role="button"
 	tabindex="0"
 	onmousedown={startMove}
 	ondblclick={() => !drag && onDblClick && onDblClick()}
+	oncontextmenu={(e) => {
+		if (onContextMenu) {
+			e.preventDefault();
+			e.stopPropagation();
+			onContextMenu();
+		}
+	}}
 	onkeydown={(e) => {
 		if (e.key === 'Enter' || e.key === ' ') {
 			onClick();
@@ -222,8 +229,11 @@
 			onmousedown={(e) => startResize(e, 'right')}
 		></div>
 	{/if}
-	<!-- Add tooltip padding hover -->
-	<div
-		class="pointer-events-none absolute inset-0 -m-[5px] hidden border border-transparent group-hover:block"
-	></div>
+	{#if !drag}
+		<span
+			class="pointer-events-none absolute top-1/2 right-1 z-30 hidden -translate-y-1/2 rounded-xs bg-gray-900/90 px-1.5 text-[10px] leading-tight whitespace-nowrap text-white shadow-sm group-hover:block"
+		>
+			{name}
+		</span>
+	{/if}
 </div>

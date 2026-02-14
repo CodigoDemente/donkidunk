@@ -46,6 +46,7 @@
 		handleZoomWheel
 	} from './utils/timelineZoomUtils';
 	import { isDeleteKey, shouldIgnoreKeyboardEvent } from './utils/progressBarUtils';
+	import { Menu, MenuItem } from '@tauri-apps/api/menu';
 
 	type Props = {
 		currentTime: number;
@@ -227,6 +228,23 @@
 		}
 	});
 
+	// /* ==================== CONTEXT MENU ==================== */
+
+	async function handleEventContextMenu(eventId: string) {
+		const deleteItem = await MenuItem.new({
+			text: 'Delete event',
+			action: async () => {
+				await timeline.removeEvent(eventId);
+			}
+		});
+
+		const menu = await Menu.new({
+			items: [deleteItem]
+		});
+
+		await menu.popup();
+	}
+
 	// /* ==================== DELETE EVENT LOGIC ==================== */
 
 	// Handle Delete key to remove selected event
@@ -271,6 +289,7 @@
 			onEventBlur={handleEventBlur}
 			onEventDblClick={handleEventDblClick}
 			onEventResize={handleEventResize}
+			onEventContextMenu={handleEventContextMenu}
 			onTimeChange={handleTimeChange}
 			onCategoryPlay={(categoryId) => {
 				handleCategoryPlayAll(categoryId);

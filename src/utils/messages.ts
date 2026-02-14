@@ -29,6 +29,13 @@ export const feedbackMessages: { [key: string]: FeedbackType } = {
 		type: 'error',
 		mode: 'manual'
 	},
+	EXPORT_ERROR: {
+		title: 'Export failed',
+		message:
+			'An error occurred while exporting the video. Contact support if the problem persists.',
+		type: 'error',
+		mode: 'auto'
+	},
 	// SUCCESS MESSAGES
 	ACTION_SUCCESS: {
 		title: 'Added successfully!',
@@ -47,6 +54,11 @@ export const feedbackMessages: { [key: string]: FeedbackType } = {
 	},
 	UPDATE_SUCCESS: {
 		title: 'Updated successfully!',
+		type: 'success',
+		mode: 'auto'
+	},
+	EXPORT_SUCCESS: {
+		title: 'Exported successfully!',
 		type: 'success',
 		mode: 'auto'
 	}

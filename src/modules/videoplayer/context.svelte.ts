@@ -155,6 +155,7 @@ export class Timeline {
 		const eventsToClose = Array.from(this.#eventsPlaying.values());
 
 		for (const event of eventsToClose) {
+			event.timestamp.end = this.#currentTime;
 			await this.persistEvent(event);
 		}
 	}
@@ -183,6 +184,7 @@ export class Timeline {
 
 		const eventPlaying = this.#eventsPlaying.get(buttonId);
 		if (eventPlaying) {
+			eventPlaying.timestamp.end = timeCursor;
 			return await this.persistEvent(eventPlaying);
 		}
 	}
@@ -305,6 +307,27 @@ export class Timeline {
 		});
 	}
 
+	async clearAllEvents(): Promise<void> {
+		const repository = TimelineRepositoryFactory.getInstance();
+		await repository.clearAllEntries();
+
+		this.#state = {
+			...this.#state,
+			eventTimeline: []
+		};
+
+		this.#eventsPlaying = new SvelteMap();
+		this.#eventSelected = null;
+		this.stopCategoryPlayback();
+		this.#history.clear();
+
+		await emit('project:dirty');
+	}
+
+	hasEvents(): boolean {
+		return this.#state.eventTimeline.length > 0;
+	}
+
 	wrapForUndo() {
 		Object.assign(
 			this,
@@ -372,25 +395,6 @@ export class Timeline {
 			return null;
 		}
 		return this.#categoryPlaybackQueue[0]?.categoryId || null;
-	}
-
-	isTimeOverlappingWithCategoryEvent(categoryId: string, buttonId: string): boolean {
-		const categoryEvents = this.#timelineEventsByCategory[categoryId] || [];
-		const currentTime = this.#currentTime;
-
-		for (const event of categoryEvents) {
-			const eventStart = event.timestamp.start;
-			const eventEnd = event.timestamp.end ?? Infinity;
-
-			if (currentTime >= eventStart && currentTime < eventEnd) {
-				// If the button is not in eventsPlaying, it's overlapping
-				if (!this.#eventsPlaying.has(buttonId)) {
-					return true;
-				}
-			}
-		}
-
-		return false;
 	}
 
 	playAllEventsFromCategory(categoryId: string) {
