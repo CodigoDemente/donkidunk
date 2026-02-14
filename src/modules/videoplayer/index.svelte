@@ -48,7 +48,7 @@
 	}
 
 	function skip(type: SkipType, direction: SkipDirection) {
-		let skipAmount: number = 1;
+		let skipAmount: number = 0.5;
 
 		if (type === SkipType.LONG) {
 			skipAmount = skipStep;

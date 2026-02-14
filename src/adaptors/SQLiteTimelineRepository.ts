@@ -30,27 +30,26 @@ export class SQLiteTimelineRepository implements TimelineRepository {
 	}
 
 	async getRangesForExport(rules: ExportingRule[]): Promise<[number, number][]> {
-		const conditions = rules
-			.map((rule) => {
-				let condition = `(t.button_id = '${rule.include}'`;
-				if (rule.taggedWith.length > 0) {
-					condition += ` AND tt.tag_id IN ('${rule.taggedWith.join("','")}')`;
-				}
-				return condition + ')';
-			})
-			.join(' OR ');
+		function buildCondition(rule: ExportingRule): string {
+			let condition = `(t.button_id = '${rule.include}'`;
+			if (rule.taggedWith.length > 0) {
+				condition += ` AND tt.tag_id IN ('${rule.taggedWith.join("','")}')`;
+			}
+			return condition + ')';
+		}
 
-		const query = `
-			SELECT t.timestamp_start as timestamp_start, t.timestamp_end as timestamp_end
-			FROM timeline_entry as t LEFT JOIN timeline_entry_tag as tt 
-				ON t.id = tt.timeline_entry_id
-			WHERE
-				${conditions}
-			GROUP BY t.id, t.timestamp_start, t.timestamp_end
-			ORDER BY t.timestamp_start;`;
+		const allQueries = rules.map((rule) => {
+			const query = `SELECT t.timestamp_start as timestamp_start, t.timestamp_end as timestamp_end
+				FROM timeline_entry as t 
+					LEFT JOIN timeline_entry_tag as tt ON t.id = tt.timeline_entry_id
+				WHERE ${buildCondition(rule)}
+				GROUP BY t.id, t.timestamp_start, t.timestamp_end
+				ORDER BY t.timestamp_start;`;
 
-		const entries =
-			await this.db.select<{ timestamp_start: number; timestamp_end: number }[]>(query);
+			return this.db.select<{ timestamp_start: number; timestamp_end: number }[]>(query);
+		});
+
+		const entries = (await Promise.all(allQueries)).flat();
 
 		return entries.map((entry) => [entry.timestamp_start, entry.timestamp_end]);
 	}
