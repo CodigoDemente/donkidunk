@@ -14,4 +14,6 @@ export interface BoardRepository {
 	updateCategory(category: Category): Promise<void>;
 	updateCategoryButtons(categoryId: string, buttons: Button[]): Promise<void>;
 	updateCategoryTags(categoryId: string, tags: Tag[]): Promise<void>;
+	deleteButtonFromCategory(categoryId: string, buttonId: string): Promise<void>;
+	deleteTagFromCategory(categoryId: string, tagId: string): Promise<void>;
 }

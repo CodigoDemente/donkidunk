@@ -265,4 +265,18 @@ export class SQLiteBoardRepository implements BoardRepository {
 			throw err;
 		}
 	}
+
+	async deleteButtonFromCategory(categoryId: string, buttonId: string): Promise<void> {
+		await this.db.execute(`DELETE FROM button WHERE id = $1 AND category_id = $2`, [
+			buttonId,
+			categoryId
+		]);
+	}
+
+	async deleteTagFromCategory(categoryId: string, tagId: string): Promise<void> {
+		await this.db.execute(`DELETE FROM tag WHERE id = $1 AND category_id = $2`, [
+			tagId,
+			categoryId
+		]);
+	}
 }

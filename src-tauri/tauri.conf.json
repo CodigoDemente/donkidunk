@@ -50,6 +50,22 @@
     ],
     "resources": [
       "assets/"
+    ],
+    "fileAssociations": [
+      {
+        "ext": [
+          "dnk"
+        ],
+        "description": "Donkidunk project file",
+        "exportedType": {
+          "identifier": "com.codigodemente.donkidunk.project",
+          "conformsTo": [
+            "public.database"
+          ]
+        },
+        "rank": "Owner",
+        "role": "Editor"
+      }
     ]
   }
 }
