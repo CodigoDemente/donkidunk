@@ -344,6 +344,8 @@ export class Board {
 
 			const deletedButtonIds = currentButtonIds.filter((id) => !newButtonIds.includes(id));
 
+			console.log('deletedButtonIds', deletedButtonIds);
+
 			await repository.updateCategory(category);
 
 			if (section === CategoryType.Event) {
@@ -356,8 +358,18 @@ export class Board {
 			if (deletedButtonIds.length > 0) {
 				if (section === CategoryType.Event) {
 					await timeline.removeAllEventsFromButtons(deletedButtonIds);
+					await Promise.all(
+						deletedButtonIds.map((buttonId) =>
+							repository.deleteButtonFromCategory(category.id, buttonId)
+						)
+					);
 				} else {
 					await timeline.removeAllTagsFromButtons(deletedButtonIds);
+					await Promise.all(
+						deletedButtonIds.map((buttonId) =>
+							repository.deleteTagFromCategory(category.id, buttonId)
+						)
+					);
 				}
 			}
 

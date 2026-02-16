@@ -53,7 +53,10 @@
 	}
 
 	function removeButton(idx: number) {
-		context.categoryToCreate.buttons = context.categoryToCreate.buttons.filter((_, i) => i !== idx);
+		context.categoryToCreate = {
+			...context.categoryToCreate,
+			buttons: context.categoryToCreate.buttons.filter((_, i) => i !== idx)
+		};
 	}
 </script>
 

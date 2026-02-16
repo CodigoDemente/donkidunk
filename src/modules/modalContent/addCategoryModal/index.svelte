@@ -57,14 +57,11 @@
 	}
 </script>
 
-<div class="flex flex-1 flex-col gap-4 p-4">
-	<!-- Delete Confirmation Banner -->
+<div class="flex min-h-0 flex-1 flex-col overflow-hidden">
+	<!-- Delete Confirmation Banner (always visible when shown) -->
 	{#if showDeleteConfirmation}
 		<div
-			class="mb-2 overflow-hidden rounded-lg border-2 border-red-600 bg-red-900/20 transition-all duration-300"
-			style="max-height: {showDeleteConfirmation ? '200px' : '0'}; opacity: {showDeleteConfirmation
-				? '1'
-				: '0'}"
+			class="mx-4 mt-4 shrink-0 overflow-hidden rounded-lg border-2 border-red-600 bg-red-900/20 transition-all duration-300"
 		>
 			<div class="flex flex-col gap-3 p-4">
 				<p class="text-sm font-semibold text-red-400">
@@ -93,50 +90,53 @@
 		</div>
 	{/if}
 
-	<!-- Category Name -->
-	<div>
-		{#if !categoryIsAlreadyCreated}
-			<Dropdown
-				label="If you wish to edit an existing category, select it from the dropdown menu."
-				options={categoryOptions}
-				bind:value={selectedCategoryId}
-				size="large"
-				selectClass="bg-gray-700 "
+	<!-- Scrollable content -->
+	<div class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4">
+		<!-- Category Name -->
+		<div>
+			{#if !categoryIsAlreadyCreated}
+				<Dropdown
+					label="If you wish to edit an existing category, select it from the dropdown menu."
+					options={categoryOptions}
+					bind:value={selectedCategoryId}
+					size="large"
+					selectClass="bg-gray-700 "
+				/>
+			{/if}
+			<div class="mb-4 border-b border-gray-700">
+				<span class="text-sm text-gray-100">Category settings</span>
+			</div>
+			<Input
+				horizontal
+				label="Name"
+				placeholder="enter the name of the category"
+				type="text"
+				maxlength={20}
+				error={context.errorsForm.category?.message}
+				bind:value={context.categoryToCreate.name}
 			/>
-		{/if}
-		<div class="mb-4 border-b border-gray-700">
-			<span class="text-sm text-gray-100">Category settings</span>
+			<Input
+				horizontal
+				label="Color"
+				type="color"
+				bind:value={context.categoryToCreate.color}
+				inputClass="h-8! w-8! border-0 bg-transparent p-0!"
+			/>
 		</div>
-		<Input
-			horizontal
-			label="Name"
-			placeholder="enter the name of the category"
-			type="text"
-			maxlength={20}
-			error={context.errorsForm.category?.message}
-			bind:value={context.categoryToCreate.name}
-		/>
-		<Input
-			horizontal
-			label="Color"
-			type="color"
-			bind:value={context.categoryToCreate.color}
-			inputClass="h-8! w-8! border-0 bg-transparent p-0!"
-		/>
+		<!-- Buttons Table -->
+		<div class="mb-2 border-b border-gray-700">
+			<span class="text-sm text-gray-100"
+				>{context.categoryToCreate.type === CategoryType.Event
+					? 'Event button settings'
+					: 'Tag button settings'}</span
+			>
+		</div>
+		<ButtonsTable />
 	</div>
-	<!-- Buttons Table -->
-	<div class="mb-2 border-b border-gray-700">
-		<span class="text-sm text-gray-100"
-			>{context.categoryToCreate.type === CategoryType.Event
-				? 'Event button settings'
-				: 'Tag button settings'}</span
-		>
-	</div>
-	<ButtonsTable />
 
-	<!-- Delete Category Button -->
+	<!-- Delete Category Button (always visible at bottom) -->
 	{#if categoryIsAlreadyCreated || selectedCategoryId !== 'NEW_CATEGORY'}
-		<div class="mt-2 flex justify-start">
+		<div class="shrink-0 border-t border-gray-700 px-4 py-3">
 			<Button
 				onClick={handleDeleteClick}
 				size="medium"

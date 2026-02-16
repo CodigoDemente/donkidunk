@@ -44,14 +44,14 @@
 		<!-- Modal window -->
 		<div
 			bind:this={modalElement}
-			class={`mx-4 flex w-full ${sizesToClass[modalStore.size as ModalSize]} flex-col rounded-lg bg-gray-800 p-0 shadow-lg`}
+			class={`mx-4 flex max-h-[90vh] w-full ${sizesToClass[modalStore.size as ModalSize]} flex-col rounded-lg bg-gray-800 p-0 shadow-lg`}
 			onkeydown={modalStore.dismissible ? handleKeyDown : undefined}
 			role="dialog"
 			aria-modal="true"
 			tabindex="0"
 		>
 			<!-- Header -->
-			<div class="flex items-center justify-between border-b border-gray-700 px-3 py-1">
+			<div class="flex shrink-0 items-center justify-between border-b border-gray-700 px-3 py-1">
 				<span class="text-sm text-gray-400">{modalStore.title}</span>
 				{#if modalStore.dismissible}
 					<button
@@ -69,10 +69,12 @@
 				{/if}
 			</div>
 			<!-- Content -->
-			<modalStore.content {...modalStore.contentProps} />
+			<div class="flex min-h-0 flex-1 flex-col overflow-y-auto">
+				<modalStore.content {...modalStore.contentProps} />
+			</div>
 			<!-- Footer -->
 			{#if modalStore.dismissible}
-				<div class="flex justify-end gap-2 border-t border-gray-700 px-4 py-2">
+				<div class="flex shrink-0 justify-end gap-2 border-t border-gray-700 px-4 py-2">
 					<Button
 						size="large"
 						onClick={async () => {
