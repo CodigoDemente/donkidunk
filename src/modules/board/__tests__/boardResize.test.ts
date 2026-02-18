@@ -10,6 +10,7 @@ vi.mock('../../config/commands/SaveBoardSize', () => ({
 }));
 
 import { startResize } from '../handlers/boardResize';
+import type { Config } from '../../config/context.svelte';
 
 // ─── DOM helpers ────────────────────────────────────────────────────────────
 
@@ -34,30 +35,32 @@ function createMockContainer(rect: Partial<DOMRect> = {}): HTMLElement {
 	} as unknown as HTMLElement;
 }
 
-function createMockConfig() {
+type EventHandler = (...args: unknown[]) => void;
+
+function createMockConfig(): Config {
 	return {
 		boardSize: { events: 50, tags: 50 }
-	} as any;
+	} as unknown as Config;
 }
 
 // ─── Tests ──────────────────────────────────────────────────────────────────
 
 describe('startResize', () => {
-	let eventListeners: Map<string, Function[]>;
-	let mockDocument: Record<string, any>;
+	let eventListeners: Map<string, EventHandler[]>;
+	let mockDocument: Record<string, ReturnType<typeof vi.fn>>;
 
 	beforeEach(() => {
 		eventListeners = new Map();
 
 		mockDocument = {
 			getElementById: vi.fn().mockReturnValue(null),
-			addEventListener: vi.fn((event: string, handler: Function) => {
+			addEventListener: vi.fn((event: string, handler: EventHandler) => {
 				if (!eventListeners.has(event)) {
 					eventListeners.set(event, []);
 				}
 				eventListeners.get(event)!.push(handler);
 			}),
-			removeEventListener: vi.fn((event: string, handler: Function) => {
+			removeEventListener: vi.fn((event: string, handler: EventHandler) => {
 				const listeners = eventListeners.get(event);
 				if (listeners) {
 					const idx = listeners.indexOf(handler);

@@ -6,7 +6,6 @@
 	import { boardContext } from '../context.svelte';
 	import { timelineContext } from '../../videoplayer/context.svelte';
 	import { v7 as uuidv7 } from 'uuid';
-	import type { Tag } from '../types/Tag';
 	import Category from './category.svelte';
 	import type { CategoryType } from '../types/CategoryType';
 	import type { Category as CategoryData } from '../types/Category';
@@ -22,7 +21,6 @@
 		title: string;
 		type: CategoryType;
 		categories: CategoryData[];
-		tags?: Tag[];
 	};
 
 	let { boxHeight, isOpened, otherIsOpened, title, type, categories }: BoxProps = $props();
