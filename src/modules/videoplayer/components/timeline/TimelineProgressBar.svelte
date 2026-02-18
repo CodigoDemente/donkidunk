@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { SvelteMap } from 'svelte/reactivity';
-	import Eventline from '../../../components/eventline/eventline.svelte';
-	import CategoryPlayer from '../../../components/categoryplayer/categoryplayer.svelte';
-	import type { Button } from '../../board/types/Button';
-	import type { Category } from '../../board/types/Category';
-	import type { RangeDataWithTags } from '../types/RangeData';
-	import { calculateTimeFromPosition, shouldIgnoreClick } from '../utils/progressBarUtils';
+	import Eventline from '../../../../components/eventline/eventline.svelte';
+	import CategoryPlayer from '../../../../components/categoryplayer/categoryplayer.svelte';
+	import type { Button } from '../../../board/types/Button';
+	import type { Category } from '../../../board/types/Category';
+	import type { RangeDataWithTags } from '../../types/RangeData';
+	import { calculateTimeFromPosition } from '../../utils/timeCalculations';
+	import { shouldIgnoreClick } from '../../utils/clickValidation';
 
 	type Props = {
 		currentTime: number;

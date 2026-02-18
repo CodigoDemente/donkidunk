@@ -7,11 +7,11 @@
 		IconPlayerTrackPrev,
 		IconPlayerTrackNext
 	} from '@tabler/icons-svelte';
-	import { SkipDirection } from './types/SkipDirection';
-	import { SkipType } from './types/SkipType';
-	import Dropdown from '../../components/dropdown/dropdown.svelte';
-	import { speedOptions, skipStepOptions } from './utils/controlsUtils';
-	import Tooltip from '../../components/tooltip/tooltip.svelte';
+	import { SkipDirection } from '../types/SkipDirection';
+	import { SkipType } from '../types/SkipType';
+	import Dropdown from '../../../components/dropdown/dropdown.svelte';
+	import { speedOptions, skipStepOptions } from '../utils/controlsUtils';
+	import Tooltip from '../../../components/tooltip/tooltip.svelte';
 
 	type Props = {
 		skip: (type: SkipType, direction: SkipDirection) => void;

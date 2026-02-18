@@ -1,9 +1,4 @@
 <script lang="ts">
-	/**
-	 * Time Display Component
-	 * Shows current time and total duration
-	 */
-
 	type Props = {
 		currentTime: number;
 		duration: number;

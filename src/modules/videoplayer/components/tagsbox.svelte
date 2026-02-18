@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { IconChevronDown } from '@tabler/icons-svelte';
-	import { boardContext } from '../board/context.svelte';
-	import { timelineContext } from './context.svelte';
-	import Tag from '../../components/tag/tag.svelte';
+	import { boardContext } from '../../board/context.svelte';
+	import { timelineContext } from '../context.svelte';
+	import Tag from '../../../components/tag/tag.svelte';
 
 	const board = boardContext.get();
 	let isBoxOpen: boolean = $state(true);

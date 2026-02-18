@@ -1,52 +1,30 @@
-<!--
-	📋 PROPUESTA DE REORGANIZACIÓN DE ARQUITECTURA
-	===============================================
-	
-	Este componente actualmente contiene muchos handlers y lógica que podrían
-	ser mejor organizados. Ver ARCHITECTURE_PROPOSAL.md para la propuesta completa.
-	
-	Estructura propuesta:
-	
-	handlers/
-	├── eventHandlers.ts      → handleEventClick, handleEventDblClick, handleEventResize
-	├── timeHandlers.ts       → handleTimeChange, handleRangeChange, handleDraggingTimeMarker
-	├── keyboardHandlers.ts   → handleDeleteEvent (effect), shouldIgnoreKeyboardEvent, isDeleteKey
-	└── interactionHandlers.ts → onTimelineWheel
-	
-	logic/
-	├── autoScroll.ts         → applyCenterTime, createAutoScrollEffect, createCenterOnPlayEffect
-	└── timelineState.ts      → createTimelineLimits, createRelativeProgress (derived state)
-	
-	utils/
-	├── timeCalculations.ts   → calculateTimeFromPosition, clampTime, mapClickToVisibleTime
-	├── zoomCalculations.ts   → (renombrar timelineZoomUtils.ts)
-	├── markerCalculations.ts → (renombrar timeMarkersUtils.ts)
-	└── clickValidation.ts    → shouldIgnoreClick (mover desde progressBarUtils)
-	
-	Beneficios:
-	- timeline.svelte se reduce de ~180 a ~50 líneas (solo orquestación)
-	- Separación clara de responsabilidades
-	- Mejor testabilidad (utils son funciones puras)
-	- Más fácil de mantener y escalar
--->
 <script lang="ts">
 	import { boardContext } from '../board/context.svelte';
 	import { timelineContext } from './context.svelte';
-	import Tagsbox from './tagsbox.svelte';
-	import TimeDisplay from './components/TimeDisplay.svelte';
-	import TimelineMarkers from './components/TimelineMarkers.svelte';
-	import TimelineZoomBar from './components/TimelineZoomBar.svelte';
-	import TimelineProgressBar from './components/TimelineProgressBar.svelte';
+	import Tagsbox from './components/tagsbox.svelte';
+	import TimeDisplay from './components/timeline/TimeDisplay.svelte';
+	import TimelineMarkers from './components/timeline/TimelineMarkers.svelte';
+	import TimelineZoomBar from './components/timeline/TimelineZoomBar.svelte';
+	import TimelineProgressBar from './components/timeline/TimelineProgressBar.svelte';
+
+	// Handlers
 	import {
-		calculateTimelineLimits,
-		calculateRelativeProgress,
-		centerTimeInRange,
-		shouldAutoScroll,
-		shouldCenterOnPlay,
-		handleZoomWheel
-	} from './utils/timelineZoomUtils';
-	import { isDeleteKey, shouldIgnoreKeyboardEvent } from './utils/progressBarUtils';
-	import { Menu, MenuItem } from '@tauri-apps/api/menu';
+		handleEventClick,
+		handleEventBlur,
+		handleEventDblClick,
+		handleEventResize,
+		handleCategoryPlayAll,
+		handleEventContextMenu
+	} from './handlers/eventHandlers';
+	import { onTimelineWheel } from './handlers/interactionHandlers';
+	import { shouldIgnoreKeyboardEvent, isDeleteKey } from './handlers/keyboardHandlers';
+
+	// Logic
+	import { applyCenterTime } from './logic/autoScroll';
+	import { computeTimelineLimits, computeRelativeProgress } from './logic/timelineState';
+
+	// Utils
+	import { shouldAutoScroll, shouldCenterOnPlay } from './utils/zoomCalculations';
 
 	type Props = {
 		currentTime: number;
@@ -64,7 +42,7 @@
 		isPlaying
 	}: Props = $props();
 
-	// Timeline zoom state (0-100 percentage range)
+	// Timeline zoom state (0-1 percentage range)
 	let timelineStart = $state(0);
 	let timelineEnd = $state(1);
 
@@ -73,59 +51,11 @@
 
 	let isDraggingTimeMarker = $state(false);
 
-	/* ==================== EVENT HANDLERS ==================== */
-
-	// Event handlers for timeline interactions
-	function handleEventClick(eventId: string, buttonId: string) {
-		// Check if button is playing
-		if (!timeline.eventsPlaying.has(buttonId)) {
-			timeline.setEventSelected(eventId);
-		}
-	}
-
-	function handleEventBlur() {
-		if (timeline.eventsPlaying.size > 0) return;
-		timeline.setEventSelected(null);
-	}
-
-	function handleEventDblClick(startTimestamp: number, eventId: string, buttonId: string) {
-		if (timeline.eventsPlaying.size > 0) return;
-		currentTime = startTimestamp;
-		handleTimeChange(startTimestamp);
-		if (!timeline.eventsPlaying.has(buttonId)) {
-			timeline.setEventSelected(eventId);
-		}
-	}
-
-	async function handleEventResize(
-		eventId: string,
-		buttonId: string,
-		categoryId: string,
-		newStart: number,
-		newEnd: number
-	) {
-		if (timeline.eventsPlaying.size > 0) return;
-		if (!timeline.eventsPlaying.has(buttonId)) {
-			timeline.setEventSelected(eventId);
-		}
-		await timeline.updateEvent(eventId, buttonId, categoryId, { start: newStart, end: newEnd });
-	}
-
-	function handleCategoryPlayAll(categoryId: string) {
-		// Toggle: si la categoría ya está activa, detenerla; si no, iniciarla
-		if (timeline.currentPlaybackCategoryId === categoryId) {
-			timeline.stopCategoryPlayback();
-		} else {
-			timeline.playAllEventsFromCategory(categoryId);
-		}
-	}
-
 	/* ==================== DERIVED STATE ==================== */
 
-	// Calculate timeline limits and progress
-	const limits = $derived(calculateTimelineLimits(duration, timelineStart, timelineEnd));
+	const limits = $derived(computeTimelineLimits(duration, timelineStart, timelineEnd));
 	const relativeProgress = $derived(() =>
-		calculateRelativeProgress(
+		computeRelativeProgress(
 			currentTime,
 			limits.leftLimitTime,
 			limits.rightLimitTime,
@@ -133,72 +63,91 @@
 		)
 	);
 
-	/* ==================== DRAGGING MARKER LOGIC ==================== */
+	/* ==================== LOCAL HANDLERS (thin wrappers) ==================== */
 
-	function handleDraggingTimeMarker(dragging: boolean) {
+	function onEventClick(eventId: string, buttonId: string) {
+		handleEventClick(timeline, eventId, buttonId);
+	}
+
+	function onEventBlur() {
+		handleEventBlur(timeline);
+	}
+
+	function onEventDblClick(startTimestamp: number, eventId: string, buttonId: string) {
+		handleEventDblClick(timeline, startTimestamp, eventId, buttonId, onTimeChange);
+	}
+
+	async function onEventResize(
+		eventId: string,
+		buttonId: string,
+		categoryId: string,
+		newStart: number,
+		newEnd: number
+	) {
+		await handleEventResize(timeline, eventId, buttonId, categoryId, newStart, newEnd);
+	}
+
+	function onCategoryPlay(categoryId: string) {
+		handleCategoryPlayAll(timeline, categoryId);
+	}
+
+	async function onEventContextMenu(eventId: string) {
+		await handleEventContextMenu(timeline, eventId);
+	}
+
+	function onDraggingTimeMarker(dragging: boolean) {
 		isDraggingTimeMarker = dragging;
+	}
+
+	function onTimeChange(time: number) {
+		currentTime = time;
+	}
+
+	function onRangeChange(start: number, end: number) {
+		timelineStart = start;
+		timelineEnd = end;
+	}
+
+	function onWheel(event: WheelEvent) {
+		onTimelineWheel(
+			event,
+			currentTime,
+			duration,
+			timelineStart,
+			timelineEnd,
+			(s) => (timelineStart = s),
+			(e) => (timelineEnd = e)
+		);
 	}
 
 	/* ==================== AUTO-SCROLL LOGIC ==================== */
 
-	// Auto-scroll state
 	let isAutoScrolling = $state(false);
 	let wasPlaying = $state(false);
 
-	// Center the timeline range around current time
-	function applyCenterTime(time: number) {
+	function doApplyCenterTime(time: number) {
 		if (isAutoScrolling) return;
 		isAutoScrolling = true;
 
-		const result = centerTimeInRange(time, duration, timelineStart, timelineEnd);
-		timelineStart = result.start;
-		timelineEnd = result.end;
+		const result = applyCenterTime(time, duration, timelineStart, timelineEnd, false);
+		if (result) {
+			timelineStart = result.start;
+			timelineEnd = result.end;
+		}
 
 		setTimeout(() => {
 			isAutoScrolling = false;
 		}, 50);
 	}
 
-	// Handle range change from zoom bar
-	function handleRangeChange(start: number, end: number) {
-		timelineStart = start;
-		timelineEnd = end;
-	}
-
-	// Handle time change from progress bar
-	function handleTimeChange(time: number) {
-		currentTime = time;
-	}
-
-	// Handle mouse wheel with Ctrl for zoom (works anywhere in timeline)
-	function onTimelineWheel(event: WheelEvent) {
-		// Only zoom if Ctrl is pressed
-		if (!event.ctrlKey) return;
-
-		event.preventDefault();
-		event.stopPropagation();
-
-		const result = handleZoomWheel(
-			event.deltaY,
-			currentTime,
-			duration,
-			timelineStart,
-			timelineEnd,
-			0.1
-		);
-
-		timelineStart = result.start;
-		timelineEnd = result.end;
-	}
-
-	/* ==================== AUTO-SCROLL EFFECTS ==================== */
+	/* ==================== EFFECTS ==================== */
 
 	// Auto-scroll when cursor reaches end of visible range (99%)
 	$effect(() => {
 		const progress = relativeProgress();
 
 		if (shouldAutoScroll(isPlaying, progress, isAutoScrolling, isDraggingTimeMarker)) {
-			applyCenterTime(currentTime);
+			doApplyCenterTime(currentTime);
 		}
 	});
 
@@ -207,13 +156,11 @@
 		const progress = relativeProgress();
 
 		if (shouldCenterOnPlay(isPlaying, wasPlaying, progress, isAutoScrolling)) {
-			applyCenterTime(currentTime);
+			doApplyCenterTime(currentTime);
 		}
 
 		wasPlaying = isPlaying;
 	});
-
-	/* ==================== CATEGORY PLAYBACK LOGIC ==================== */
 
 	// Monitor category playback and jump to next event when current finishes
 	$effect(() => {
@@ -222,30 +169,10 @@
 		const currentEvent = timeline.getNextEventInQueue();
 		if (!currentEvent || currentEvent.timestamp.end === undefined) return;
 
-		// Check if current time has reached the end of the current event
 		if (currentTime >= currentEvent.timestamp.end) {
 			timeline.moveToNextEvent();
 		}
 	});
-
-	// /* ==================== CONTEXT MENU ==================== */
-
-	async function handleEventContextMenu(eventId: string) {
-		const deleteItem = await MenuItem.new({
-			text: 'Delete event',
-			action: async () => {
-				await timeline.removeEvent(eventId);
-			}
-		});
-
-		const menu = await Menu.new({
-			items: [deleteItem]
-		});
-
-		await menu.popup();
-	}
-
-	// /* ==================== DELETE EVENT LOGIC ==================== */
 
 	// Handle Delete key to remove selected event
 	$effect(() => {
@@ -262,7 +189,7 @@
 	});
 </script>
 
-<div class="flex min-h-0 w-full flex-1 flex-col justify-between" onwheel={onTimelineWheel}>
+<div class="flex min-h-0 w-full flex-1 flex-col justify-between" onwheel={onWheel}>
 	<div class="mb-2 flex min-h-0 flex-col justify-start">
 		<TimeDisplay {currentTime} {duration} {toTimeString} />
 
@@ -285,26 +212,18 @@
 			eventButtonsById={board.eventButtonsById}
 			eventsPlaying={timeline.eventsPlaying}
 			eventSelected={timeline.eventSelected}
-			onEventClick={handleEventClick}
-			onEventBlur={handleEventBlur}
-			onEventDblClick={handleEventDblClick}
-			onEventResize={handleEventResize}
-			onEventContextMenu={handleEventContextMenu}
-			onTimeChange={handleTimeChange}
-			onCategoryPlay={(categoryId) => {
-				handleCategoryPlayAll(categoryId);
-			}}
+			{onEventClick}
+			{onEventBlur}
+			{onEventDblClick}
+			{onEventResize}
+			{onEventContextMenu}
+			{onTimeChange}
+			{onCategoryPlay}
 			{isDraggingTimeMarker}
-			{handleDraggingTimeMarker}
+			handleDraggingTimeMarker={onDraggingTimeMarker}
 			playingCategoryId={timeline.currentPlaybackCategoryId}
 		/>
-		<TimelineZoomBar
-			bind:timelineStart
-			bind:timelineEnd
-			{currentTime}
-			{duration}
-			onRangeChange={handleRangeChange}
-		/>
+		<TimelineZoomBar bind:timelineStart bind:timelineEnd {currentTime} {duration} {onRangeChange} />
 	</div>
 
 	<!-- Tags box -->

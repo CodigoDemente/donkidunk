@@ -1,14 +1,9 @@
 <script lang="ts">
-	/**
-	 * Timeline Markers Component
-	 * Displays time markers that adapt to zoom level
-	 */
-
 	import {
 		getTimeInterval,
 		generateMarkerPositions,
 		getMarkerPercentage
-	} from '../utils/timeMarkersUtils';
+	} from '../../utils/markerCalculations';
 
 	type Props = {
 		leftLimitTime: number;

@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { convertFileSrc } from '@tauri-apps/api/core';
 	import { platform } from '@tauri-apps/plugin-os';
-	import { SkipType } from './types/SkipType';
-	import { SkipDirection } from './types/SkipDirection';
+	import { SkipType } from '../types/SkipType';
+	import { SkipDirection } from '../types/SkipDirection';
 
 	type Props = {
 		video: string | undefined;

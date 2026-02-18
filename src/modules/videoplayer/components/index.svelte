@@ -1,10 +1,10 @@
 <script lang="ts">
-	import Timeline from './timeline.svelte';
+	import Timeline from '../timeline.svelte';
 	import Controls from './controls.svelte';
 	import Video from './video.svelte';
-	import { SkipType } from './types/SkipType';
-	import { SkipDirection } from './types/SkipDirection';
-	import { timelineContext } from './context.svelte';
+	import { SkipType } from '../types/SkipType';
+	import { SkipDirection } from '../types/SkipDirection';
+	import { timelineContext } from '../context.svelte';
 
 	type Props = {
 		video: string | undefined;

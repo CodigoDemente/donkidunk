@@ -1,15 +1,10 @@
 <script lang="ts">
-	/**
-	 * Timeline Zoom Bar Component
-	 * Displays a draggable zoom range with start/end handles
-	 */
-
 	import {
 		handleTimelineBarJump,
 		handleDragMove,
 		handleMirroredDrag,
 		type DragState
-	} from '../utils/timelineZoomUtils';
+	} from '../../utils/zoomCalculations';
 
 	type Props = {
 		timelineStart: number;

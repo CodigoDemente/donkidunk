@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Board from '../modules/board/index.svelte';
-	import VideoPlayer from '../modules/videoplayer/index.svelte';
+	import VideoPlayer from '../modules/videoplayer/components/index.svelte';
 	import ProjectStore from '../persistence/stores/project/store.svelte';
 	import '../styles/page.css';
 	import Modal from '../components/modal/modal.svelte';

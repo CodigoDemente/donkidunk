@@ -1,6 +1,6 @@
 /**
- * Timeline Zoom Controller
- * Manages the zoom and scroll functionality for the video timeline
+ * Zoom Calculations
+ * Pure utility functions for timeline zoom and range management
  */
 
 export interface TimelineZoomState {
@@ -152,19 +152,6 @@ export function handleDragMove(
 	}
 
 	return null;
-}
-
-/**
- * Map click position to time within visible range
- */
-export function mapClickToVisibleTime(
-	clickX: number,
-	buttonWidth: number,
-	leftLimitTime: number,
-	visibleDuration: number
-): number {
-	const percentage = clickX / buttonWidth;
-	return leftLimitTime + percentage * visibleDuration;
 }
 
 /**

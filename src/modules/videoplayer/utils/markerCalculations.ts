@@ -1,6 +1,6 @@
 /**
- * Time Markers Utilities
- * Calculate appropriate time intervals based on zoom level
+ * Marker Calculations
+ * Calculate appropriate time intervals and marker positions based on zoom level
  */
 
 export interface TimeInterval {
