@@ -1,4 +1,4 @@
-import type { CategoryType } from '../../../components/box/types';
+import type { CategoryType } from './CategoryType';
 import type { Tag } from './Tag';
 import type { Button } from './Button';
 

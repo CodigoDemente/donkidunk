@@ -1,4 +1,4 @@
-import type { CategoryType } from '../../../components/box/types';
+import type { CategoryType } from './CategoryType';
 
 export type BoardActions = {
 	setEditingMode: (value: boolean) => void;

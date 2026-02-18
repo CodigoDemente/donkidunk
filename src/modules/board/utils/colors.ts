@@ -160,7 +160,7 @@ function computeHue(colorMax: number, rgbNormalized: RGB, delta: number): number
 	return Math.round(h);
 }
 
-function hexStringToRgb(hex: string): RGB {
+export function hexStringToRgb(hex: string): RGB {
 	let hexColor = hex.replace('#', '');
 
 	if (hexColor.length === 3) {

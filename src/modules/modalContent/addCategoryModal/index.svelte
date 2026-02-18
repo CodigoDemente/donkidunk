@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { CategoryType } from '../../../components/box/types';
+	import { CategoryType } from '../../board/types/CategoryType';
 	import Dropdown from '../../../components/dropdown/dropdown.svelte';
 	import Input from '../../../components/input/input.svelte';
 	import Button from '../../../components/button/button.svelte';

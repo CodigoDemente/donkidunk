@@ -1,14 +1,15 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 import { page } from 'vitest/browser';
-import Category from '../category.svelte';
-import { timelineContext } from '../../../modules/videoplayer/context.svelte';
-import { boardContext } from '../../../modules/board/context.svelte';
-import { CategoryType, type DraggedCategory } from '../types';
-import type { Category as CategoryT } from '../../../modules/board/types/Category';
-import type { Button } from '../../../modules/board/types/Button';
-import type { Tag } from '../../../modules/board/types/Tag';
-import type { RangeDataWithTags } from '../../../modules/videoplayer/types/RangeData';
+import Category from '../components/category.svelte';
+import { timelineContext } from '../../videoplayer/context.svelte';
+import { boardContext } from '../context.svelte';
+import { CategoryType } from '../types/CategoryType';
+import type { DraggedCategory } from '../types/DraggedCategory';
+import type { Category as CategoryT } from '../types/Category';
+import type { Button } from '../types/Button';
+import type { Tag } from '../types/Tag';
+import type { RangeDataWithTags } from '../../videoplayer/types/RangeData';
 import { SvelteMap } from 'svelte/reactivity';
 
 // ─── Mock factories ──────────────────────────────────────────────────────────

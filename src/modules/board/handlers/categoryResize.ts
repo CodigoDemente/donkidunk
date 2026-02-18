@@ -1,9 +1,6 @@
-import type { Board } from '../../modules/board/context.svelte';
-import type { Category } from '../../modules/board/types/Category';
-import { saveBoardSizeCommand } from '../../modules/config/commands/SaveBoardSize';
-import type { Config } from '../../modules/config/context.svelte';
-import type { CategoryType } from './types';
-let isResizing = false;
+import type { Board } from '../context.svelte';
+import type { Category } from '../types/Category';
+import type { CategoryType } from '../types/CategoryType';
 
 export type ResizeState = {
 	resizeHandle: string | null;
@@ -151,66 +148,4 @@ export function handleResizeEnd(state: ResizeState): void {
 	// Position and size are already updated during resize
 	// The board context methods handle persistence
 	state.resizeHandle = null;
-}
-
-export function startResize(
-	setFirstBoxHeight: (h: number) => void,
-	setSecondBoxHeight: (h: number) => void,
-	config: Config
-) {
-	isResizing = true;
-	// Disable transitions on boxes during resize for smooth performance
-	const container = document.getElementById('boards-container');
-	let firstBoxHeight = 0;
-	let secondBoxHeight = 0;
-	if (container) {
-		const boxes = container.querySelectorAll('[data-box]');
-		boxes.forEach((box) => {
-			(box as HTMLElement).style.transition = 'none';
-		});
-	}
-
-	function resize(event: MouseEvent) {
-		if (!isResizing) return;
-		const container = document.getElementById('boards-container');
-		if (!container) return;
-		// Cache rect to avoid multiple calls
-		const rect = container.getBoundingClientRect();
-		const containerHeight = rect.height;
-		const containerTop = rect.top;
-		const y = event.clientY - containerTop;
-		const percent = Math.min(90, Math.max(10, (y / containerHeight) * 100));
-		firstBoxHeight = percent;
-		secondBoxHeight = 100 - percent;
-		setFirstBoxHeight(firstBoxHeight);
-		setSecondBoxHeight(secondBoxHeight);
-	}
-
-	function stopResize() {
-		isResizing = false;
-		// Re-enable transitions after resize
-		const container = document.getElementById('boards-container');
-		if (container) {
-			const boxes = container.querySelectorAll('[data-box]');
-			boxes.forEach((box) => {
-				(box as HTMLElement).style.transition = '';
-			});
-		}
-
-		document.removeEventListener('mousemove', resize);
-		document.removeEventListener('mouseup', stopResize);
-	}
-
-	async function saveBoardSize() {
-		await saveBoardSizeCommand(firstBoxHeight, secondBoxHeight);
-		config.boardSize = {
-			events: firstBoxHeight,
-			tags: secondBoxHeight
-		};
-		document.removeEventListener('mouseup', saveBoardSize);
-	}
-
-	document.addEventListener('mousemove', resize);
-	document.addEventListener('mouseup', stopResize);
-	document.addEventListener('mouseup', saveBoardSize);
 }

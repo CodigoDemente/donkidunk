@@ -1,5 +1,5 @@
 import { test, expect, describe } from 'vitest';
-import { getTextColorForBackground } from './colors';
+import { getTextColorForBackground } from '../utils/colors';
 
 describe('getTextColorForBackground', () => {
 	const testColors = [

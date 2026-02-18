@@ -1,18 +1,31 @@
 <script lang="ts">
-	import { projectActions } from '../../persistence/stores/project/actions';
-	import addCategoryModal from '../../modules/modalContent/addCategoryModal/index.svelte';
+	import { projectActions } from '../../../persistence/stores/project/actions';
+	import addCategoryModal from '../../modalContent/addCategoryModal/index.svelte';
 	import { IconPlus, IconChevronDown } from '@tabler/icons-svelte';
-	import Button from '../button/button.svelte';
-	import { CategoryType, type DraggedCategory, type Props } from './types';
-	import { boardContext } from '../../modules/board/context.svelte';
-	import { timelineContext } from '../../modules/videoplayer/context.svelte';
-	import Category from './category.svelte';
+	import Button from '../../../components/button/button.svelte';
+	import { boardContext } from '../context.svelte';
+	import { timelineContext } from '../../videoplayer/context.svelte';
 	import { v7 as uuidv7 } from 'uuid';
+	import type { Tag } from '../types/Tag';
+	import Category from './category.svelte';
+	import type { CategoryType } from '../types/CategoryType';
+	import type { Category as CategoryData } from '../types/Category';
+	import type { DraggedCategory } from '../types/DraggedCategory';
 
 	const board = boardContext.get();
 	const timeline = timelineContext.get();
 
-	let { boxHeight, isOpened, otherIsOpened, title, type, categories }: Props = $props();
+	type BoxProps = {
+		boxHeight: number;
+		isOpened: boolean;
+		otherIsOpened: boolean;
+		title: string;
+		type: CategoryType;
+		categories: CategoryData[];
+		tags?: Tag[];
+	};
+
+	let { boxHeight, isOpened, otherIsOpened, title, type, categories }: BoxProps = $props();
 
 	let draggedCategory: DraggedCategory = $state({
 		id: uuidv7(),

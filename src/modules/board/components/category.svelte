@@ -1,19 +1,20 @@
 <script lang="ts">
-	import type { Category } from '../../modules/board/types/Category';
-	import { timelineContext } from '../../modules/videoplayer/context.svelte';
-	import { boardContext } from '../../modules/board/context.svelte';
-	import { CategoryType, type DraggedCategory } from './types';
-	import type { Button } from '../../modules/board/types/Button';
+	import type { Category } from '../types/Category';
+	import { timelineContext } from '../../videoplayer/context.svelte';
+	import { boardContext } from '../context.svelte';
+	import { CategoryType } from '../types/CategoryType';
+	import type { DraggedCategory } from '../types/DraggedCategory';
+	import type { Button } from '../types/Button';
 	import { IconPencil } from '@tabler/icons-svelte';
-	import { getTextColorForBackground } from './colors';
-	import Tag from '../tag/tag.svelte';
+	import { getTextColorForBackground } from '../utils/colors';
+	import Tag from '../../../components/tag/tag.svelte';
 	import {
 		createResizeState,
 		handleResizeStart as resizeStart,
 		handleResizeMove as resizeMove,
 		handleResizeEnd as resizeEnd,
 		type ResizeState
-	} from './utils';
+	} from '../handlers/categoryResize';
 
 	const timeline = timelineContext.get();
 	const board = boardContext.get();

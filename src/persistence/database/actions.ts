@@ -15,7 +15,7 @@ import { TimelineRepositoryFactory } from '../../factories/TimelineRepositoryFac
 import type { TimelineRepository } from '../../ports/TimelineRepository';
 import { Board } from '../../modules/board/context.svelte';
 import type { Timeline } from '../../modules/videoplayer/context.svelte';
-import { CategoryType } from '../../components/box/types';
+import { CategoryType } from '../../modules/board/types/CategoryType';
 import { DashboardRepositoryFactory } from '../../factories/DashboardRepositoryFactory';
 import { disconnectDatabase, setDatabaseConnection } from '../commands/SetDatabaseConnection';
 import ReplaceVideoModal from '../../modules/modalContent/replaceVideoModal/index.svelte';
