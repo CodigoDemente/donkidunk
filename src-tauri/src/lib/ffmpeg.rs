@@ -23,6 +23,8 @@ use uuid::Uuid;
 
 use crate::errors::{AppError, FfmpegError};
 
+const DETACHED_PROCES: u32 = 0x00000008;
+
 fn parse_time_to_ffmpeg_format(time: &f32) -> String {
     let minutes_raw = *time as i32 / 60;
     let seconds = time % 60.0;
@@ -158,6 +160,17 @@ impl Ffmpeg {
         })
     }
 
+    fn create_base_command(&self) -> Command {
+        let mut command = Command::new(&self.ffmpeg_path);
+
+        #[cfg(target_os = "windows")]
+        {
+            command.creation_flags(DETACHED_PROCES); // Prevents a console from spawning in windows
+        }
+
+        command
+    }
+
     fn create_default_split_command(
         &self,
         start_time: &f32,
@@ -165,7 +178,7 @@ impl Ffmpeg {
         source_path: &str,
         output_path: &PathBuf,
     ) -> Command {
-        let mut cmd = Command::new(&self.ffmpeg_path);
+        let mut cmd = self.create_base_command();
 
         let ffmpeg_start_time = parse_time_to_ffmpeg_format(start_time);
 
@@ -265,7 +278,7 @@ impl Ffmpeg {
 
         let file_parts_path = self.temp_dir.join("parts.txt");
 
-        let mut concat_command = Command::new(&self.ffmpeg_path);
+        let mut concat_command = self.create_base_command();
 
         concat_command
             .arg("-hide_banner")
@@ -332,7 +345,8 @@ impl Ffmpeg {
     async fn fix_movstart(&self, merged_path: &PathBuf, out_path: &str) -> Result<(), FfmpegError> {
         log::debug!("Starting concat...");
 
-        let mut movflags_command = Command::new(&self.ffmpeg_path);
+        let mut movflags_command = self.create_base_command();
+
         movflags_command
             .arg("-hide_banner")
             .arg("-i")
