@@ -12,6 +12,7 @@ import type { Config } from '../../config/context.svelte';
 import { UIMode } from '../../config/types/Config';
 import { closeProject } from '../../menu/operations/closeProject';
 import type { Timeline } from '../../videoplayer/context.svelte';
+import { saveUIModeCommand } from '../../config/commands/SaveUIMode';
 
 export async function createNewProject(
 	board: Board,
@@ -57,11 +58,16 @@ export async function createNewProject(
 	await projectActions.setLastSavedTimestamp(new Date().toISOString());
 
 	if (buttonBoard?.id) {
+		console.log('Loading button board');
 		await loadButtonBoardIntoProject(buttonBoard, board);
 
 		if (board.tagCategories.length) {
 			config.uiMode = UIMode.Advanced;
+		} else {
+			config.uiMode = UIMode.Simple;
 		}
+
+		await saveUIModeCommand(config.uiMode);
 	}
 
 	await enableImportVideo();
