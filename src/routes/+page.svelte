@@ -44,7 +44,6 @@
 		document.removeEventListener('mousemove', resize);
 		document.removeEventListener('mouseup', stopResize);
 	}
-	$inspect(config.uiMode);
 </script>
 
 <div class="flex h-full w-full flex-row gap-1">
