@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getTextColorForBackground } from '../box/colors';
+	import { getTextColorForBackground } from '../../modules/board/utils/colors';
 	import type { Props } from './types';
 
 	let { color, text, disabled, onClick, className }: Props = $props();

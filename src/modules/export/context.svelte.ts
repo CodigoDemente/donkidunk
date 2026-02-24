@@ -1,5 +1,5 @@
 import { SvelteSet } from 'svelte/reactivity';
-import { CategoryType } from '../../components/box/types';
+import { CategoryType } from '../board/types/CategoryType';
 import type { ExportingRule } from './types';
 import type { Board } from '../board/context.svelte';
 import type { Timeline } from '../videoplayer/context.svelte';

@@ -1,7 +1,7 @@
 <script lang="ts">
-	import Box from '../../components/box/box.svelte';
-	import { CategoryType } from '../../components/box/types';
-	import { startResize } from '../../components/box/utils';
+	import Box from './components/box.svelte';
+	import { CategoryType } from './types/CategoryType';
+	import { startResize } from './handlers/boardResize';
 	import { configContext } from '../config/context.svelte';
 	import { UIMode } from '../config/types/Config';
 	import { boardContext } from './context.svelte';

@@ -1,4 +1,4 @@
-import type { CategoryType } from '../../components/box/types';
+import type { CategoryType } from '../board/types/CategoryType';
 
 export type ExportingRule = {
 	type: CategoryType;
