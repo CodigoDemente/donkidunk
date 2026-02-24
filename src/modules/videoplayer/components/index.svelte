@@ -114,7 +114,7 @@
 		<!-- Resize handle -->
 		<button
 			type="button"
-			class="h-1 w-full shrink-0 cursor-row-resize border-0 bg-gray-900 p-0"
+			class="group mt-2 flex h-2 w-full shrink-0 cursor-row-resize items-center justify-center border-0 bg-transparent p-0 transition-colors hover:bg-gray-700/50"
 			onmousedown={() =>
 				startVideoPlayerResize(
 					(h) => (topHeight = h),
@@ -122,7 +122,13 @@
 				)}
 			aria-label="Resize video and timeline sections"
 			tabindex="0"
-		></button>
+		>
+			<div class="flex items-center gap-1">
+				<div
+					class="h-0.5 w-6 rounded-full bg-gray-600 transition-colors group-hover:bg-gray-400"
+				></div>
+			</div>
+		</button>
 
 		<!-- Bottom section: Timeline -->
 		<div class="flex min-h-0 flex-col" data-vp-section style="height: {bottomHeight}%">
