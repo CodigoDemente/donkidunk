@@ -5,6 +5,7 @@
 	import { SkipType } from '../types/SkipType';
 	import { SkipDirection } from '../types/SkipDirection';
 	import { timelineContext } from '../context.svelte';
+	import { startVideoPlayerResize } from '../handlers/videoPlayerResize';
 
 	type Props = {
 		video: string | undefined;
@@ -14,6 +15,8 @@
 
 	const { video }: Props = $props();
 
+	let topHeight = $state(60);
+	let bottomHeight = $state(40);
 	let playbackSpeed = $state<number>(1.0);
 	let skipStep = $state<number>(15);
 	let highlightedSkip: 'forward' | 'backward' | 'play' | null = $state(null);
@@ -71,46 +74,71 @@
 </script>
 
 <div
+	id="videoplayer-container"
 	class="flex h-full flex-col overflow-x-hidden overflow-y-hidden rounded-md border border-gray-700 bg-gray-800 px-2"
 >
 	{#if video}
-		<p
-			class="mb-2 inline-block border-b border-gray-700 px-2 py-1 text-sm font-semibold text-gray-200"
-		>
+		<p class="shrink-0 border-b border-gray-700 px-2 py-1 text-sm font-semibold text-gray-200">
 			Video / Timeline
 		</p>
 
-		<Video
-			{video}
-			bind:currentTime={timeline.currentTime}
-			bind:duration={timeline.duration}
-			{playbackSpeed}
-			onPlayStateChange={(isPlaying) => {
-				timeline.isPlaying = isPlaying;
-			}}
-			onSkip={skip}
-			onPlay={play}
-			onHighlightChange={(highlight) => {
-				highlightedSkip = highlight;
-			}}
-			bind:videoPlayerRef
-		/>
-		<Controls
-			isPlaying={timeline.isPlaying}
-			{skip}
-			{play}
-			{playbackSpeed}
-			onSpeedChange={setPlaybackSpeed}
-			{skipStep}
-			onSkipStepChange={setSkipStep}
-			{highlightedSkip}
-		/>
-		<Timeline
-			bind:currentTime={timeline.currentTime}
-			duration={timeline.duration}
-			{toTimeString}
-			bind:progress
-			isPlaying={timeline.isPlaying}
-		/>
+		<!-- Top section: Video + Controls -->
+		<div class="flex min-h-0 flex-col" data-vp-section style="height: {topHeight}%">
+			<Video
+				{video}
+				bind:currentTime={timeline.currentTime}
+				bind:duration={timeline.duration}
+				{playbackSpeed}
+				onPlayStateChange={(isPlaying) => {
+					timeline.isPlaying = isPlaying;
+				}}
+				onSkip={skip}
+				onPlay={play}
+				onHighlightChange={(highlight) => {
+					highlightedSkip = highlight;
+				}}
+				bind:videoPlayerRef
+			/>
+			<Controls
+				isPlaying={timeline.isPlaying}
+				{skip}
+				{play}
+				{playbackSpeed}
+				onSpeedChange={setPlaybackSpeed}
+				{skipStep}
+				onSkipStepChange={setSkipStep}
+				{highlightedSkip}
+			/>
+		</div>
+
+		<!-- Resize handle -->
+		<button
+			type="button"
+			class="group mt-2 flex h-2 w-full shrink-0 cursor-row-resize items-center justify-center border-0 bg-transparent p-0 transition-colors hover:bg-gray-700/50"
+			onmousedown={() =>
+				startVideoPlayerResize(
+					(h) => (topHeight = h),
+					(h) => (bottomHeight = h)
+				)}
+			aria-label="Resize video and timeline sections"
+			tabindex="0"
+		>
+			<div class="flex items-center gap-1">
+				<div
+					class="h-0.5 w-6 rounded-full bg-gray-600 transition-colors group-hover:bg-gray-400"
+				></div>
+			</div>
+		</button>
+
+		<!-- Bottom section: Timeline -->
+		<div class="flex min-h-0 flex-col" data-vp-section style="height: {bottomHeight}%">
+			<Timeline
+				bind:currentTime={timeline.currentTime}
+				duration={timeline.duration}
+				{toTimeString}
+				bind:progress
+				isPlaying={timeline.isPlaying}
+			/>
+		</div>
 	{/if}
 </div>

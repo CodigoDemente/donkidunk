@@ -129,7 +129,7 @@
 </script>
 
 <div class="custom-scrollbar overflow-y relative flex overflow-x-hidden">
-	<div class="relative mt-2 mb-1 flex flex-col gap-2">
+	<div class="relative mt-1 mb-1 flex flex-col gap-2">
 		{#if Object.entries(eventCategoriesById).length > 0}
 			{#each Object.keys(eventCategoriesById) as categoryId (categoryId)}
 				{@const category = eventCategoriesById[categoryId]}
@@ -151,7 +151,7 @@
 		class="relative flex-1"
 	>
 		<!-- Event categories -->
-		<div bind:this={eventlinesContainer} class="relative mt-2 mb-1 flex flex-col items-start gap-2">
+		<div bind:this={eventlinesContainer} class="relative mt-1 mb-1 flex flex-col items-start gap-2">
 			{#if Object.entries(eventCategoriesById).length > 0}
 				{#each Object.keys(eventCategoriesById) as categoryId (categoryId)}
 					<Eventline
