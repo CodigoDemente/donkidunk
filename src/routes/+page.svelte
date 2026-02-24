@@ -10,8 +10,8 @@
 	import { onMount } from 'svelte';
 	import { getButtonBoardsCommand } from '../modules/config/commands/GetButtonBoards';
 
-	let leftWidth = 50;
-	let isResizing = false;
+	let leftWidth = $state(50);
+	let isResizing = $state(false);
 
 	const projectStore = ProjectStore.getState();
 	const config = configContext.get();
@@ -35,7 +35,7 @@
 	function resize(event: MouseEvent) {
 		if (isResizing) {
 			const totalWidth = window.innerWidth;
-			leftWidth = Math.min(70, Math.max(20, (event.clientX / totalWidth) * 100)); // Clamp between 20% and 80%
+			leftWidth = Math.min(80, Math.max(20, (event.clientX / totalWidth) * 100)); // Clamp between 20% and 80%
 		}
 	}
 

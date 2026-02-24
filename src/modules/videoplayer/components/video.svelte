@@ -185,11 +185,7 @@
 	bind:this={videoPlayer}
 	bind:currentTime
 	bind:duration
-	class={{
-		'max-h-[50vh]': true,
-		'w-full': true,
-		'bg-black': !!videoPlayer
-	}}
+	class="min-h-0 w-full flex-1 bg-black object-contain"
 	onwheel={handleTrackpadGesture}
 	onclick={handleVideoClick}
 	ondblclick={handleVideoDoubleClick}
