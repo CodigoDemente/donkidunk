@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getTextColorForBackground } from '../box/colors';
+	import { getTextColorForBackground } from '../../modules/board/utils/colors';
 	import type { Props, MultiselectOption } from './types';
 
 	let {

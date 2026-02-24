@@ -2,7 +2,7 @@
 	import { DashboardRepositoryFactory } from '../../factories/DashboardRepositoryFactory';
 	import { configContext } from '../config/context.svelte';
 	import { UIMode } from '../config/types/Config';
-	import { getTextColorForBackground } from '../../components/box/colors';
+	import { getTextColorForBackground } from '../board/utils/colors';
 	import type { EventUsage } from './types/EventUsage';
 	import type { TagUsage } from './types/TagUsage';
 	import Button from '../../components/button/button.svelte';

@@ -1,4 +1,4 @@
-import type { CategoryType } from '../../components/box/types';
+import type { CategoryType } from '../../modules/board/types/CategoryType';
 import type { DatabaseButton } from './DatabaseButton';
 import type { DatabaseTag } from './DatabaseTag';
 

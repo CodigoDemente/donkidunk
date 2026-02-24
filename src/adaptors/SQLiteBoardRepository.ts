@@ -4,7 +4,7 @@ import type { Category } from '../modules/board/types/Category';
 import type { Tag } from '../modules/board/types/Tag';
 import type { DatabaseTag } from './types/DatabaseTag';
 import { ButtonRange, type Button } from '../modules/board/types/Button';
-import { CategoryType } from '../components/box/types';
+import { CategoryType } from '../modules/board/types/CategoryType';
 import type {
 	DatabaseCategory,
 	DatabaseCategoryWithEvent,

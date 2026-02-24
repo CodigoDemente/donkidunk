@@ -6,7 +6,7 @@
 	import Input from '../../../components/input/input.svelte';
 	import Tooltip from '../../../components/tooltip/tooltip.svelte';
 	import { boardContext } from '../../board/context.svelte';
-	import { CategoryType } from '../../../components/box/types';
+	import { CategoryType } from '../../board/types/CategoryType';
 	import { ButtonRange, type Button as ButtonType } from '../../board/types/Button';
 	import { secondsBeforeOptions, secondsDurationOptions, typeOptions } from './utils';
 	import type { Tag } from '../../board/types/Tag';

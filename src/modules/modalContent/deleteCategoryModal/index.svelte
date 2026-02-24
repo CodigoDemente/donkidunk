@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { CategoryType } from '../../../components/box/types';
+	import { CategoryType } from '../../board/types/CategoryType';
 
 	type Props = {
 		categoryType: CategoryType;

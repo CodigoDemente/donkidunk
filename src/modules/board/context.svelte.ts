@@ -1,7 +1,7 @@
 import { Context, StateHistory } from 'runed';
 import { v7 as uuidv7 } from 'uuid';
 import { projectActions } from '../../persistence/stores/project/actions';
-import { CategoryType } from '../../components/box/types';
+import { CategoryType } from './types/CategoryType';
 import { feedbackMessages } from '../../utils/messages';
 import { categoryValidationSchema, buttonValidationSchema } from './validationSchema';
 import type { BoardData } from './types/Board';
