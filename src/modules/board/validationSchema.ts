@@ -5,7 +5,7 @@ import type { Button } from './types/Button';
 export const categoryValidationSchema = [
 	{
 		validate: (category: Category) => category.name.trim() === '',
-		message: '	Cannot be empty'
+		message: 'Cannot be empty'
 	},
 	{
 		validate: (category: Category) => category.buttons.length === 0,
