@@ -5,8 +5,11 @@ export async function saveBoardSizeCommand(eventSize: number, tagSize: number): 
 		throw new Error('Event size and tag size must add up to 100');
 	}
 
+	const roundedEventSize = Math.round(eventSize);
+	const roundedTagSize = 100 - roundedEventSize;
+
 	return await invoke<void>('save_board_size', {
-		eventSize: Math.round(eventSize),
-		tagSize: Math.round(tagSize)
+		eventSize: roundedEventSize,
+		tagSize: roundedTagSize
 	});
 }

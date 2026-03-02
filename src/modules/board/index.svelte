@@ -9,10 +9,15 @@
 	const context = boardContext.get();
 	const config = configContext.get();
 
-	let eventsBoxHeight = $derived(config.uiMode === UIMode.Advanced ? config.eventsHeight : 100);
-	let tagsBoxHeight = $derived(config.tagsHeight);
+	let eventsBoxHeight = $state(config.uiMode === UIMode.Advanced ? config.eventsHeight : 100);
+	let tagsBoxHeight = $state(config.tagsHeight);
 	let eventsOpen = true;
 	let tagsOpen = true;
+
+	$effect(() => {
+		eventsBoxHeight = config.uiMode === UIMode.Advanced ? config.eventsHeight : 100;
+		tagsBoxHeight = config.tagsHeight;
+	});
 </script>
 
 <div id="boards-container" class="flex h-full min-h-0 flex-1 flex-col overflow-y-hidden">
