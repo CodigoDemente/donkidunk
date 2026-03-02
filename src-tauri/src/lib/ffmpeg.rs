@@ -23,6 +23,7 @@ use uuid::Uuid;
 
 use crate::errors::{AppError, FfmpegError};
 
+#[cfg(target_os = "windows")]
 const DETACHED_PROCES: u32 = 0x00000008;
 
 fn parse_time_to_ffmpeg_format(time: &f32) -> String {
@@ -161,14 +162,20 @@ impl Ffmpeg {
     }
 
     fn create_base_command(&self) -> Command {
-        let mut command = Command::new(&self.ffmpeg_path);
-
         #[cfg(target_os = "windows")]
         {
+            let mut command = Command::new(&self.ffmpeg_path);
             command.creation_flags(DETACHED_PROCES); // Prevents a console from spawning in windows
+
+            command
         }
 
-        command
+        #[cfg(not(target_os = "windows"))]
+        {
+            let command = Command::new(&self.ffmpeg_path);
+
+            command
+        }
     }
 
     fn create_default_split_command(
