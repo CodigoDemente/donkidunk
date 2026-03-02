@@ -172,9 +172,7 @@ impl Ffmpeg {
 
         #[cfg(not(target_os = "windows"))]
         {
-            let command = Command::new(&self.ffmpeg_path);
-
-            command
+            Command::new(&self.ffmpeg_path)
         }
     }
 
