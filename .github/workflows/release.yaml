@@ -3,6 +3,7 @@ on:
   milestone:
     types:
       - closed
+  workflow_dispatch:
 
 permissions:
   contents: read # for checkout
