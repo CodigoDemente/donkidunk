@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   capture-release-notes:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: write # to be able to publish a GitHub release
       issues: write # to be able to comment on released issues
@@ -56,7 +56,7 @@ jobs:
 
   release:
     name: Release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: capture-release-notes
     outputs:
       APP_VERSION: ${{ steps.set-output.outputs.APP_VERSION }}
@@ -98,13 +98,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: 'macos-14' # for Arm based macs (M1 and above).
+          - platform: 'macos-26' # for Arm based macs (M1 and above).
             args: '--target aarch64-apple-darwin'
-          - platform: 'macos-13' # for Intel based macs.
+          - platform: 'macos-26' # for Intel based macs.
             args: '--target x86_64-apple-darwin'
-          - platform: 'ubuntu-latest' # for Tauri v1 you could replace this with ubuntu-20.04.
+          - platform: 'ubuntu-24.04' # for Tauri v1 you could replace this with ubuntu-20.04.
             args: ''
-          - platform: 'windows-latest'
+          - platform: 'windows-2025'
             args: ''
 
     runs-on: ${{ matrix.platform }}
@@ -117,12 +117,12 @@ jobs:
           ref: main
 
       - name: Update system repositories
-        if: matrix.platform == 'ubuntu-latest' # This must match the platform value defined above.
+        if: matrix.platform == 'ubuntu-24.04' # This must match the platform value defined above.
         run: |
           sudo apt-get update
 
       - name: Install system dependencies
-        if: matrix.platform == 'ubuntu-latest' # This must match the platform value defined above.
+        if: matrix.platform == 'ubuntu-24.04' # This must match the platform value defined above.
         run: |
           sudo apt-get install libwebkit2gtk-4.1-dev \
             build-essential \
@@ -135,7 +135,7 @@ jobs:
             librsvg2-dev
 
       - name: Install LinuxDeploy
-        if: matrix.platform == 'ubuntu-latest' # This must match the platform value defined above.
+        if: matrix.platform == 'ubuntu-24.04' # This must match the platform value defined above.
         uses: miurahr/install-linuxdeploy-action@v1
         with:
           plugins: gstreamer appimage
@@ -154,10 +154,10 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           # Those targets are only used on macos runners so it's in an `if` to slightly speed up windows and linux builds.
-          targets: ${{ (matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin') || (matrix.platform == 'windows-latest' && 'x86_64-pc-windows-msvc') || '' }}
+          targets: ${{ (matrix.platform == 'macos-26' && 'aarch64-apple-darwin,x86_64-apple-darwin') || (matrix.platform == 'windows-2025' && 'x86_64-pc-windows-msvc') || '' }}
 
       - name: Install WebView2
-        if: matrix.platform == 'windows-latest' # This must match the platform value defined above.
+        if: matrix.platform == 'windows-2025' # This must match the platform value defined above.
         run: |
           Remove-Item -Path WebView2Installer.exe -ErrorAction Ignore
           Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/p/?LinkId=2124703" -OutFile "WebView2Installer.exe"
