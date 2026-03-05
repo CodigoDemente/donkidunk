@@ -14,7 +14,7 @@ env:
 
 jobs:
   test-ubuntu:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
 
     steps:
@@ -90,16 +90,16 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: ubuntu-latest
+          - platform: ubuntu-24.04
             rust-target: ''
             args: ''
-          - platform: windows-latest
+          - platform: windows-2025
             rust-target: x86_64-pc-windows-msvc
             args: ''
-          - platform: macos-latest
+          - platform: macos-26
             rust-target: 'aarch64-apple-darwin,x86_64-apple-darwin'
             args: '--target aarch64-apple-darwin'
-          - platform: macos-latest
+          - platform: macos-26
             rust-target: 'aarch64-apple-darwin,x86_64-apple-darwin'
             args: '--target x86_64-apple-darwin'
 
