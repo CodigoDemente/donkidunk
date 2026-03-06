@@ -50,7 +50,7 @@ jobs:
     runs-on: ${{ matrix.platform }}
 
     env:
-      PKG_CONFIG_PATH: "${{ matrix.platform == 'ubuntu-latest' && '/usr/local/lib:/usr/lib/x86_64-linux-gnu:/usr/share' || ''}}"
+      PKG_CONFIG_PATH: "${{ matrix.platform == 'ubuntu-24.04' && '/usr/local/lib:/usr/lib/x86_64-linux-gnu:/usr/share' || ''}}"
 
     needs: capture-release-notes
 
@@ -58,12 +58,12 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Update system repositories
-        if: matrix.platform == 'ubuntu-latest' # This must match the platform value defined above.
+        if: matrix.platform == 'ubuntu-24.04' # This must match the platform value defined above.
         run: |
           sudo apt-get update
 
       - name: Install system dependencies
-        if: matrix.platform == 'ubuntu-latest' # This must match the platform value defined above.
+        if: matrix.platform == 'ubuntu-24.04' # This must match the platform value defined above.
         run: |
           sudo apt-get install libwebkit2gtk-4.1-dev \
             build-essential \
@@ -76,7 +76,7 @@ jobs:
             librsvg2-dev
 
       - name: Install LinuxDeploy
-        if: matrix.platform == 'ubuntu-latest' # This must match the platform value defined above.
+        if: matrix.platform == 'ubuntu-24.04' # This must match the platform value defined above.
         uses: miurahr/install-linuxdeploy-action@v1
         with:
           plugins: gstreamer appimage
@@ -95,7 +95,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           # Those targets are only used on macos runners so it's in an `if` to slightly speed up windows and linux builds.
-          targets: ${{ (matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin') || (matrix.platform == 'windows-latest' && 'x86_64-pc-windows-msvc') || '' }}
+          targets: ${{ (matrix.platform == 'macos-26' && 'aarch64-apple-darwin,x86_64-apple-darwin') || (matrix.platform == 'windows-2025' && 'x86_64-pc-windows-msvc') || '' }}
 
       - name: install frontend dependencies
         run: pnpm install
