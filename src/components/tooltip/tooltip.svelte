@@ -48,8 +48,6 @@
 			const viewportHeight = window.innerHeight;
 
 			let finalPosition = position;
-			let top = 0;
-			let left = 0;
 
 			// Check if preferred position would overflow and flip if needed
 			if (position === 'top' && triggerRect.top - tooltipRect.height - TOOLTIP_GAP < MARGIN) {
@@ -70,6 +68,9 @@
 			) {
 				finalPosition = 'left';
 			}
+
+			let top;
+			let left;
 
 			// Calculate coordinates based on final position
 			if (finalPosition === 'top') {
