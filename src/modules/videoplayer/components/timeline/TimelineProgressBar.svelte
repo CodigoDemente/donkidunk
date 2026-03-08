@@ -168,6 +168,7 @@
 						{onEventDblClick}
 						{onEventResize}
 						{onEventContextMenu}
+						{onTimeChange}
 					/>
 				{/each}
 			{:else}
