@@ -23,4 +23,5 @@ export type Props = {
 		newEnd: number
 	) => void;
 	onEventContextMenu?: (eventId: string) => void;
+	onTimeChange: (time: number) => void;
 };
