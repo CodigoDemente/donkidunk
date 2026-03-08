@@ -12,6 +12,7 @@
 		onDblClick?: () => void;
 		onResize?: (start: number, end: number) => void;
 		onContextMenu?: () => void;
+		onTimeChange?: (time: number) => void;
 	}
 
 	let {
@@ -26,7 +27,8 @@
 		onClick,
 		onDblClick,
 		onResize,
-		onContextMenu
+		onContextMenu,
+		onTimeChange
 	}: Props = $props();
 
 	const total = $derived(timelineEnd - timelineStart);
@@ -94,6 +96,7 @@
 			container
 		};
 		syncTempWithProps();
+		// if (onTimeChange) onTimeChange(start);
 		document.addEventListener('mousemove', handleMove);
 		document.addEventListener('mouseup', handleUp);
 	}
@@ -105,6 +108,7 @@
 		const container = (e.currentTarget as HTMLElement).closest('.relative') as HTMLElement;
 		if (!container) return;
 		initDrag(type, e, container);
+		// if (onTimeChange) onTimeChange(type === 'left' ? tempStart : tempEnd);
 	}
 
 	function startMove(e: MouseEvent) {
@@ -154,12 +158,15 @@
 			);
 			tempStart = newStart;
 			tempEnd = newStart + drag.duration;
+			if (onTimeChange) onTimeChange(newStart);
 		} else if (drag.type === 'left') {
 			const proposedStart = drag.startTime + deltaTime;
 			tempStart = Math.max(collisionLimits.minStart, Math.min(proposedStart, drag.endTime - 0.1));
+			if (onTimeChange) onTimeChange(tempStart);
 		} else {
 			const proposedEnd = drag.endTime + deltaTime;
 			tempEnd = Math.min(collisionLimits.maxEnd, Math.max(drag.startTime + 0.1, proposedEnd));
+			if (onTimeChange) onTimeChange(tempEnd);
 		}
 	}
 
