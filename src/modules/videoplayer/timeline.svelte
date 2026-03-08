@@ -25,6 +25,8 @@
 
 	// Utils
 	import { shouldAutoScroll, shouldCenterOnPlay } from './utils/zoomCalculations';
+	import { configContext } from '../config/context.svelte';
+	import { UIMode } from '../config/types/Config';
 
 	type Props = {
 		currentTime: number;
@@ -38,7 +40,7 @@
 		currentTime = $bindable(),
 		duration,
 		toTimeString,
-		// eslint-disable-next-line no-useless-assignment
+
 		progress = $bindable(),
 		isPlaying
 	}: Props = $props();
@@ -49,6 +51,7 @@
 
 	const board = boardContext.get();
 	const timeline = timelineContext.get();
+	const config = configContext.get();
 
 	let isDraggingTimeMarker = $state(false);
 
@@ -228,5 +231,7 @@
 	</div>
 
 	<!-- Tags box -->
-	<Tagsbox />
+	{#if config.uiMode === UIMode.Advanced}
+		<Tagsbox />
+	{/if}
 </div>
