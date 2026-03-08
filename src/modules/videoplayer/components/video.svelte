@@ -22,6 +22,7 @@
 		currentTime = $bindable(),
 		duration = $bindable(),
 		playbackSpeed = 1.0,
+		// eslint-disable-next-line no-useless-assignment
 		videoPlayerRef = $bindable(),
 		onPlayStateChange,
 		onSkip,

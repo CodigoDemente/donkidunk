@@ -45,6 +45,11 @@
         "bundleMediaFramework": true
       }
     },
+    "windows": {
+      "nsis": {
+        "installMode": "both"
+      }
+    },
     "externalBin": [
       "./bin/donkidunk_ffmpeg"
     ],
