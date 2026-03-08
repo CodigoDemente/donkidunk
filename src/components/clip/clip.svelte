@@ -96,7 +96,6 @@
 			container
 		};
 		syncTempWithProps();
-		// if (onTimeChange) onTimeChange(start);
 		document.addEventListener('mousemove', handleMove);
 		document.addEventListener('mouseup', handleUp);
 	}
@@ -108,7 +107,6 @@
 		const container = (e.currentTarget as HTMLElement).closest('.relative') as HTMLElement;
 		if (!container) return;
 		initDrag(type, e, container);
-		// if (onTimeChange) onTimeChange(type === 'left' ? tempStart : tempEnd);
 	}
 
 	function startMove(e: MouseEvent) {
