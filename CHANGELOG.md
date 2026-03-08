@@ -1,3 +1,13 @@
+# [1.1.0](https://github.com/CodigoDemente/donkidunk/compare/v1.0.0...v1.1.0) (2026-03-08)
+
+
+### Features
+
+* comment ([d13dd16](https://github.com/CodigoDemente/donkidunk/commit/d13dd163fd1f6554ba0fed80d2a402bc1722e16a))
+* fix tag box and change time on drag ([5e06d3f](https://github.com/CodigoDemente/donkidunk/commit/5e06d3f8de8ea20ff8e228fad96b6b502640287e))
+* fix tag box and change time on drag ([194b55b](https://github.com/CodigoDemente/donkidunk/commit/194b55b6782b3e23680884e5d2a21a0d3622aa4d))
+* fix tag box and change time on drag ([6df43f5](https://github.com/CodigoDemente/donkidunk/commit/6df43f57253fac52c414ac701a6656382dffdacc))
+
 # 1.0.0 (2026-03-06)
 
 
