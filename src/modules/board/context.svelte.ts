@@ -33,6 +33,7 @@ const initialCategory = (section: CategoryType): Category => ({
 
 export const boardContext = new Context<Board>('');
 export class Board {
+	/* State */
 	#history!: StateHistory<BoardData>;
 	#tempCategory = $state<Category>(initialCategory(CategoryType.Event));
 	#state = $state<BoardData>(initialState);
@@ -48,7 +49,6 @@ export class Board {
 			(n) => (this.#state = n)
 		);
 
-		//#region Selector derived states
 		this.#eventCategoriesById = $derived.by(() => {
 			return this.#state[CategoryType.Event].reduce(
 				(acc, category) => {
@@ -94,6 +94,8 @@ export class Board {
 		});
 	}
 
+	/* Actions */
+
 	getState() {
 		return this.#state;
 	}
@@ -114,7 +116,6 @@ export class Board {
 		this.#history.redo();
 	}
 
-	//#region Actions
 	reset() {
 		this.#state = initialState;
 		this.#tempCategory = initialCategory(CategoryType.Event);
@@ -131,36 +132,48 @@ export class Board {
 		this.#errorsForm = {};
 	}
 
-	async updateCategoryPosition(
-		section: CategoryType,
-		categoryId: string,
-		x: number,
-		y: number
-	): Promise<void> {
-		const repository = BoardRepositoryFactory.getInstance();
+	/* Undo */
 
-		const cat = this.#state[section].find((c) => c.id === categoryId)!;
+	wrapForUndo() {
+		Object.assign(
+			this,
+			wrapObjectForUndo(
+				{
+					updateCategoryName: this.updateCategoryName.bind(this),
+					updateCategory: this.updateCategory.bind(this),
+					addButtonToCategory: this.addButtonToCategory.bind(this),
+					addCategory: this.addCategory.bind(this),
+					updateCategoryPosition: this.updateCategoryPosition.bind(this)
+				},
+				Scope.Board
+			)
+		);
 
-		cat.position = { x, y };
-
-		await repository.updateCategory(cat);
-		await emit('project:dirty');
+		return this;
 	}
 
-	async updateCategorySize(
-		section: CategoryType,
-		categoryId: string,
-		width: number,
-		height: number
-	): Promise<void> {
-		const repository = BoardRepositoryFactory.getInstance();
+	/* Operations on Database */
 
-		const cat = this.#state[section].find((c) => c.id === categoryId)!;
+	async loadBoard(boardData: BoardData): Promise<void> {
+		const eventCategories = boardData[CategoryType.Event];
+		const tagCategories = boardData[CategoryType.Tag];
 
-		cat.size = { width, height };
+		for (const category of [...eventCategories, ...tagCategories]) {
+			this.#tempCategory = category;
+			await this.addCategory();
+		}
+	}
 
-		await repository.updateCategory(cat);
-		await emit('project:dirty');
+	async loadCategoryToAddOrEdit(section: CategoryType, categoryId?: string): Promise<void> {
+		if (categoryId) {
+			if (section === CategoryType.Event) {
+				this.#tempCategory = $state.snapshot(this.eventCategoriesById[categoryId]);
+			} else if (section === CategoryType.Tag) {
+				this.#tempCategory = $state.snapshot(this.tagCategoriesById[categoryId]);
+			}
+		} else {
+			this.resetCategoryForm(section);
+		}
 	}
 
 	async updateCategoryName(
@@ -223,18 +236,6 @@ export class Board {
 		await emit('project:dirty');
 	}
 
-	async loadCategoryToAddOrEdit(section: CategoryType, categoryId?: string): Promise<void> {
-		if (categoryId) {
-			if (section === CategoryType.Event) {
-				this.#tempCategory = $state.snapshot(this.eventCategoriesById[categoryId]);
-			} else if (section === CategoryType.Tag) {
-				this.#tempCategory = $state.snapshot(this.tagCategoriesById[categoryId]);
-			}
-		} else {
-			this.resetCategoryForm(section);
-		}
-	}
-
 	onValidateCategory(): Record<number | string, { message: string }> | void {
 		const errorObject: Record<number | string, { message: string }> = {};
 
@@ -264,32 +265,6 @@ export class Board {
 		}
 
 		return this.resetErrorsForm();
-	}
-
-	async addOrUpdateCategory(section: CategoryType, timeline: Timeline): Promise<void> {
-		try {
-			this.onValidateCategory();
-
-			const repository = BoardRepositoryFactory.getInstance();
-
-			const categoryExists = await repository.categoryExists(this.#tempCategory.id);
-
-			if (categoryExists) {
-				await this.updateCategory(section, timeline);
-			} else {
-				await this.addCategory();
-			}
-			return;
-		} catch (error) {
-			if (error === 'validation-failed') {
-				return projectActions.setSnackbar(feedbackMessages.VALIDATION_ERROR);
-			}
-
-			return projectActions.setSnackbar({
-				...feedbackMessages.ACTION_FAILED,
-				message: error instanceof Error ? error.message : String(error)
-			});
-		}
 	}
 
 	async addCategory(): Promise<void> {
@@ -344,8 +319,6 @@ export class Board {
 
 			const deletedButtonIds = currentButtonIds.filter((id) => !newButtonIds.includes(id));
 
-			console.log('deletedButtonIds', deletedButtonIds);
-
 			await repository.updateCategory(category);
 
 			if (section === CategoryType.Event) {
@@ -397,6 +370,32 @@ export class Board {
 			this.resetCategoryForm(section);
 		} catch (error) {
 			projectActions.setSnackbar({
+				...feedbackMessages.ACTION_FAILED,
+				message: error instanceof Error ? error.message : String(error)
+			});
+		}
+	}
+
+	async addOrUpdateCategory(section: CategoryType, timeline: Timeline): Promise<void> {
+		try {
+			this.onValidateCategory();
+
+			const repository = BoardRepositoryFactory.getInstance();
+
+			const categoryExists = await repository.categoryExists(this.#tempCategory.id);
+
+			if (categoryExists) {
+				await this.updateCategory(section, timeline);
+			} else {
+				await this.addCategory();
+			}
+			return;
+		} catch (error) {
+			if (error === 'validation-failed') {
+				return projectActions.setSnackbar(feedbackMessages.VALIDATION_ERROR);
+			}
+
+			return projectActions.setSnackbar({
 				...feedbackMessages.ACTION_FAILED,
 				message: error instanceof Error ? error.message : String(error)
 			});
@@ -480,36 +479,42 @@ export class Board {
 		}
 	}
 
-	async loadBoard(boardData: BoardData): Promise<void> {
-		const eventCategories = boardData[CategoryType.Event];
-		const tagCategories = boardData[CategoryType.Tag];
+	/* Position and Size on Board */
 
-		for (const category of [...eventCategories, ...tagCategories]) {
-			this.#tempCategory = category;
-			await this.addCategory();
-		}
+	async updateCategoryPosition(
+		section: CategoryType,
+		categoryId: string,
+		x: number,
+		y: number
+	): Promise<void> {
+		const repository = BoardRepositoryFactory.getInstance();
+
+		const cat = this.#state[section].find((c) => c.id === categoryId)!;
+
+		cat.position = { x, y };
+
+		await repository.updateCategory(cat);
+		await emit('project:dirty');
 	}
 
-	wrapForUndo() {
-		Object.assign(
-			this,
-			wrapObjectForUndo(
-				{
-					updateCategoryName: this.updateCategoryName.bind(this),
-					updateCategory: this.updateCategory.bind(this),
-					addButtonToCategory: this.addButtonToCategory.bind(this),
-					addCategory: this.addCategory.bind(this),
-					updateCategoryPosition: this.updateCategoryPosition.bind(this)
-				},
-				Scope.Board
-			)
-		);
+	async updateCategorySize(
+		section: CategoryType,
+		categoryId: string,
+		width: number,
+		height: number
+	): Promise<void> {
+		const repository = BoardRepositoryFactory.getInstance();
 
-		return this;
+		const cat = this.#state[section].find((c) => c.id === categoryId)!;
+
+		cat.size = { width, height };
+
+		await repository.updateCategory(cat);
+		await emit('project:dirty');
 	}
-	//#endregion
 
-	//#region Selectors
+	/* Selectors */
+
 	get categoryToCreate() {
 		return this.#tempCategory;
 	}
@@ -545,5 +550,4 @@ export class Board {
 	get tagsById() {
 		return this.#tagsById;
 	}
-	//#endregion
 }

@@ -21,15 +21,15 @@ const initialRule: ExportingRule = {
 export const exportContext = new Context<Exporting>('');
 
 export class Exporting {
+	/* State */
+
 	#rules = $state<ExportingRule[]>([]);
 	#loading = $state(false);
 	#galleryClips = $state<GalleryClip[]>([]);
 	#exportProgress = $state(0);
 	#newRule = $state<ExportingRule>({ ...initialRule });
 
-	setExportProgress(exportProgress: number) {
-		this.#exportProgress = exportProgress;
-	}
+	/* Actions */
 
 	resetState() {
 		this.#rules = [];
@@ -39,7 +39,9 @@ export class Exporting {
 		this.#newRule = { ...initialRule };
 	}
 
-	// region Rule actions
+	setExportProgress(exportProgress: number) {
+		this.#exportProgress = exportProgress;
+	}
 
 	addRule() {
 		if (this.#newRule.include) {
@@ -65,6 +67,8 @@ export class Exporting {
 		[rules[idx], rules[idx + 1]] = [rules[idx + 1], rules[idx]];
 		this.#rules = rules;
 	}
+
+	/* Operations on Database */
 
 	async getGalleryClips() {
 		const timelineRepository = TimelineRepositoryFactory.getInstance();
@@ -119,6 +123,7 @@ export class Exporting {
 	}
 
 	/* Selectors */
+
 	get rules() {
 		return this.#rules;
 	}
