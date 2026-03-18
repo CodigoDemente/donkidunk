@@ -1,28 +1,25 @@
 <script lang="ts">
 	import ProjectStore from '../../persistence/stores/project/store.svelte';
-	import { boardContext } from '../../modules/board/context.svelte';
-	import { timelineContext } from '../../modules/videoplayer/context.svelte';
 	import { TimelineRepositoryFactory } from '../../factories/TimelineRepositoryFactory';
-	import { exportActions } from '../../persistence/stores/export/actions';
 	import Button from '../../components/button/button.svelte';
-	import { ExportContext } from './context.svelte';
 	import { exportVideo } from './operations/exportVideo';
 	import ExportRulesTable from './components/ExportRulesTable.svelte';
 	import ExportRuleForm from './components/ExportRuleForm.svelte';
 	import ExportProgress from './components/ExportProgress.svelte';
 	import ExportOrdering from './components/ExportOrdering.svelte';
+	import { exportContext } from './context.svelte';
+	import { boardContext } from '../board/context.svelte';
 
-	const board = boardContext.get();
-	const timeline = timelineContext.get();
 	const timelineRepository = TimelineRepositoryFactory.getInstance();
 	const projectStore = ProjectStore.getState();
 
-	const context = new ExportContext(board, timeline);
+	const exporting = exportContext.get();
+	const board = boardContext.get();
 
 	let step = $state<1 | 2>(1);
 
 	async function onExport() {
-		await exportVideo(projectStore.video.path!, context.rules, timelineRepository);
+		await exportVideo(projectStore.video.path!, exporting.rules, timelineRepository);
 	}
 </script>
 
@@ -33,10 +30,14 @@
 	{#if step === 1}
 		<!-- Step 1: Rules -->
 		<div class="flex-1 overflow-y-auto">
-			<ExportRulesTable {context} />
+			<ExportRulesTable
+				context={exporting}
+				tagsList={board.tagsById}
+				buttonsList={board.eventButtonsById}
+			/>
 		</div>
 
-		<ExportRuleForm {context} />
+		<ExportRuleForm context={exporting} />
 
 		<div class="flex items-center justify-between">
 			<Button
@@ -44,7 +45,7 @@
 				primary
 				size="large"
 				onClick={onExport}
-				disabled={context.rules.length === 0 || exportActions.getExporting()}
+				disabled={exporting.rules.length === 0 || exporting.exporting}
 			>
 				Export Video
 			</Button>
@@ -54,7 +55,7 @@
 				primary
 				size="large"
 				onClick={() => (step = 2)}
-				disabled={context.rules.length === 0}
+				disabled={exporting.rules.length === 0}
 			>
 				Next
 			</Button>

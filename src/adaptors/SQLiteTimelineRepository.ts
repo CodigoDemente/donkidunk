@@ -2,7 +2,7 @@ import type Database from '@tauri-apps/plugin-sql';
 import type { TimelineRepository } from '../ports/TimelineRepository';
 import type { DatabaseEntryWithTag } from './types/DatabaseEntryWithTags';
 import type { RangeData, RangeDataWithTags } from '../modules/videoplayer/types/RangeData';
-import type { ExportingRule } from '../modules/export/types';
+import type { ExportingRule, GalleryClip } from '../modules/export/types';
 import { EntryMapper } from './mappers/EntryMapper';
 
 export class SQLiteTimelineRepository implements TimelineRepository {
@@ -29,7 +29,7 @@ export class SQLiteTimelineRepository implements TimelineRepository {
 		return Object.values(categoriesAndButtons);
 	}
 
-	async getRangesForExport(rules: ExportingRule[]): Promise<[number, number][]> {
+	async getClipsForGallery(rules: ExportingRule[]): Promise<GalleryClip[]> {
 		function buildCondition(rule: ExportingRule): string {
 			let condition = `(t.button_id = '${rule.include}'`;
 			if (rule.taggedWith.length > 0) {
@@ -38,20 +38,41 @@ export class SQLiteTimelineRepository implements TimelineRepository {
 			return condition + ')';
 		}
 
-		const allQueries = rules.map((rule) => {
-			const query = `SELECT t.timestamp_start as timestamp_start, t.timestamp_end as timestamp_end
-				FROM timeline_entry as t 
-					LEFT JOIN timeline_entry_tag as tt ON t.id = tt.timeline_entry_id
-				WHERE ${buildCondition(rule)}
-				GROUP BY t.id, t.timestamp_start, t.timestamp_end
-				ORDER BY t.timestamp_start;`;
+		type ExportRow = {
+			timestamp_start: number;
+			timestamp_end: number;
+			button_id: string;
+			tag_ids: string | null;
+		};
 
-			return this.db.select<{ timestamp_start: number; timestamp_end: number }[]>(query);
+		const allQueries = rules.map((rule) => {
+			const query = `SELECT
+				t.timestamp_start,
+				t.timestamp_end,
+				t.button_id,
+				(SELECT GROUP_CONCAT(tet2.tag_id) FROM timeline_entry_tag tet2 WHERE tet2.timeline_entry_id = t.id) as tag_ids
+			FROM timeline_entry t
+			LEFT JOIN timeline_entry_tag tt ON t.id = tt.timeline_entry_id
+			WHERE ${buildCondition(rule)}
+			GROUP BY t.id, t.timestamp_start, t.timestamp_end
+			ORDER BY t.timestamp_start;`;
+
+			return this.db.select<ExportRow[]>(query);
 		});
 
 		const entries = (await Promise.all(allQueries)).flat();
 
-		return entries.map((entry) => [entry.timestamp_start, entry.timestamp_end]);
+		return entries.map((entry, index): GalleryClip => {
+			const clip: GalleryClip = {
+				index,
+				timestamps: [entry.timestamp_start, entry.timestamp_end],
+				buttonId: entry.button_id
+			};
+			if (entry.tag_ids) {
+				clip.tagIds = entry.tag_ids.split(',');
+			}
+			return clip;
+		});
 	}
 
 	async addEntry(entry: RangeData): Promise<void> {

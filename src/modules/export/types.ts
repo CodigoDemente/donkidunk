@@ -21,3 +21,17 @@ export type ExportClip = {
 	endTime: number;
 	tags: ExportClipTag[];
 };
+
+export type GalleryClip = {
+	index: number;
+	timestamps: [number, number];
+	buttonId: string;
+	tagIds?: string[];
+};
+
+export type ExportContextState = {
+	rules: ExportingRule[];
+	galleryClips: GalleryClip[];
+	exporting: boolean;
+	exportProgress: number;
+};

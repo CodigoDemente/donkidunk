@@ -1,8 +1,15 @@
-import { SvelteSet } from 'svelte/reactivity';
+import { Context } from 'runed';
 import { CategoryType } from '../board/types/CategoryType';
-import type { ExportingRule } from './types';
-import type { Board } from '../board/context.svelte';
-import type { Timeline } from '../videoplayer/context.svelte';
+import type { ExportingRule, GalleryClip } from './types';
+import { Channel } from 'node:diagnostics_channel';
+import { projectActions } from '../../persistence/stores/project/actions';
+import { path } from '@tauri-apps/api';
+import { TimelineRepositoryFactory } from '../../factories/TimelineRepositoryFactory';
+import { save } from '@tauri-apps/plugin-dialog';
+import { debug, error } from '@tauri-apps/plugin-log';
+import type { ExportEvent } from '../../events/types/ExportEvent';
+import { cutVideo } from './commands/CutVideo';
+import { feedbackMessages } from '../../utils/messages';
 
 const initialRule: ExportingRule = {
 	type: CategoryType.Event,
@@ -11,94 +18,124 @@ const initialRule: ExportingRule = {
 	temp: true
 };
 
-export class ExportContext {
-	#board: Board;
-	#timeline: Timeline;
+export const exportContext = new Context<Exporting>('');
 
-	rules = $state<ExportingRule[]>([]);
-	newRule = $state<ExportingRule>({ ...initialRule });
+export class Exporting {
+	#rules = $state<ExportingRule[]>([]);
+	#loading = $state(false);
+	#galleryClips = $state<GalleryClip[]>([]);
+	#exportProgress = $state(0);
+	#newRule = $state<ExportingRule>({ ...initialRule });
 
-	constructor(board: Board, timeline: Timeline) {
-		this.#board = board;
-		this.#timeline = timeline;
+	setExportProgress(exportProgress: number) {
+		this.#exportProgress = exportProgress;
 	}
 
-	// region Derived
-
-	get allEventOptions() {
-		// eslint-disable-next-line svelte/prefer-svelte-reactivity
-		const buttonIdsWithEvents = new Set(
-			this.#timeline.getState().eventTimeline.map((event) => event.buttonId)
-		);
-
-		return Object.values(this.#board.eventButtonsById)
-			.filter((button) => buttonIdsWithEvents.has(button.id))
-			.map((button) => ({
-				value: button.id,
-				label: button.name
-			}));
-	}
-
-	get allTags() {
-		return Object.values(this.#board.tagsById).map((tag) => ({
-			id: tag.id,
-			value: tag.id,
-			label: tag.name,
-			color: tag.color
-		}));
-	}
-
-	get availableTags() {
-		if (!this.newRule.include) {
-			return [];
-		}
-
-		const eventsWithButtonId = this.#timeline
-			.getState()
-			.eventTimeline.filter((event) => event.buttonId === this.newRule.include);
-
-		const tagIds = new SvelteSet<string>();
-		eventsWithButtonId.forEach((event) => {
-			event.tagsRelated.forEach((tagId) => tagIds.add(tagId));
-		});
-
-		return this.allTags.filter((tag) => tagIds.has(tag.value));
+	resetState() {
+		this.#rules = [];
+		this.#galleryClips = [];
+		this.#loading = false;
+		this.#exportProgress = 0;
+		this.#newRule = { ...initialRule };
 	}
 
 	// region Rule actions
 
 	addRule() {
-		if (this.newRule.include) {
-			this.rules = [...this.rules, { ...this.newRule, temp: false }];
-			this.newRule = { ...initialRule };
+		if (this.#newRule.include) {
+			this.#rules = [...this.#rules, { ...this.#newRule, temp: false }];
+			this.#newRule = { ...initialRule };
 		}
 	}
 
 	deleteRule(idx: number) {
-		this.rules = this.rules.filter((_, i) => i !== idx);
+		this.#rules = this.#rules.filter((_, i) => i !== idx);
 	}
 
 	moveRuleUp(idx: number) {
 		if (idx <= 0) return;
-		const rules = [...this.rules];
+		const rules = [...this.#rules];
 		[rules[idx - 1], rules[idx]] = [rules[idx], rules[idx - 1]];
-		this.rules = rules;
+		this.#rules = rules;
 	}
 
 	moveRuleDown(idx: number) {
-		if (idx >= this.rules.length - 1) return;
-		const rules = [...this.rules];
+		if (idx >= this.#rules.length - 1) return;
+		const rules = [...this.#rules];
 		[rules[idx], rules[idx + 1]] = [rules[idx + 1], rules[idx]];
-		this.rules = rules;
+		this.#rules = rules;
 	}
 
-	// region Helpers
-
-	getEventLabel(eventId: string): string {
-		return this.#board.eventButtonsById[eventId]?.name || eventId;
+	async getGalleryClips() {
+		const timelineRepository = TimelineRepositoryFactory.getInstance();
+		this.#loading = true;
+		try {
+			const clips = await timelineRepository.getClipsForGallery(this.#rules);
+			this.#galleryClips = clips;
+		} catch (err) {
+			error(`Failed to get gallery clips: ${err}`);
+		} finally {
+			this.#loading = false;
+		}
 	}
 
-	getTagById(tagId: string) {
-		return this.#board.tagsById[tagId];
+	async exportVideo(videoPath: string): Promise<void> {
+		if (this.#loading) {
+			return;
+		}
+		this.setExportProgress(0);
+
+		const inVideoFolder = await path.dirname(videoPath);
+
+		const outPath = await save({
+			title: 'Select output video file',
+			defaultPath: inVideoFolder,
+			filters: [{ name: 'Video', extensions: ['mp4'] }]
+		});
+
+		if (!outPath) {
+			return;
+		}
+
+		this.#loading = true;
+		const timestampsForCut = this.#galleryClips.map((r) => r.timestamps);
+
+		const onEvent = new Channel<ExportEvent>('');
+		onEvent.onmessage = (message: ExportEvent) => {
+			const progress = message.progress;
+			debug(`Exporting progress: ${message.progress}`);
+			this.setExportProgress(Math.trunc(progress * 100));
+		};
+
+		try {
+			await cutVideo(videoPath, outPath, timestampsForCut, onEvent);
+			projectActions.setSnackbar(feedbackMessages.EXPORT_SUCCESS);
+		} catch (err) {
+			error(`Export failed: ${err}`);
+			projectActions.setSnackbar(feedbackMessages.EXPORT_ERROR);
+		} finally {
+			this.#loading = false;
+		}
+	}
+
+	/* Selectors */
+	get rules() {
+		return this.#rules;
+	}
+
+	get galleryClips() {
+		return this.#galleryClips;
+	}
+
+	get loading() {
+		return this.#loading;
+	}
+
+	get exportProgress() {
+		return this.#exportProgress;
+	}
+
+	get newRule() {
+		return this.#newRule;
 	}
 }
