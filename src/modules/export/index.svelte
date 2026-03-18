@@ -1,8 +1,6 @@
 <script lang="ts">
 	import ProjectStore from '../../persistence/stores/project/store.svelte';
-	import { TimelineRepositoryFactory } from '../../factories/TimelineRepositoryFactory';
 	import Button from '../../components/button/button.svelte';
-	import { exportVideo } from './operations/exportVideo';
 	import ExportRulesTable from './components/ExportRulesTable.svelte';
 	import ExportRuleForm from './components/ExportRuleForm.svelte';
 	import ExportProgress from './components/ExportProgress.svelte';
@@ -10,7 +8,6 @@
 	import { exportContext } from './context.svelte';
 	import { boardContext } from '../board/context.svelte';
 
-	const timelineRepository = TimelineRepositoryFactory.getInstance();
 	const projectStore = ProjectStore.getState();
 
 	const exporting = exportContext.get();
@@ -19,7 +16,7 @@
 	let step = $state<1 | 2>(1);
 
 	async function onExport() {
-		await exportVideo(projectStore.video.path!, exporting.rules, timelineRepository);
+		exporting.exportVideo(projectStore.video.path!);
 	}
 </script>
 
@@ -45,7 +42,7 @@
 				primary
 				size="large"
 				onClick={onExport}
-				disabled={exporting.rules.length === 0 || exporting.exporting}
+				disabled={exporting.rules.length === 0 || exporting.loading}
 			>
 				Export Video
 			</Button>
