@@ -1,7 +1,7 @@
 import { Context } from 'runed';
 import { CategoryType } from '../board/types/CategoryType';
 import type { ExportingRule, GalleryClip } from './types';
-import { Channel } from 'node:diagnostics_channel';
+import { Channel } from '@tauri-apps/api/core';
 import { projectActions } from '../../persistence/stores/project/actions';
 import { path } from '@tauri-apps/api';
 import { TimelineRepositoryFactory } from '../../factories/TimelineRepositoryFactory';
@@ -100,7 +100,7 @@ export class Exporting {
 		this.#loading = true;
 		const timestampsForCut = this.#galleryClips.map((r) => r.timestamps);
 
-		const onEvent = new Channel<ExportEvent>('');
+		const onEvent = new Channel<ExportEvent>();
 		onEvent.onmessage = (message: ExportEvent) => {
 			const progress = message.progress;
 			debug(`Exporting progress: ${message.progress}`);
