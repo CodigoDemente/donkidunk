@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/CodigoDemente/donkidunk/compare/v1.1.0...v1.2.0) (2026-03-20)
+
+
+### Features
+
+* **architecture:** :goal_net: Handle client errors globally and log them using tauri logger ([#166](https://github.com/CodigoDemente/donkidunk/issues/166)) ([a29c852](https://github.com/CodigoDemente/donkidunk/commit/a29c852848496490d7763b5fa116a36c03646317))
+
 # [1.1.0](https://github.com/CodigoDemente/donkidunk/compare/v1.0.0...v1.1.0) (2026-03-08)
 
 
