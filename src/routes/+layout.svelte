@@ -12,6 +12,7 @@
 	import { getIsExpiredCommand } from '../modules/launch/commands/getIsExpired';
 	import { lockAppUsage } from '../modules/launch/operations/lockAppUsage';
 	import { exportActions } from '../persistence/stores/export/actions';
+	import { reportCaughtClientError } from '$lib/errors/globalClientErrors';
 
 	let { children }: { children: Snippet } = $props();
 
@@ -31,29 +32,35 @@
 	);
 	const isDev = (import.meta as unknown as { env: { DEV: boolean } }).env.DEV;
 
-	onMount(async () => {
-		const configData = await getConfig();
-		config.state = configData;
+	onMount(() => {
+		void (async () => {
+			try {
+				const configData = await getConfig();
+				config.state = configData;
 
-		// Disable default browser context menu in production
-		if (!isDev) {
-			document.addEventListener('contextmenu', (event) => {
-				event.preventDefault();
-			});
-		}
+				// Disable default browser context menu in production
+				if (!isDev) {
+					document.addEventListener('contextmenu', (event) => {
+						event.preventDefault();
+					});
+				}
 
-		// Initialize the menu
-		await bindMenuEvents(board, timeline, config);
-		await initEvents();
+				// Initialize the menu
+				await bindMenuEvents(board, timeline, config);
+				await initEvents();
 
-		// Skip license check in dev mode
-		if (isDev) return;
+				// Skip license check in dev mode
+				if (isDev) return;
 
-		const isExpired = await getIsExpiredCommand();
+				const isExpired = await getIsExpiredCommand();
 
-		if (isExpired) {
-			lockAppUsage();
-		}
+				if (isExpired) {
+					lockAppUsage();
+				}
+			} catch (error) {
+				reportCaughtClientError(error);
+			}
+		})();
 	});
 
 	onDestroy(() => {
