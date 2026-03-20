@@ -13,6 +13,7 @@ import type { Category } from './types/Category';
 import type { Button } from './types/Button';
 import type { Tag } from './types/Tag';
 import type { Timeline } from '../videoplayer/context.svelte';
+import { debug } from '@tauri-apps/plugin-log';
 
 const initialState: BoardData = {
 	[CategoryType.Event]: [],
@@ -344,7 +345,7 @@ export class Board {
 
 			const deletedButtonIds = currentButtonIds.filter((id) => !newButtonIds.includes(id));
 
-			console.log('deletedButtonIds', deletedButtonIds);
+			debug(`deletedButtonIds: ${deletedButtonIds.join(', ')}`);
 
 			await repository.updateCategory(category);
 

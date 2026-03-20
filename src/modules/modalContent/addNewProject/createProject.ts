@@ -58,7 +58,7 @@ export async function createNewProject(
 	await projectActions.setLastSavedTimestamp(new Date().toISOString());
 
 	if (buttonBoard?.id) {
-		console.log('Loading button board');
+		debug('Loading button board');
 		await loadButtonBoardIntoProject(buttonBoard, board);
 
 		if (board.tagCategories.length) {
