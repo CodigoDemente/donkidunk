@@ -1,4 +1,4 @@
-use lib::{
+use crate::{
     errors::AppError,
     ffmpeg::{self, ExportEvent},
 };

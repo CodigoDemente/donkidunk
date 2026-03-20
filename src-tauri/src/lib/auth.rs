@@ -1,0 +1,318 @@
+use chrono::{DateTime, Duration, Utc};
+use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode};
+use serde::{Deserialize, Serialize};
+use tauri::{AppHandle, Emitter, Manager, Runtime, Url};
+
+use log::{error, info, warn};
+use tokio::sync::MutexGuard;
+
+use crate::{
+    errors::{AppError, AuthError},
+    oauth::{
+        CLIENT_ID, ExchangeTokenPayload, ExchangeTokenResponse, REDIRECT_URI, exchange_token,
+        refresh_token,
+    },
+    securestore::SecureStore,
+    state::{AppState, Authentication, License},
+};
+
+#[derive(Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct LoginStateEvent {
+    is_authenticated: bool,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct StoredCredentials {
+    pub access_token: String,
+    pub refresh_token: String,
+    pub expires_at: i64, //Millis
+    pub expires_in: i64, //Seconds
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Claims {
+    pub iss: String,
+    pub sub: String,
+    pub exp: i64,
+    pub iat: i64,
+    pub name: String,
+    pub email: String,
+}
+
+pub const LOGIN_TASK_NAME: &str = "LOGIN_CHECK";
+const GRACE_PERIOD_HOURS: i64 = 72;
+
+pub async fn handle_return_url<R: Runtime>(app: AppHandle<R>, url: Url) -> Result<(), AppError> {
+    let app_state = app.state::<AppState>();
+
+    let mut code = String::default();
+    let mut state = String::default();
+
+    url.query_pairs().for_each(|q| {
+        if q.0 == "state" {
+            state = q.1.to_string();
+        } else if q.0 == "code" {
+            code = q.1.to_string();
+        }
+    });
+
+    if code.is_empty() || state.is_empty() {
+        let error_text = if code.is_empty() { "Code" } else { "State" };
+        return Err(AuthError::DeeplinkMalformed(format!("{error_text} not present")).into());
+    }
+
+    let payload = {
+        let auth_data = app_state.authentication.lock().await;
+
+        if state != auth_data.oauth.state {
+            error!("Stored and received state does not match");
+
+            return Err(AuthError::UnexepectedAuthError.into());
+        }
+
+        ExchangeTokenPayload {
+            client_id: CLIENT_ID.to_string(),
+            grant_type: "authorization_code".to_string(),
+            code,
+            code_verifier: auth_data.oauth.code_verifier.clone(),
+            redirect_uri: REDIRECT_URI.to_string(),
+        }
+    };
+
+    let exchanged_tokens = exchange_token(payload).await?;
+
+    {
+        let auth_guard = app_state.authentication.lock().await;
+        let store_guard = app_state.secure_store.lock().await;
+        store_credentials(exchanged_tokens.clone(), auth_guard, store_guard)?;
+    }
+
+    {
+        let token_claims = decode_token(&app_state.jwt_key, &exchanged_tokens.access_token)?;
+        let license_guard = app_state.license.lock().await;
+
+        store_license(token_claims, license_guard);
+    }
+
+    app_state.reset_oauth_flow().await;
+    schedule_login_check(app.clone()).await;
+
+    app.emit(
+        "auth:user-logged-in",
+        LoginStateEvent {
+            is_authenticated: true,
+        },
+    )?;
+
+    Ok(())
+}
+
+pub fn retrieve_credentials(secure_store: &SecureStore) -> Option<StoredCredentials> {
+    let Ok(stored_credentials) = secure_store.get_entry() else {
+        return None;
+    };
+
+    let credentials = match serde_json::from_str::<StoredCredentials>(&stored_credentials) {
+        Ok(credentials) => credentials,
+        Err(e) => {
+            error!("Error parsing credentials from store: {e}");
+            return None;
+        }
+    };
+
+    Some(credentials)
+}
+
+pub async fn refresh_access_token<R: Runtime>(app: AppHandle<R>) -> Result<(), AppError> {
+    let app_state = app.state::<AppState>();
+    let (current_access_token, current_refresh_token) = {
+        let authentication_guard = app_state.authentication.lock().await;
+
+        let should_refresh = authentication_guard.is_authenticated
+            && authentication_guard.expires_at - Duration::seconds(60) <= Utc::now();
+
+        if !should_refresh {
+            return Ok(());
+        }
+
+        (
+            authentication_guard.access_token.clone(),
+            authentication_guard.refresh_token.clone(),
+        )
+    };
+
+    let last_verified_time = match decode_token(&app_state.jwt_key, &current_access_token) {
+        Ok(claims) => {
+            DateTime::from_timestamp_secs(claims.iat).unwrap_or(Utc::now() - Duration::weeks(1))
+        }
+        Err(..) => {
+            warn!("Could not decode stored token, falling back to license data");
+
+            let license = app_state.license.lock().await;
+
+            license
+                .as_ref()
+                .map(|l| l.last_validation)
+                .unwrap_or(Utc::now() - Duration::weeks(1))
+        }
+    };
+
+    let new_tokens_result = refresh_token(current_refresh_token).await;
+
+    match new_tokens_result {
+        Ok(new_tokens) => {
+            let auth_guard = app_state.authentication.lock().await;
+            let store_guard = app_state.secure_store.lock().await;
+            store_credentials(new_tokens.clone(), auth_guard, store_guard)?;
+
+            {
+                let token_claims = decode_token(&app_state.jwt_key, &new_tokens.access_token)?;
+                let license_guard = app_state.license.lock().await;
+
+                store_license(token_claims, license_guard);
+            }
+        }
+        Err(error) => match error {
+            AuthError::UnexepectedAuthError => (),
+            AuthError::InvalidCredentials | AuthError::InvalidRequest => logout(app).await?,
+            _ => {
+                if should_force_login(last_verified_time) {
+                    logout(app).await?
+                }
+            }
+        },
+    }
+
+    Ok(())
+}
+
+fn store_credentials(
+    tokens: ExchangeTokenResponse,
+    mut authentication_guard: MutexGuard<'_, Authentication>,
+    secure_store: MutexGuard<'_, SecureStore>,
+) -> Result<(), AppError> {
+    authentication_guard.is_authenticated = true;
+    authentication_guard.access_token = tokens.access_token;
+    authentication_guard.refresh_token = tokens.refresh_token;
+    authentication_guard.expires_in = tokens.expires_in;
+    authentication_guard.expires_at = Utc::now() + Duration::seconds(tokens.expires_in);
+
+    let credentials = serde_json::to_string(&StoredCredentials {
+        access_token: authentication_guard.access_token.clone(),
+        refresh_token: authentication_guard.refresh_token.clone(),
+        expires_at: authentication_guard.expires_at.timestamp_millis(),
+        expires_in: authentication_guard.expires_in,
+    })
+    .map_err(|e| {
+        error!("Error serializing credentials: {e}");
+
+        AuthError::UnexepectedAuthError
+    })?;
+
+    secure_store.create_entry(credentials)
+}
+
+fn store_license(token_claims: Claims, mut license_guard: MutexGuard<'_, Option<License>>) {
+    *license_guard = Some(License {
+        last_validation: DateTime::from_timestamp_secs(token_claims.iat)
+            .unwrap_or(Utc::now() - Duration::weeks(1)),
+        user_id: token_claims.sub,
+        user_email: token_claims.email,
+        user_name: token_claims.name,
+    })
+}
+
+pub async fn schedule_login_check<R: Runtime>(app_handle: AppHandle<R>) {
+    let state = app_handle.state::<AppState>();
+
+    let interval = {
+        let auth_guard = state.authentication.lock().await;
+
+        if !auth_guard.is_authenticated {
+            return;
+        }
+
+        let duration = auth_guard.expires_in as f64 * 0.75; // 75% of the token duration
+
+        std::time::Duration::from_secs(duration.ceil() as u64)
+    };
+
+    let mut scheduler_guard = state.scheduler.lock().await;
+
+    let owned_app_handle = app_handle.clone();
+
+    scheduler_guard.schedule_task(
+        LOGIN_TASK_NAME.to_string(),
+        move || {
+            let handle = owned_app_handle.clone();
+            async move {
+                if let Err(err) = refresh_access_token(handle).await {
+                    warn!("Error in scheduled task {LOGIN_TASK_NAME}: {err}");
+                }
+            }
+        },
+        interval,
+    );
+}
+
+pub fn decode_token(decoding_key: &DecodingKey, jwt: &str) -> Result<Claims, AuthError> {
+    let mut validation = Validation::new(Algorithm::RS256);
+
+    validation.set_required_spec_claims(&["iss"]);
+    validation.set_issuer(&["donkidunk_api"]);
+    validation.validate_exp = false;
+
+    let token_data = match decode::<Claims>(jwt, decoding_key, &validation) {
+        Ok(c) => c,
+        Err(err) => {
+            error!("Error decoding token: {err}");
+
+            return Err(AuthError::TokenDecodeError);
+        }
+    };
+
+    Ok(token_data.claims)
+}
+
+fn should_force_login(last_verified_time: DateTime<Utc>) -> bool {
+    let user_time = Utc::now();
+
+    // Assume 1 minute drift just in case the user has manual time set
+    if user_time + Duration::seconds(60) < last_verified_time {
+        error!(
+            "User clock has too much drift. Server time {last_verified_time}. User clock {user_time}"
+        );
+        return true;
+    }
+
+    let last_check_difference = user_time - last_verified_time;
+
+    if last_check_difference.num_hours() > GRACE_PERIOD_HOURS {
+        info!(
+            "Last check was more than {GRACE_PERIOD_HOURS} hours ago: Last check: {} hours ago",
+            last_check_difference.num_hours()
+        );
+
+        return true;
+    }
+
+    false
+}
+
+async fn logout<R: Runtime>(app: AppHandle<R>) -> Result<(), AppError> {
+    app.state::<AppState>().logout().await?;
+
+    app.emit(
+        "auth:user-logged-out",
+        LoginStateEvent {
+            is_authenticated: false,
+        },
+    )
+    .map_err(|e| {
+        error!("Error emitting logged out event: {e}");
+        AppError::ApplicationError(e)
+    })?;
+
+    Ok(())
+}

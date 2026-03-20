@@ -6,7 +6,7 @@
 	import { IconHome, IconLayoutBoard } from '@tabler/icons-svelte';
 	import Floatingmenu from '../../components/floatingmenu/floatingmenu.svelte';
 	import { UIMode } from '../config/types/Config';
-	import { configContext } from '../config/context.svelte';
+	import { Config, configContext } from '../config/context.svelte';
 	import type { FloatingMenuOption } from '../../components/floatingmenu/types';
 	import { saveUIModeCommand } from '../config/commands/SaveUIMode';
 
@@ -16,7 +16,7 @@
 
 	let { disabled }: Props = $props();
 
-	const config = configContext.get();
+	let config: Config;
 
 	function navigateTo(page: RouteId) {
 		goto(resolve(page)); // Navigate to the specified route
@@ -40,6 +40,10 @@
 	];
 
 	async function handleUIModeChange(option: FloatingMenuOption): Promise<void> {
+		if (!config) {
+			config = configContext.get();
+		}
+
 		config.uiMode = Number(option.value) as UIMode;
 
 		await saveUIModeCommand(config.uiMode);
@@ -98,7 +102,7 @@
 			<Floatingmenu
 				trigger={IconLayoutBoard}
 				options={floatingmenuOptions}
-				selectedValue={config.uiMode.toString()}
+				selectedValue={config?.uiMode.toString() || UIMode.Simple.toString()}
 				onoptionselected={handleUIModeChange}
 				triggerClass="text-tertiary hover:cursor-pointer"
 				iconClass="h-5 w-5"

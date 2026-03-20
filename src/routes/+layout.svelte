@@ -1,64 +1,28 @@
 <script lang="ts">
 	import { onDestroy, onMount, type Snippet } from 'svelte';
-	import { bindMenuEvents } from '../modules/menu';
 	import '../styles/page.css';
+	import AppBlocker from '../modules/blocker/index.svelte';
 	import Navbar from '../modules/navbar/navbar.svelte';
-	import { destroyEvents, initEvents } from '../events';
-	import { boardContext, Board } from '../modules/board/context.svelte';
-	import { Timeline, timelineContext } from '../modules/videoplayer/context.svelte';
-	import { Config, configContext } from '../modules/config/context.svelte';
-	import { getConfig } from '../modules/config/commands/GetConfig';
-	import ProjectStore from '../persistence/stores/project/store.svelte';
-	import { getIsExpiredCommand } from '../modules/launch/commands/getIsExpired';
-	import { lockAppUsage } from '../modules/launch/operations/lockAppUsage';
-	import { exportActions } from '../persistence/stores/export/actions';
+	import { destroyGlobalEvents, initGlobalEvents } from '../events';
+	import AppStore from '../persistence/stores/app/store.svelte';
+	import { isAuthenticated } from '../modules/login/commands/IsAuthenticated';
+	import { appActions } from '../persistence/stores/app/actions';
 
 	let { children }: { children: Snippet } = $props();
 
-	const board = boardContext.set(new Board());
-	const timeline = timelineContext.set(new Timeline());
-	const config = configContext.set(new Config());
-	const projectStore = ProjectStore.getState();
-	// Has to be done after creating *both* contexts, since the wrapForUndo method
-	// uses the undo manager internally, who accesses both contexts
-	board.wrapForUndo();
-	timeline.wrapForUndo();
-
-	const navbarDisabled = $derived(
-		!projectStore.file?.originalPath ||
-			exportActions.getExporting() ||
-			timeline.eventsPlaying.size > 0
-	);
-	const isDev = (import.meta as unknown as { env: { DEV: boolean } }).env.DEV;
+	const appStore = AppStore.getState();
 
 	onMount(async () => {
-		const configData = await getConfig();
-		config.state = configData;
+		await initGlobalEvents();
 
-		// Disable default browser context menu in production
-		if (!isDev) {
-			document.addEventListener('contextmenu', (event) => {
-				event.preventDefault();
-			});
-		}
+		const isUserAuthenticated = await isAuthenticated();
 
-		// Initialize the menu
-		await bindMenuEvents(board, timeline, config);
-		await initEvents();
+		appActions.setIsAuthenticated(isUserAuthenticated);
 
-		// Skip license check in dev mode
-		if (isDev) return;
-
-		const isExpired = await getIsExpiredCommand();
-
-		if (isExpired) {
-			lockAppUsage();
-		}
+		appActions.setUnauthenticatedInStartup(!isUserAuthenticated);
 	});
 
-	onDestroy(() => {
-		destroyEvents();
-	});
+	onDestroy(destroyGlobalEvents);
 
 	document.addEventListener('dragover', (event) => {
 		event.preventDefault();
@@ -69,8 +33,12 @@
 </script>
 
 <main class="container flex h-screen flex-col overflow-hidden">
-	<Navbar disabled={navbarDisabled} />
+	<Navbar disabled={appStore.navbarDisabled} />
 	<div class="flex min-h-0 flex-1 flex-col">
 		{@render children()}
 	</div>
 </main>
+
+{#if AppStore.showAppBlocker}
+	<AppBlocker title={appStore.blocker.title} message={appStore.blocker.message} />
+{/if}

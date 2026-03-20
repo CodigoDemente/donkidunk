@@ -3,7 +3,7 @@ use log::debug;
 
 use crate::{
     errors::{AppError, CsvError},
-    timelinerepository::{TimelineRepository, TimelineRepositoryTrait},
+    timelinerepository::TimelineRepository,
 };
 
 #[derive(serde::Serialize)]

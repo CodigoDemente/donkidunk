@@ -80,10 +80,6 @@ fn build_menu<R: tauri::Runtime>(app: &mut App<R>) -> Result<Menu<R>, Error> {
 
     let menu = Menu::new(handle)?;
 
-    let about_menu = SubmenuBuilder::with_id(handle, "about-submenu", "About")
-        .item(&MenuItemBuilder::with_id("about", "About").build(handle)?)
-        .build()?;
-
     let open_project_item = MenuItemBuilder::with_id("open_project", "Open Project")
         .accelerator("CmdOrCtrl+O")
         .build(handle)?;
@@ -147,10 +143,14 @@ fn build_menu<R: tauri::Runtime>(app: &mut App<R>) -> Result<Menu<R>, Error> {
         .items(&[&undo_item, &redo_item, &button_board_submenu])
         .build()?;
 
-    let help_submenu = SubmenuBuilder::with_id(handle, "help-menu", "Help")
-        .text("option", "Help")
-        .text("about", "About")
-        .text("check_for_updates", "Check for Updates")
+    // let help_submenu = SubmenuBuilder::with_id(handle, "help-menu", "Help")
+    //     .text("option", "Help")
+    //     .text("about", "About")
+    //     .text("check_for_updates", "Check for Updates")
+    //     .build()?;
+
+    let about_menu = SubmenuBuilder::with_id(handle, "about-submenu", "About")
+        .item(&MenuItemBuilder::with_id("logout", "Logout").build(handle)?)
         .build()?;
 
     #[cfg(target_os = "macos")]
@@ -158,7 +158,7 @@ fn build_menu<R: tauri::Runtime>(app: &mut App<R>) -> Result<Menu<R>, Error> {
 
     menu.append(&file_submenu)?;
     menu.append(&edit_submenu)?;
-    menu.append(&help_submenu)?;
+    // menu.append(&help_submenu)?;
 
     #[cfg(not(target_os = "macos"))]
     menu.append(&about_menu)?;
@@ -171,6 +171,5 @@ fn generic_event_handler<R: tauri::Runtime>(app: &AppHandle<R>, event: MenuEvent
 
     log::debug!("Menu event triggered: {event_id}");
 
-    app.emit("menu_event", MenuEventData { id: event_id })
-        .unwrap();
+    app.emit("menu", MenuEventData { id: event_id }).unwrap();
 }

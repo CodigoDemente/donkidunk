@@ -1,5 +1,3 @@
-use std::future::Future;
-
 use futures::StreamExt;
 use sqlx::SqlitePool;
 
@@ -27,20 +25,12 @@ pub struct TimelineRepository {
     db: SqlitePool,
 }
 
-pub trait TimelineRepositoryTrait {
-    fn new(db: SqlitePool) -> Self;
-    fn get_and_process_clips<F>(&self, processor: F) -> impl Future<Output = Result<(), AppError>>
-    where
-        F: FnMut(ClipForDataExport) -> Result<(), AppError>;
-    fn get_tags(&self) -> impl Future<Output = Result<Vec<String>, AppError>>;
-}
-
-impl TimelineRepositoryTrait for TimelineRepository {
-    fn new(db: SqlitePool) -> Self {
+impl TimelineRepository {
+    pub fn new(db: SqlitePool) -> Self {
         Self { db }
     }
 
-    async fn get_and_process_clips<F>(&self, mut processor: F) -> Result<(), AppError>
+    pub async fn get_and_process_clips<F>(&self, mut processor: F) -> Result<(), AppError>
     where
         F: FnMut(ClipForDataExport) -> Result<(), AppError>,
     {
@@ -73,7 +63,7 @@ impl TimelineRepositoryTrait for TimelineRepository {
         Ok(())
     }
 
-    async fn get_tags(&self) -> Result<Vec<String>, AppError> {
+    pub async fn get_tags(&self) -> Result<Vec<String>, AppError> {
         let tags = sqlx::query_as::<_, SQLTag>(
             "
             SELECT 

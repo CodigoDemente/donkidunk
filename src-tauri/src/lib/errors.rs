@@ -28,6 +28,9 @@ pub enum AppError {
 
     #[error("[license] ERROR while checking expired installation: {0}")]
     LicenseError(String),
+
+    #[error(transparent)]
+    AuthError(#[from] AuthError),
 }
 
 impl serde::Serialize for AppError {
@@ -91,4 +94,34 @@ pub enum DatabaseError {
 pub enum CsvError {
     #[error("[csv] ERROR while writing CSV file: {0}")]
     WriteError(String),
+}
+
+#[derive(Debug, Error)]
+pub enum AuthError {
+    #[error("[auth] Error processing deepling: {0}")]
+    DeeplinkMalformed(String),
+
+    #[error("[auth] Error processing request response")]
+    BodyError,
+
+    #[error("[auth] Error connecting to auth server")]
+    ConnectivityError,
+
+    #[error("[auth] Invalid credentials")]
+    InvalidCredentials,
+
+    #[error("[auth] Invalid request")]
+    InvalidRequest,
+
+    #[error("[auth] Unexepected error while authenticating the user")]
+    UnexepectedAuthError,
+
+    #[error("[auth] Error while storing credential: {0}")]
+    CredentialStoreError(String),
+
+    #[error("[auth] Credential not found: {0}")]
+    CredentialNotFound(String),
+
+    #[error("[auth] Error decoding token")]
+    TokenDecodeError,
 }

@@ -61,53 +61,8 @@ pub struct ButtonBoardWithPath {
     button_board: ButtonBoard,
 }
 
-pub trait ConfigManagerTrait {
-    fn new<R: Runtime>(app: &App<R>) -> Self;
-    fn get_config(&self) -> &Config;
-    fn set_config(&mut self, new_config: Config) -> Result<(), ConfigError>;
-    fn initialize_button_boards<R: Runtime>(&mut self, app: &App<R>) -> Result<(), ConfigError>;
-    fn get_button_board_paths(&self) -> Vec<ButtonBoardWithPath>;
-    fn save_button_board(
-        &mut self,
-        board_id: String,
-        board_name: String,
-        is_default: bool,
-        board_content: String,
-    ) -> Result<PathBuf, ConfigError>;
-    fn set_board_size(&mut self, events: u8, tags: u8) -> Result<(), ConfigError>;
-    fn set_ui_mode(&mut self, ui_mode: UIMode) -> Result<(), ConfigError>;
-}
-
 impl ConfigManager {
-    fn generate_default_config(config_file: &PathBuf) -> Config {
-        let config_data = Config {
-            locale: Locale::EN,
-            ui_mode: UIMode::Simple,
-            board_size: BoardSize {
-                events: 15,
-                tags: 85,
-            },
-            button_boards: vec![],
-        };
-
-        let file_object = fs::File::create(config_file).unwrap();
-
-        serde_json::to_writer(file_object, &config_data).unwrap();
-
-        config_data
-    }
-
-    pub fn write_config_to_file(&self) -> Result<(), ConfigError> {
-        let config_file = File::create(&self.config_file_path)?;
-
-        serde_json::to_writer(config_file, &self.config)?;
-
-        Ok(())
-    }
-}
-
-impl ConfigManagerTrait for ConfigManager {
-    fn new<R: Runtime>(app: &App<R>) -> Self {
+    pub fn new<R: Runtime>(app: &App<R>) -> Self {
         let config_dir = app.path().app_config_dir().unwrap();
 
         if !config_dir.try_exists().unwrap() {
@@ -150,19 +105,40 @@ impl ConfigManagerTrait for ConfigManager {
         }
     }
 
-    fn get_config(&self) -> &Config {
-        &self.config
+    fn generate_default_config(config_file: &PathBuf) -> Config {
+        let config_data = Config {
+            locale: Locale::EN,
+            ui_mode: UIMode::Simple,
+            board_size: BoardSize {
+                events: 15,
+                tags: 85,
+            },
+            button_boards: vec![],
+        };
+
+        let file_object = fs::File::create(config_file).unwrap();
+
+        serde_json::to_writer(file_object, &config_data).unwrap();
+
+        config_data
     }
 
-    fn set_config(&mut self, new_config: Config) -> Result<(), ConfigError> {
-        self.config = new_config;
+    pub fn write_config_to_file(&self) -> Result<(), ConfigError> {
+        let config_file = File::create(&self.config_file_path)?;
 
-        self.write_config_to_file()?;
+        serde_json::to_writer(config_file, &self.config)?;
 
         Ok(())
     }
 
-    fn initialize_button_boards<R: Runtime>(&mut self, app: &App<R>) -> Result<(), ConfigError> {
+    pub fn get_config(&self) -> &Config {
+        &self.config
+    }
+
+    pub fn initialize_button_boards<R: Runtime>(
+        &mut self,
+        app: &App<R>,
+    ) -> Result<(), ConfigError> {
         if !self.config.button_boards.is_empty() {
             return Ok(());
         }
@@ -207,7 +183,7 @@ impl ConfigManagerTrait for ConfigManager {
         Ok(())
     }
 
-    fn get_button_board_paths(&self) -> Vec<ButtonBoardWithPath> {
+    pub fn get_button_board_paths(&self) -> Vec<ButtonBoardWithPath> {
         self.config
             .button_boards
             .iter()
@@ -220,7 +196,7 @@ impl ConfigManagerTrait for ConfigManager {
             .collect()
     }
 
-    fn save_button_board(
+    pub fn save_button_board(
         &mut self,
         board_id: String,
         board_name: String,
@@ -261,7 +237,7 @@ impl ConfigManagerTrait for ConfigManager {
         Ok(board_path)
     }
 
-    fn set_board_size(&mut self, events: u8, tags: u8) -> Result<(), ConfigError> {
+    pub fn set_board_size(&mut self, events: u8, tags: u8) -> Result<(), ConfigError> {
         if events + tags != 100 {
             return Err(ConfigError::InvalidBoardSize(format!(
                 "events: {}, tags: {}",
@@ -276,7 +252,7 @@ impl ConfigManagerTrait for ConfigManager {
         Ok(())
     }
 
-    fn set_ui_mode(&mut self, ui_mode: UIMode) -> Result<(), ConfigError> {
+    pub fn set_ui_mode(&mut self, ui_mode: UIMode) -> Result<(), ConfigError> {
         self.config.ui_mode = ui_mode;
 
         self.write_config_to_file()?;

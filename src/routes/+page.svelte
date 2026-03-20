@@ -1,69 +1,11 @@
 <script lang="ts">
-	import Board from '../modules/board/index.svelte';
-	import VideoPlayer from '../modules/videoplayer/components/index.svelte';
-	import ProjectStore from '../persistence/stores/project/store.svelte';
-	import '../styles/page.css';
-	import Modal from '../components/modal/modal.svelte';
-	import Snackbar from '../components/snackbar/snackbar.svelte';
-	import EmptyProjectState from '../modules/launch/emptyProjectState.svelte';
-	import { configContext } from '../modules/config/context.svelte';
-	import { onMount } from 'svelte';
-	import { getButtonBoardsCommand } from '../modules/config/commands/GetButtonBoards';
-
-	let leftWidth = $state(50);
-	let isResizing = $state(false);
-
-	const projectStore = ProjectStore.getState();
-	const config = configContext.get();
-
-	onMount(() =>
-		getButtonBoardsCommand()
-			.then((buttonBoards) => {
-				config.buttonBoards = buttonBoards;
-			})
-			.catch((error) => {
-				console.error(error);
-			})
-	);
-
-	function startResize() {
-		isResizing = true;
-		document.addEventListener('mousemove', resize);
-		document.addEventListener('mouseup', stopResize);
-	}
-
-	function resize(event: MouseEvent) {
-		if (isResizing) {
-			const totalWidth = window.innerWidth;
-			leftWidth = Math.min(80, Math.max(20, (event.clientX / totalWidth) * 100)); // Clamp between 20% and 80%
-		}
-	}
-
-	function stopResize() {
-		isResizing = false;
-		document.removeEventListener('mousemove', resize);
-		document.removeEventListener('mouseup', stopResize);
-	}
+	import App from '../modules/app/index.svelte';
+	import Login from '../modules/login/index.svelte';
+	import { appActions } from '../persistence/stores/app/actions';
 </script>
 
-<div class="flex h-full w-full flex-row gap-1">
-	{#if projectStore.file?.originalPath}
-		<div class="flex h-full shrink-0 flex-col" style="width: {leftWidth}%">
-			<VideoPlayer video={projectStore.video?.path} />
-		</div>
-		<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-		<div
-			class="w-1 cursor-col-resize bg-gray-900"
-			onmousedown={startResize}
-			role="separator"
-			aria-orientation="horizontal"
-		></div>
-		<div class="flex h-full grow flex-col">
-			<Board />
-		</div>
-	{:else}
-		<EmptyProjectState />
-	{/if}
-</div>
-<Modal bind:modalStore={projectStore.modal} />
-<Snackbar bind:snackbarStore={projectStore.snackbar} />
+{#if !appActions.getUnauthenticatedInStartup()}
+	<App />
+{:else}
+	<Login />
+{/if}

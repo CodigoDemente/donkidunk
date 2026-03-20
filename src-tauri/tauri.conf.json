@@ -15,7 +15,8 @@
         "title": "Donkidunk",
         "width": 1440,
         "height": 900,
-        "dragDropEnabled": false
+        "dragDropEnabled": false,
+        "maximized": true
       }
     ],
     "security": {
@@ -75,5 +76,12 @@
         "role": "Editor"
       }
     ]
+  },
+  "plugins": {
+    "deep-link": {
+      "desktop": {
+        "schemes": ["donkidunk"]
+      }
+    }
   }
 }

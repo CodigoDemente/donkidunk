@@ -1,7 +1,7 @@
 import { Channel } from '@tauri-apps/api/core';
 import { save } from '@tauri-apps/plugin-dialog';
 import { path } from '@tauri-apps/api';
-import { debug, error as logError } from '@tauri-apps/plugin-log';
+import { debug, error } from '@tauri-apps/plugin-log';
 import type { ExportEvent } from '../../../events/types/ExportEvent';
 import type { ExportingRule } from '../types';
 import type { TimelineRepository } from '../../../ports/TimelineRepository';
@@ -45,7 +45,7 @@ export async function exportVideo(
 		await cutVideo(videoPath, outPath, ranges, onEvent);
 		projectActions.setSnackbar(feedbackMessages.EXPORT_SUCCESS);
 	} catch (err) {
-		logError(`Export failed: ${err}`);
+		error(`Export failed: ${err}`);
 		projectActions.setSnackbar(feedbackMessages.EXPORT_ERROR);
 	} finally {
 		exportActions.setExporting(false);

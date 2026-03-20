@@ -12,13 +12,14 @@ import type { Timeline } from '../videoplayer/context.svelte';
 import { saveButtonBoard } from './operations/saveButtonBoard';
 import type { Config } from '../config/context.svelte';
 import { closeProject } from './operations/closeProject';
+import { logout } from './operations/logout';
 
 type MenuEvent = {
 	id: string;
 };
 
 export async function bindMenuEvents(board: Board, timeline: Timeline, config: Config) {
-	listen<MenuEvent>('menu_event', async (event) => {
+	listen<MenuEvent>('menu', async (event) => {
 		debug(`Menu event triggered: ${event.id}`);
 		switch (event.payload.id) {
 			case 'new_project':
@@ -47,6 +48,9 @@ export async function bindMenuEvents(board: Board, timeline: Timeline, config: C
 				break;
 			case 'save_button_board':
 				await saveButtonBoard(board, config);
+				break;
+			case 'logout':
+				await logout();
 				break;
 			default:
 				debug(`Unknown menu event: ${event.id}`);
