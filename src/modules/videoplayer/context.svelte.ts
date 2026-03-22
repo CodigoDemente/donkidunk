@@ -47,6 +47,10 @@ export class Timeline {
 		});
 	}
 
+	getState() {
+		return this.#state;
+	}
+
 	/* Actions */
 
 	reset() {

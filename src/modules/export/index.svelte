@@ -7,13 +7,26 @@
 	import ExportOrdering from './components/ExportOrdering.svelte';
 	import { exportContext } from './context.svelte';
 	import { boardContext } from '../board/context.svelte';
+	import { timelineContext } from '../videoplayer/context.svelte';
+	import { getEventButtonsForExport, getTagsForSelectedButton } from './exportRuleFormOptions';
 
 	const projectStore = ProjectStore.getState();
 
 	const exporting = exportContext.get();
 	const board = boardContext.get();
+	const timeline = timelineContext.get();
 
 	let step = $state<1 | 2>(1);
+
+	const eventButtons = $derived(getEventButtonsForExport(board.eventButtonsById));
+
+	const tagsForSelectedButton = $derived(
+		getTagsForSelectedButton(
+			timeline.getState().eventTimeline,
+			board.tagsById,
+			exporting.newRule.include
+		)
+	);
 
 	async function onExport() {
 		exporting.exportVideo(projectStore.video.path!);
@@ -34,7 +47,12 @@
 			/>
 		</div>
 
-		<ExportRuleForm context={exporting} />
+		<ExportRuleForm
+			addRule={() => exporting.addRule()}
+			newRule={exporting.newRule}
+			{eventButtons}
+			{tagsForSelectedButton}
+		/>
 
 		<fieldset class="mt-2 flex flex-col gap-1">
 			<label class="flex cursor-pointer items-center gap-2 text-sm">
