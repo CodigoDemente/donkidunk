@@ -36,26 +36,51 @@
 
 		<ExportRuleForm context={exporting} />
 
-		<div class="flex items-center justify-between">
-			<Button
-				customClass="my-4"
-				primary
-				size="large"
-				onClick={onExport}
-				disabled={exporting.rules.length === 0 || exporting.loading}
-			>
-				Export Video
-			</Button>
+		<fieldset class="mt-2 flex flex-col gap-1">
+			<label class="flex cursor-pointer items-center gap-2 text-sm">
+				<input
+					type="radio"
+					name="export-mode"
+					value="rule-order"
+					checked={exporting.exportMode === 'rule-order'}
+					onchange={() => exporting.setExportMode('rule-order')}
+				/>
+				Export following the rules order
+			</label>
+			<label class="flex cursor-pointer items-center gap-2 text-sm">
+				<input
+					type="radio"
+					name="export-mode"
+					value="manual"
+					checked={exporting.exportMode === 'manual'}
+					onchange={() => exporting.setExportMode('manual')}
+				/>
+				Arrange clips manually before exporting
+			</label>
+		</fieldset>
 
-			<Button
-				customClass="my-4"
-				primary
-				size="large"
-				onClick={() => (step = 2)}
-				disabled={exporting.rules.length === 0}
-			>
-				Next
-			</Button>
+		<div class="flex items-center">
+			{#if exporting.exportMode === 'rule-order'}
+				<Button
+					customClass="my-4"
+					primary
+					size="large"
+					onClick={onExport}
+					disabled={exporting.rules.length === 0 || exporting.loading}
+				>
+					Export Video
+				</Button>
+			{:else}
+				<Button
+					customClass="my-4"
+					primary
+					size="large"
+					onClick={() => (step = 2)}
+					disabled={exporting.rules.length === 0}
+				>
+					Next
+				</Button>
+			{/if}
 		</div>
 
 		<ExportProgress />

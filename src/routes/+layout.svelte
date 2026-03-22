@@ -11,13 +11,14 @@
 	import ProjectStore from '../persistence/stores/project/store.svelte';
 	import { getIsExpiredCommand } from '../modules/launch/commands/getIsExpired';
 	import { lockAppUsage } from '../modules/launch/operations/lockAppUsage';
-	import { exportActions } from '../persistence/stores/export/actions';
+	import { Exporting, exportContext } from '../modules/export/context.svelte';
 
 	let { children }: { children: Snippet } = $props();
 
 	const board = boardContext.set(new Board());
 	const timeline = timelineContext.set(new Timeline());
 	const config = configContext.set(new Config());
+	const exporting = exportContext.set(new Exporting());
 	const projectStore = ProjectStore.getState();
 	// Has to be done after creating *both* contexts, since the wrapForUndo method
 	// uses the undo manager internally, who accesses both contexts
@@ -25,9 +26,7 @@
 	timeline.wrapForUndo();
 
 	const navbarDisabled = $derived(
-		!projectStore.file?.originalPath ||
-			exportActions.getExporting() ||
-			timeline.eventsPlaying.size > 0
+		!projectStore.file?.originalPath || exporting.loading || timeline.eventsPlaying.size > 0
 	);
 	const isDev = (import.meta as unknown as { env: { DEV: boolean } }).env.DEV;
 

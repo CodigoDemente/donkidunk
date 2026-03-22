@@ -1,6 +1,6 @@
 import { Context } from 'runed';
 import { CategoryType } from '../board/types/CategoryType';
-import type { ExportingRule, GalleryClip } from './types';
+import type { ExportingRule, ExportMode, GalleryClip } from './types';
 import { Channel } from '@tauri-apps/api/core';
 import { projectActions } from '../../persistence/stores/project/actions';
 import { path } from '@tauri-apps/api';
@@ -26,8 +26,10 @@ export class Exporting {
 	#rules = $state<ExportingRule[]>([]);
 	#loading = $state(false);
 	#galleryClips = $state<GalleryClip[]>([]);
+	#clipsOrdered = $state<GalleryClip[]>([]);
 	#exportProgress = $state(0);
 	#newRule = $state<ExportingRule>({ ...initialRule });
+	#exportMode = $state<ExportMode>('rule-order');
 
 	/* Actions */
 
@@ -37,6 +39,11 @@ export class Exporting {
 		this.#loading = false;
 		this.#exportProgress = 0;
 		this.#newRule = { ...initialRule };
+		this.#exportMode = 'rule-order';
+	}
+
+	setExportMode(mode: ExportMode) {
+		this.#exportMode = mode;
 	}
 
 	setExportProgress(exportProgress: number) {
@@ -102,7 +109,7 @@ export class Exporting {
 		}
 
 		this.#loading = true;
-		const timestampsForCut = this.#galleryClips.map((r) => r.timestamps);
+		const timestampsForCut = this.#clipsOrdered.map((r) => r.timestamps);
 
 		const onEvent = new Channel<ExportEvent>();
 		onEvent.onmessage = (message: ExportEvent) => {
@@ -142,5 +149,9 @@ export class Exporting {
 
 	get newRule() {
 		return this.#newRule;
+	}
+
+	get exportMode() {
+		return this.#exportMode;
 	}
 }
