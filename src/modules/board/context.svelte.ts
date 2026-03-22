@@ -13,6 +13,7 @@ import type { Category } from './types/Category';
 import type { Button } from './types/Button';
 import type { Tag } from './types/Tag';
 import type { Timeline } from '../videoplayer/context.svelte';
+import { debug } from '@tauri-apps/plugin-log';
 
 const initialState: BoardData = {
 	[CategoryType.Event]: [],

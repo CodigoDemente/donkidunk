@@ -14,7 +14,7 @@ env:
 
 jobs:
   test-ubuntu:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
 
     steps:
@@ -90,16 +90,16 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: ubuntu-latest
+          - platform: ubuntu-24.04
             rust-target: ''
             args: ''
-          - platform: windows-latest
+          - platform: windows-2025
             rust-target: x86_64-pc-windows-msvc
             args: ''
-          - platform: macos-latest
+          - platform: macos-26
             rust-target: 'aarch64-apple-darwin,x86_64-apple-darwin'
             args: '--target aarch64-apple-darwin'
-          - platform: macos-latest
+          - platform: macos-26
             rust-target: 'aarch64-apple-darwin,x86_64-apple-darwin'
             args: '--target x86_64-apple-darwin'
 
@@ -111,32 +111,32 @@ jobs:
 
       # System dependencies (conditional per platform)
       - name: Update repos (Linux)
-        if: matrix.platform == 'ubuntu-latest'
+        if: matrix.platform == 'ubuntu-24.04'
         run: sudo apt-get update
 
       - name: Cache apt packages (Linux)
-        if: matrix.platform == 'ubuntu-latest'
+        if: matrix.platform == 'ubuntu-24.04'
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
           packages: libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
           version: 1.0
 
       - name: Install system deps (Linux)
-        if: matrix.platform == 'ubuntu-latest'
+        if: matrix.platform == 'ubuntu-24.04'
         run: |
           sudo apt-get install -y libwebkit2gtk-4.1-dev \
             build-essential curl wget file libxdo-dev \
             libssl-dev libayatana-appindicator3-dev librsvg2-dev
 
       - name: Install LinuxDeploy (Linux)
-        if: matrix.platform == 'ubuntu-latest'
+        if: matrix.platform == 'ubuntu-24.04'
         uses: miurahr/install-linuxdeploy-action@v1
         with:
           plugins: gstreamer appimage
           dir: /usr/local/bin
 
       - name: Cache WebView2 (Windows)
-        if: matrix.platform == 'windows-latest'
+        if: matrix.platform == 'windows-2025'
         uses: actions/cache@v4
         id: webview2-cache
         with:
@@ -144,7 +144,7 @@ jobs:
           key: webview2-installer
 
       - name: Install WebView2 (Windows)
-        if: matrix.platform == 'windows-latest'
+        if: matrix.platform == 'windows-2025'
         run: |
           if (!(Test-Path "WebView2Installer.exe")) {
             Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/p/?LinkId=2124703" -OutFile "WebView2Installer.exe"
@@ -208,7 +208,7 @@ jobs:
           pnpm tauri build ${{ matrix.args }} -- --profile ci
 
       - name: Upload artifacts
-        if: matrix.platform == 'ubuntu-latest'
+        if: matrix.platform == 'ubuntu-24.04'
         uses: actions/upload-artifact@v4
         with:
           name: build-${{ matrix.platform }}

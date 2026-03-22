@@ -45,6 +45,14 @@
         "bundleMediaFramework": true
       }
     },
+    "windows": {
+      "nsis": {
+        "installMode": "both"
+      }
+    },
+    "macOS": {
+      "signingIdentity": "-"
+    },
     "externalBin": [
       "./bin/donkidunk_ffmpeg"
     ],

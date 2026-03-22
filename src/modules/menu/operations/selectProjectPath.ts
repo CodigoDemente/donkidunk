@@ -1,3 +1,4 @@
+import { reportCaughtClientError } from '$lib/errors/globalClientErrors';
 import { homeDir, join } from '@tauri-apps/api/path';
 import { save } from '@tauri-apps/plugin-dialog';
 
@@ -28,7 +29,7 @@ export async function selectProjectPath(): Promise<string | null> {
 
 		return path;
 	} catch (error) {
-		console.error('Error selecting project path:', error);
+		reportCaughtClientError(error, { context: 'Error selecting project path' });
 		return null;
 	}
 }

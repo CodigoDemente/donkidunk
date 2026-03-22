@@ -60,7 +60,7 @@ function hslToRgb(hsl: HSL): RGB {
 	const X = C * (1 - Math.abs(((h / 60) % 2) - 1));
 	const m = l - C / 2;
 
-	let rgbPre: RGB = { r: 0, g: 0, b: 0 };
+	let rgbPre: RGB;
 
 	if (0 <= h && h < 60) {
 		rgbPre = {

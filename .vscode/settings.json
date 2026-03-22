@@ -10,7 +10,8 @@
 		"config-manager",
 		"components",
 		"metrics",
-		"license"
+		"license",
+		"architecture"
 	],
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": null,

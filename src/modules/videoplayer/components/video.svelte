@@ -3,6 +3,7 @@
 	import { platform } from '@tauri-apps/plugin-os';
 	import { SkipType } from '../types/SkipType';
 	import { SkipDirection } from '../types/SkipDirection';
+	import { shouldIgnoreKeyboardEvent } from '../handlers/keyboardHandlers';
 
 	type Props = {
 		video: string | undefined;
@@ -21,6 +22,7 @@
 		currentTime = $bindable(),
 		duration = $bindable(),
 		playbackSpeed = 1.0,
+		// eslint-disable-next-line no-useless-assignment
 		videoPlayerRef = $bindable(),
 		onPlayStateChange,
 		onSkip,
@@ -97,6 +99,25 @@
 	$effect(() => {
 		if (!videoPlayer) return;
 		videoPlayer.playbackRate = playbackSpeed;
+	});
+
+	/* ==================== KEYBOARD SHORTCUT ==================== */
+
+	$effect(() => {
+		function handleKeyDown(e: KeyboardEvent) {
+			if (shouldIgnoreKeyboardEvent(e)) return;
+			if (e.key !== ' ' || !onPlay) return;
+
+			e.preventDefault();
+			onPlay();
+			onHighlightChange?.('play');
+			setTimeout(() => {
+				onHighlightChange?.(null);
+			}, 500);
+		}
+
+		document.addEventListener('keydown', handleKeyDown);
+		return () => document.removeEventListener('keydown', handleKeyDown);
 	});
 
 	/* ==================== TRACKPAD GESTURE HANDLER ==================== */

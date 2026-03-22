@@ -12,6 +12,7 @@
 		onDblClick?: () => void;
 		onResize?: (start: number, end: number) => void;
 		onContextMenu?: () => void;
+		onTimeChange?: (time: number) => void;
 	}
 
 	let {
@@ -26,7 +27,8 @@
 		onClick,
 		onDblClick,
 		onResize,
-		onContextMenu
+		onContextMenu,
+		onTimeChange
 	}: Props = $props();
 
 	const total = $derived(timelineEnd - timelineStart);
@@ -154,12 +156,15 @@
 			);
 			tempStart = newStart;
 			tempEnd = newStart + drag.duration;
+			if (onTimeChange) onTimeChange(newStart);
 		} else if (drag.type === 'left') {
 			const proposedStart = drag.startTime + deltaTime;
 			tempStart = Math.max(collisionLimits.minStart, Math.min(proposedStart, drag.endTime - 0.1));
+			if (onTimeChange) onTimeChange(tempStart);
 		} else {
 			const proposedEnd = drag.endTime + deltaTime;
 			tempEnd = Math.min(collisionLimits.maxEnd, Math.max(drag.startTime + 0.1, proposedEnd));
+			if (onTimeChange) onTimeChange(tempEnd);
 		}
 	}
 

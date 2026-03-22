@@ -82,27 +82,16 @@
 </script>
 
 {#if buttonToDeleteIdx !== null}
-	<div
-		class="mb-2 overflow-hidden rounded-lg border-2 border-red-600 bg-red-900/20 transition-all duration-300"
-	>
-		<div class="flex flex-col gap-3 p-4">
+	<div class="mb-2 rounded-lg border-2 border-red-600 bg-red-900/20 transition-all duration-300">
+		<div class="flex items-center justify-between gap-3 p-4">
 			<p class="text-sm font-semibold text-red-400">
-				Are you sure you want to remove "{buttonToDeleteName}"?
+				Are you sure you want to remove "{buttonToDeleteName}"? All related data will be lost.
 			</p>
-			<p class="text-sm text-gray-300">
-				{#if isEventType}
-					All timeline events associated with this button will be removed when the category is
-					saved.
-				{:else}
-					All tags associated with this tag button will be removed from timeline events when the
-					category is saved.
-				{/if}
-			</p>
-			<div class="flex gap-2">
-				<Button onClick={cancelRemoveButton} size="medium">Cancel</Button>
+			<div class="flex gap-2 self-end">
+				<Button onClick={cancelRemoveButton} size="small">Cancel</Button>
 				<Button
 					onClick={confirmRemoveButton}
-					size="medium"
+					size="small"
 					customClass="!text-white !bg-red-400 !border-red-600 !border-2 hover:bg-red-500"
 				>
 					Remove

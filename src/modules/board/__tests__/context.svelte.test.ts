@@ -241,7 +241,7 @@ describe('Board', () => {
 			});
 
 			expect(() => board.onValidateCategory()).toThrow('validation-failed');
-			expect(board.errorsForm).toHaveProperty(0);
+			expect(board.errorsForm).toHaveProperty('0');
 		});
 
 		it('should throw when button names are duplicated', () => {

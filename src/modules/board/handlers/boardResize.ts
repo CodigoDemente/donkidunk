@@ -11,8 +11,8 @@ export function startResize(
 	isResizing = true;
 	// Disable transitions on boxes during resize for smooth performance
 	const container = document.getElementById('boards-container');
-	let firstBoxHeight = 0;
-	let secondBoxHeight = 0;
+	let firstBoxHeight = config.eventsHeight;
+	let secondBoxHeight = config.tagsHeight;
 	if (container) {
 		const boxes = container.querySelectorAll('[data-box]');
 		boxes.forEach((box) => {
@@ -52,12 +52,15 @@ export function startResize(
 	}
 
 	async function saveBoardSize() {
-		await saveBoardSizeCommand(firstBoxHeight, secondBoxHeight);
-		config.boardSize = {
-			events: firstBoxHeight,
-			tags: secondBoxHeight
-		};
-		document.removeEventListener('mouseup', saveBoardSize);
+		try {
+			await saveBoardSizeCommand(firstBoxHeight, secondBoxHeight);
+			config.boardSize = {
+				events: firstBoxHeight,
+				tags: secondBoxHeight
+			};
+		} finally {
+			document.removeEventListener('mouseup', saveBoardSize);
+		}
 	}
 
 	document.addEventListener('mousemove', resize);

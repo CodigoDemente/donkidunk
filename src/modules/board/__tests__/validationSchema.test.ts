@@ -66,7 +66,7 @@ describe('categoryValidationSchema', () => {
 		});
 
 		test('should have the correct error message', () => {
-			expect(nameRule.message).toBe('Category name cannot be empty');
+			expect(nameRule.message).toBe('Cannot be empty');
 		});
 	});
 
@@ -124,7 +124,7 @@ describe('buttonValidationSchema', () => {
 		});
 
 		test('should have the correct error message', () => {
-			expect(nameRule.message).toBe('Name cannot be empty');
+			expect(nameRule.message).toBe('Cannot be empty');
 		});
 	});
 

@@ -9,6 +9,7 @@
 	import { configContext } from '../modules/config/context.svelte';
 	import { onMount } from 'svelte';
 	import { getButtonBoardsCommand } from '../modules/config/commands/GetButtonBoards';
+	import { reportCaughtClientError } from '$lib/errors/globalClientErrors';
 
 	let leftWidth = $state(50);
 	let isResizing = $state(false);
@@ -22,7 +23,7 @@
 				config.buttonBoards = buttonBoards;
 			})
 			.catch((error) => {
-				console.error(error);
+				reportCaughtClientError(error, { context: 'Error getting button boards' });
 			})
 	);
 
