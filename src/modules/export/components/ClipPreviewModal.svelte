@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { IconX } from '@tabler/icons-svelte';
-	import type { ExportClip } from '../types';
+	import type { GalleryClip } from '../types';
 
 	interface Props {
-		clip: ExportClip;
+		clip: GalleryClip;
 		videoSrc: string;
 		onClose: () => void;
 	}
@@ -22,11 +22,11 @@
 		if (!videoEl) return;
 
 		videoEl.src = videoSrc;
-		videoEl.currentTime = clip.startTime;
+		videoEl.currentTime = clip.timestamps[0];
 		videoEl.play();
 
 		const handler = () => {
-			if (videoEl && videoEl.currentTime >= clip.endTime) {
+			if (videoEl && videoEl.currentTime >= clip.timestamps[1]) {
 				videoEl.pause();
 			}
 		};
@@ -54,6 +54,7 @@
 <svelte:window onkeydown={handleKeydown} />
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
+<!-- svelte-ignore a11y_click_events_have_key_events -->
 <div
 	class="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
 	onclick={handleBackdropClick}
@@ -62,9 +63,11 @@
 		<!-- Header -->
 		<div class="flex items-center justify-between border-b border-gray-700 px-4 py-3">
 			<div class="flex flex-col">
-				<span class="text-sm font-semibold text-gray-200">{clip.title}</span>
+				<span class="text-sm font-semibold text-gray-200">{clip.buttonName}</span>
 				<span class="text-xs text-gray-400">
-					{clip.categoryName} &middot; {formatTime(clip.startTime)} - {formatTime(clip.endTime)}
+					{clip.categoryName} &middot; {formatTime(clip.timestamps[0])} - {formatTime(
+						clip.timestamps[1]
+					)}
 				</span>
 			</div>
 			<button

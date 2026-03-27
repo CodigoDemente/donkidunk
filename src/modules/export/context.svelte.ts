@@ -1,5 +1,9 @@
 import { Context } from 'runed';
 import { CategoryType } from '../board/types/CategoryType';
+import type { Button } from '../board/types/Button';
+import type { Tag } from '../board/types/Tag';
+import { boardContext } from '../board/context.svelte';
+import { timelineContext } from '../videoplayer/context.svelte';
 import type { ExportingRule, ExportMode, GalleryClip } from './types';
 import { Channel } from '@tauri-apps/api/core';
 import { projectActions } from '../../persistence/stores/project/actions';
@@ -10,6 +14,7 @@ import { debug, error } from '@tauri-apps/plugin-log';
 import type { ExportEvent } from '../../events/types/ExportEvent';
 import { cutVideo } from './commands/CutVideo';
 import { feedbackMessages } from '../../utils/messages';
+import { SvelteSet } from 'svelte/reactivity';
 
 const initialRule: ExportingRule = {
 	type: CategoryType.Event,
@@ -75,6 +80,22 @@ export class Exporting {
 		this.#rules = rules;
 	}
 
+	addClipToOrder(clip: GalleryClip) {
+		this.#clipsOrdered = [...this.#clipsOrdered, clip];
+	}
+
+	removeClipFromOrder(idx: number) {
+		this.#clipsOrdered = this.#clipsOrdered.filter((_, i) => i !== idx);
+	}
+
+	reorderClip(fromIdx: number, toIdx: number) {
+		if (fromIdx === toIdx) return;
+		const updated = [...this.#clipsOrdered];
+		const [moved] = updated.splice(fromIdx, 1);
+		updated.splice(toIdx, 0, moved);
+		this.#clipsOrdered = updated;
+	}
+
 	/* Operations on Database */
 
 	async getGalleryClips() {
@@ -90,7 +111,8 @@ export class Exporting {
 		}
 	}
 
-	async exportVideo(videoPath: string): Promise<void> {
+	async exportVideo(videoPath: string, step: 1 | 2 = 1): Promise<void> {
+		const timelineRepository = TimelineRepositoryFactory.getInstance();
 		if (this.#loading) {
 			return;
 		}
@@ -109,7 +131,13 @@ export class Exporting {
 		}
 
 		this.#loading = true;
-		const timestampsForCut = this.#clipsOrdered.map((r) => r.timestamps);
+		let clipsToCut: GalleryClip[] = [];
+		if (step === 1) {
+			clipsToCut = await timelineRepository.getClipsForGallery(this.#rules);
+		} else {
+			clipsToCut = this.#clipsOrdered;
+		}
+		const timestampsForCut = clipsToCut.map((r) => r.timestamps);
 
 		const onEvent = new Channel<ExportEvent>();
 		onEvent.onmessage = (message: ExportEvent) => {
@@ -139,6 +167,10 @@ export class Exporting {
 		return this.#galleryClips;
 	}
 
+	get clipsOrdered() {
+		return this.#clipsOrdered;
+	}
+
 	get loading() {
 		return this.#loading;
 	}
@@ -153,5 +185,64 @@ export class Exporting {
 
 	get exportMode() {
 		return this.#exportMode;
+	}
+
+	/**
+	 * Event buttons that have at least one clip on the timeline (board + timeline intersection).
+	 */
+	get eventButtonsForRuleForm(): Button[] {
+		const timeline = timelineContext.get();
+		const board = boardContext.get();
+		const eventButtonsById = board.eventButtonsById;
+		const eventTimeline = timeline.eventTimeline;
+
+		const seen = new SvelteSet<string>();
+		const buttons: Button[] = [];
+
+		for (const event of eventTimeline) {
+			const id = event.buttonId;
+			if (seen.has(id)) {
+				continue;
+			}
+			seen.add(id);
+			const btn = eventButtonsById[id];
+			if (btn) {
+				buttons.push(btn);
+			}
+		}
+
+		return buttons.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+	}
+
+	/**
+	 * Tags used on timeline events for the currently selected button in the rule form.
+	 */
+	get tagsForSelectedButton(): Tag[] {
+		const timeline = timelineContext.get();
+		const board = boardContext.get();
+		const selectedButtonId = this.#newRule.include;
+		if (!selectedButtonId) {
+			return [];
+		}
+
+		const eventTimeline = timeline.eventTimeline;
+		const tagsById = board.tagsById;
+
+		const seen = new SvelteSet<string>();
+		const orderedIds: string[] = [];
+
+		for (const event of eventTimeline) {
+			if (event.buttonId !== selectedButtonId) {
+				continue;
+			}
+			for (const tagId of event.tagsRelated) {
+				if (!seen.has(tagId)) {
+					seen.add(tagId);
+					orderedIds.push(tagId);
+				}
+			}
+		}
+
+		return orderedIds.map((id) => tagsById[id]).filter((t): t is Tag => t != null);
 	}
 }

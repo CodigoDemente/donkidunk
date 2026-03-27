@@ -449,6 +449,10 @@ export class Timeline {
 		return this.#currentPlaybackIndex;
 	}
 
+	get eventTimeline() {
+		return this.#state.eventTimeline;
+	}
+
 	get currentPlaybackCategoryId(): string | null {
 		if (this.#categoryPlaybackQueue.length === 0 || this.#currentPlaybackIndex < 0) {
 			return null;

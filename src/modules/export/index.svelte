@@ -7,35 +7,28 @@
 	import ExportOrdering from './components/ExportOrdering.svelte';
 	import { exportContext } from './context.svelte';
 	import { boardContext } from '../board/context.svelte';
-	import { timelineContext } from '../videoplayer/context.svelte';
-	import { getEventButtonsForExport, getTagsForSelectedButton } from './exportRuleFormOptions';
 
 	const projectStore = ProjectStore.getState();
 
 	const exporting = exportContext.get();
 	const board = boardContext.get();
-	const timeline = timelineContext.get();
 
 	let step = $state<1 | 2>(1);
 
-	const eventButtons = $derived(
-		getEventButtonsForExport(timeline.getState().eventTimeline, board.eventButtonsById)
-	);
-
-	const tagsForSelectedButton = $derived(
-		getTagsForSelectedButton(
-			timeline.getState().eventTimeline,
-			board.tagsById,
-			exporting.newRule.include
-		)
-	);
+	const eventButtons = $derived(exporting.eventButtonsForRuleForm);
+	const tagsForSelectedButton = $derived(exporting.tagsForSelectedButton);
 
 	async function onExport() {
-		exporting.exportVideo(projectStore.video.path!);
+		await exporting.exportVideo(projectStore.video.path!, step);
+	}
+
+	async function onNextStep() {
+		step = 2;
+		await exporting.getGalleryClips();
 	}
 </script>
 
-<div class="flex h-full w-full flex-col gap-1 p-4">
+<div class="flex h-full w-full flex-col gap-1 p-4 text-gray-200">
 	<h2 class="text-lg font-bold">Export your video</h2>
 	<div class="flex w-full border-b border-gray-300" role="separator"></div>
 
@@ -85,7 +78,7 @@
 			<Button
 				customClass="my-4"
 				size="large"
-				onClick={() => (step = 2)}
+				onClick={onNextStep}
 				disabled={exporting.rules.length === 0 || exporting.exportMode !== 'manual'}
 			>
 				Next
@@ -109,9 +102,16 @@
 		<div class="flex min-h-0 flex-1 flex-col">
 			<ExportOrdering videoPath={projectStore.video.path!} />
 		</div>
-
-		<div class="shrink-0 pt-2">
-			<Button customClass="my-2" size="large" onClick={() => (step = 1)}>Back</Button>
+		<ExportProgress />
+		<div class="flex items-center justify-between">
+			<Button customClass="my-4" size="large" onClick={() => (step = 1)}>Back</Button>
+			<Button
+				customClass="my-4"
+				primary
+				size="large"
+				onClick={onExport}
+				disabled={exporting.loading}>Export Video</Button
+			>
 		</div>
 	{/if}
 </div>

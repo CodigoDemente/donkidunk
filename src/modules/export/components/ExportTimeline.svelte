@@ -52,7 +52,7 @@
 
 	function handleItemDragStart(e: DragEvent, idx: number) {
 		dragFromIdx = idx;
-		e.dataTransfer?.setData('text/plain', clips[idx].id);
+		e.dataTransfer?.setData('text/plain', String(clips[idx].index));
 	}
 
 	function handleItemDragOver(e: DragEvent, idx: number) {
@@ -95,7 +95,7 @@
 			Drag clips here to set the export order
 		</p>
 	{:else}
-		{#each clips as clip, idx (clip.id)}
+		{#each clips as clip, idx (clip.index)}
 			<div
 				class="flex shrink-0 cursor-grab items-center gap-2 rounded border px-3 py-2 transition-colors active:cursor-grabbing {dragOverIdx ===
 				idx
@@ -109,14 +109,14 @@
 			>
 				<span class="text-xs font-bold text-gray-400">{idx + 1}</span>
 				<div class="flex flex-col">
-					<span class="text-sm font-medium text-gray-200">{clip.title}</span>
+					<span class="text-sm font-medium text-gray-200">{clip.title ?? clip.buttonName}</span>
 					<span class="text-xs text-gray-400">
-						{formatTime(clip.startTime)} - {formatTime(clip.endTime)}
+						{formatTime(clip.timestamps[0])} - {formatTime(clip.timestamps[1])}
 					</span>
 				</div>
 				<button
 					class="ml-2 cursor-pointer text-gray-400 transition-colors hover:text-red-400"
-					onclick={() => onRemove?.(clip.id)}
+					onclick={() => onRemove?.(String(clip.index))}
 					title="Remove from timeline"
 				>
 					<IconX size={14} />

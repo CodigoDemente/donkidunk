@@ -2,8 +2,33 @@ import type Database from '@tauri-apps/plugin-sql';
 import type { TimelineRepository } from '../ports/TimelineRepository';
 import type { DatabaseEntryWithTag } from './types/DatabaseEntryWithTags';
 import type { RangeData, RangeDataWithTags } from '../modules/videoplayer/types/RangeData';
-import type { ExportingRule, GalleryClip } from '../modules/export/types';
+import type { ExportClipTag, ExportingRule, GalleryClip } from '../modules/export/types';
 import { EntryMapper } from './mappers/EntryMapper';
+
+function parseTagsJson(raw: string | null): ExportClipTag[] {
+	if (raw == null || raw === '') {
+		return [];
+	}
+	try {
+		const parsed = JSON.parse(raw) as unknown;
+		if (!Array.isArray(parsed)) {
+			return [];
+		}
+		return parsed.filter(
+			(t): t is ExportClipTag =>
+				typeof t === 'object' &&
+				t !== null &&
+				'id' in t &&
+				'name' in t &&
+				'color' in t &&
+				typeof (t as ExportClipTag).id === 'string' &&
+				typeof (t as ExportClipTag).name === 'string' &&
+				typeof (t as ExportClipTag).color === 'string'
+		);
+	} catch {
+		return [];
+	}
+}
 
 export class SQLiteTimelineRepository implements TimelineRepository {
 	constructor(private readonly db: Database) {}
@@ -42,7 +67,10 @@ export class SQLiteTimelineRepository implements TimelineRepository {
 			timestamp_start: number;
 			timestamp_end: number;
 			button_id: string;
-			tag_ids: string | null;
+			button_name: string;
+			button_color: string;
+			category_name: string;
+			tags_json: string | null;
 		};
 
 		const allQueries = rules.map((rule) => {
@@ -50,29 +78,44 @@ export class SQLiteTimelineRepository implements TimelineRepository {
 				t.timestamp_start,
 				t.timestamp_end,
 				t.button_id,
-				(SELECT GROUP_CONCAT(tet2.tag_id) FROM timeline_entry_tag tet2 WHERE tet2.timeline_entry_id = t.id) as tag_ids
+				b.name AS button_name,
+				b.color AS button_color,
+				cat.name AS category_name,
+				(
+					SELECT COALESCE(
+						json_group_array(
+							json_object('id', tg.id, 'name', tg.name, 'color', tg.color)
+						),
+						'[]'
+					)
+					FROM timeline_entry_tag tet2
+					JOIN tag tg ON tg.id = tet2.tag_id
+					WHERE tet2.timeline_entry_id = t.id
+				) AS tags_json
 			FROM timeline_entry t
 			LEFT JOIN timeline_entry_tag tt ON t.id = tt.timeline_entry_id
+			JOIN button b ON b.id = t.button_id
+			JOIN category cat ON cat.id = t.category_id
 			WHERE ${buildCondition(rule)}
-			GROUP BY t.id, t.timestamp_start, t.timestamp_end
-			ORDER BY t.timestamp_start;`;
+			GROUP BY t.id, t.timestamp_start, t.timestamp_end, t.button_id, b.name, b.color, cat.name
+			`;
 
 			return this.db.select<ExportRow[]>(query);
 		});
 
 		const entries = (await Promise.all(allQueries)).flat();
 
-		return entries.map((entry, index): GalleryClip => {
-			const clip: GalleryClip = {
+		return entries.map(
+			(entry, index): GalleryClip => ({
 				index,
 				timestamps: [entry.timestamp_start, entry.timestamp_end],
-				buttonId: entry.button_id
-			};
-			if (entry.tag_ids) {
-				clip.tagIds = entry.tag_ids.split(',');
-			}
-			return clip;
-		});
+				buttonId: entry.button_id,
+				buttonName: entry.button_name,
+				buttonColor: entry.button_color,
+				categoryName: entry.category_name,
+				tags: parseTagsJson(entry.tags_json)
+			})
+		);
 	}
 
 	async addEntry(entry: RangeData): Promise<void> {
