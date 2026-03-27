@@ -60,7 +60,7 @@
 			<Multiselect
 				options={tagMultiselectOptions}
 				size="full"
-				selectClass="bg-gray-800"
+				selectClass="bg-gray-800 min-h-22"
 				bind:selectedValues={newRule.taggedWith}
 			/>
 		</div>

@@ -3,12 +3,28 @@ import type { Tag } from '../board/types/Tag';
 import type { RangeDataWithTags } from '../videoplayer/types/RangeData';
 
 /**
- * All event buttons from the board (for choosing which event type to export).
+ * Event buttons that appear on the timeline at least once (board metadata + timeline intersection).
  */
-export function getEventButtonsForExport(eventButtonsById: Record<string, Button>): Button[] {
-	return Object.values(eventButtonsById).sort((a, b) =>
-		a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
-	);
+export function getEventButtonsForExport(
+	eventTimeline: RangeDataWithTags[],
+	eventButtonsById: Record<string, Button>
+): Button[] {
+	const seen = new Set<string>();
+	const buttons: Button[] = [];
+
+	for (const event of eventTimeline) {
+		const id = event.buttonId;
+		if (seen.has(id)) {
+			continue;
+		}
+		seen.add(id);
+		const btn = eventButtonsById[id];
+		if (btn) {
+			buttons.push(btn);
+		}
+	}
+
+	return buttons.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
 }
 
 /**

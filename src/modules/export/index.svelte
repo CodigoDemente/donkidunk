@@ -18,7 +18,9 @@
 
 	let step = $state<1 | 2>(1);
 
-	const eventButtons = $derived(getEventButtonsForExport(board.eventButtonsById));
+	const eventButtons = $derived(
+		getEventButtonsForExport(timeline.getState().eventTimeline, board.eventButtonsById)
+	);
 
 	const tagsForSelectedButton = $derived(
 		getTagsForSelectedButton(
@@ -54,21 +56,23 @@
 			{tagsForSelectedButton}
 		/>
 
-		<fieldset class="mt-2 flex flex-col gap-1">
-			<label class="flex cursor-pointer items-center gap-2 text-sm">
+		<fieldset class="my-8 flex flex-col gap-1">
+			<label class="flex cursor-pointer items-center gap-2 text-base">
 				<input
 					type="radio"
 					name="export-mode"
+					class="accent-tertiary h-4 w-4 cursor-pointer"
 					value="rule-order"
 					checked={exporting.exportMode === 'rule-order'}
 					onchange={() => exporting.setExportMode('rule-order')}
 				/>
 				Export following the rules order
 			</label>
-			<label class="flex cursor-pointer items-center gap-2 text-sm">
+			<label class="flex cursor-pointer items-center gap-2 text-base">
 				<input
 					type="radio"
 					name="export-mode"
+					class="accent-tertiary h-4 w-4 cursor-pointer"
 					value="manual"
 					checked={exporting.exportMode === 'manual'}
 					onchange={() => exporting.setExportMode('manual')}
@@ -77,28 +81,26 @@
 			</label>
 		</fieldset>
 
-		<div class="flex items-center">
-			{#if exporting.exportMode === 'rule-order'}
-				<Button
-					customClass="my-4"
-					primary
-					size="large"
-					onClick={onExport}
-					disabled={exporting.rules.length === 0 || exporting.loading}
-				>
-					Export Video
-				</Button>
-			{:else}
-				<Button
-					customClass="my-4"
-					primary
-					size="large"
-					onClick={() => (step = 2)}
-					disabled={exporting.rules.length === 0}
-				>
-					Next
-				</Button>
-			{/if}
+		<div class="flex items-center justify-end gap-4">
+			<Button
+				customClass="my-4"
+				size="large"
+				onClick={() => (step = 2)}
+				disabled={exporting.rules.length === 0 || exporting.exportMode !== 'manual'}
+			>
+				Next
+			</Button>
+			<Button
+				customClass="my-4"
+				primary
+				size="large"
+				onClick={onExport}
+				disabled={exporting.rules.length === 0 ||
+					exporting.loading ||
+					exporting.exportMode !== 'rule-order'}
+			>
+				Export Video
+			</Button>
 		</div>
 
 		<ExportProgress />
