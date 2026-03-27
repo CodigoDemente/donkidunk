@@ -41,6 +41,7 @@ export class Exporting {
 	resetState() {
 		this.#rules = [];
 		this.#galleryClips = [];
+		this.#clipsOrdered = [];
 		this.#loading = false;
 		this.#exportProgress = 0;
 		this.#newRule = { ...initialRule };
