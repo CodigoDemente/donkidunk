@@ -28,7 +28,6 @@ pub async fn is_authenticated(state: tauri::State<'_, AppState>) -> Result<bool,
 
 #[tauri::command]
 pub async fn logout(state: tauri::State<'_, AppState>) -> Result<(), AppError> {
-    state.reset_oauth_flow().await;
     state.logout().await?;
 
     Ok(())

@@ -6,13 +6,7 @@ use sha2::{Digest, Sha256};
 use tauri_plugin_http::reqwest;
 use tauri_plugin_http::reqwest::StatusCode;
 
-use crate::{HTTP_CLIENT, errors::AuthError};
-
-#[cfg(debug_assertions)]
-const OAUTH_DOMAIN: &str = "http://localhost:5000";
-
-#[cfg(not(debug_assertions))]
-const OAUTH_DOMAIN: &str = "https://donkidunk.com";
+use crate::{API_URL, HTTP_CLIENT, errors::AuthError};
 
 const PKCE_CHARSET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~";
 
@@ -50,12 +44,12 @@ pub struct RefreshTokenPayload {
 
 pub fn build_authorize_url(code_challenge: &str, state: &str) -> String {
     format!(
-        "{OAUTH_DOMAIN}/authorize?response_type=code&client_id={CLIENT_ID}&redirect_uri={REDIRECT_URI}&code_challenge_method=S256&code_challenge={code_challenge}&state={state}"
+        "{API_URL}/authorize?response_type=code&client_id={CLIENT_ID}&redirect_uri={REDIRECT_URI}&code_challenge_method=S256&code_challenge={code_challenge}&state={state}"
     )
 }
 
 pub fn build_exchange_url() -> String {
-    format!("{OAUTH_DOMAIN}/auth/token")
+    format!("{API_URL}/auth/token")
 }
 
 pub fn map_oauth_error(error: reqwest::Error) -> AuthError {

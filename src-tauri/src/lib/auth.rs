@@ -3,17 +3,19 @@ use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode};
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Emitter, Manager, Runtime, Url};
 
-use log::{error, info, warn};
+use log::error;
 use tokio::sync::MutexGuard;
 
 use crate::{
     errors::{AppError, AuthError},
+    license::{get_user_license, store_license},
     oauth::{
         CLIENT_ID, ExchangeTokenPayload, ExchangeTokenResponse, REDIRECT_URI, exchange_token,
         refresh_token,
     },
     securestore::SecureStore,
-    state::{AppState, Authentication, License},
+    state::{AppState, Authentication},
+    tasks::schedule_auth_task,
 };
 
 #[derive(Clone, Serialize)]
@@ -40,8 +42,21 @@ pub struct Claims {
     pub email: String,
 }
 
-pub const LOGIN_TASK_NAME: &str = "LOGIN_CHECK";
-const GRACE_PERIOD_HOURS: i64 = 72;
+pub struct UserData {
+    pub user_id: String,
+    pub user_email: String,
+    pub user_name: String,
+    pub access_token: String,
+    pub last_verified_time: DateTime<Utc>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RefreshTokenResponse {
+    pub claims: Claims,
+    pub access_token: String,
+}
+
+pub const GRACE_PERIOD_HOURS: i64 = 72;
 
 pub async fn handle_return_url<R: Runtime>(app: AppHandle<R>, url: Url) -> Result<(), AppError> {
     let app_state = app.state::<AppState>();
@@ -82,21 +97,36 @@ pub async fn handle_return_url<R: Runtime>(app: AppHandle<R>, url: Url) -> Resul
 
     let exchanged_tokens = exchange_token(payload).await?;
 
+    let token_claims = decode_token(&app_state.jwt_key, &exchanged_tokens.access_token)?;
+
+    let subscription_data =
+        get_user_license(token_claims.sub.clone(), &exchanged_tokens.access_token)
+            .await
+            .map_err(AuthError::from)?;
+
     {
         let auth_guard = app_state.authentication.lock().await;
         let store_guard = app_state.secure_store.lock().await;
         store_credentials(exchanged_tokens.clone(), auth_guard, store_guard)?;
     }
 
+    let user_data = UserData {
+        access_token: exchanged_tokens.access_token,
+        user_id: token_claims.sub,
+        user_email: token_claims.email,
+        user_name: token_claims.name,
+        last_verified_time: DateTime::from_timestamp_secs(token_claims.iat)
+            .unwrap_or(Utc::now() - Duration::weeks(1)),
+    };
+
     {
-        let token_claims = decode_token(&app_state.jwt_key, &exchanged_tokens.access_token)?;
         let license_guard = app_state.license.lock().await;
 
-        store_license(token_claims, license_guard);
+        store_license(user_data, subscription_data, license_guard);
     }
 
     app_state.reset_oauth_flow().await;
-    schedule_login_check(app.clone()).await;
+    schedule_auth_task(app.clone()).await;
 
     app.emit(
         "auth:user-logged-in",
@@ -124,74 +154,33 @@ pub fn retrieve_credentials(secure_store: &SecureStore) -> Option<StoredCredenti
     Some(credentials)
 }
 
-pub async fn refresh_access_token<R: Runtime>(app: AppHandle<R>) -> Result<(), AppError> {
+pub async fn refresh_access_token<R: Runtime>(
+    app: &AppHandle<R>,
+    current_refresh_token: &str,
+) -> Result<RefreshTokenResponse, AuthError> {
     let app_state = app.state::<AppState>();
-    let (current_access_token, current_refresh_token) = {
-        let authentication_guard = app_state.authentication.lock().await;
 
-        let should_refresh = authentication_guard.is_authenticated
-            && authentication_guard.expires_at - Duration::seconds(60) <= Utc::now();
+    let new_tokens_result = refresh_token(current_refresh_token.to_string()).await?;
 
-        if !should_refresh {
-            return Ok(());
-        }
+    let claims = {
+        let auth_guard = app_state.authentication.lock().await;
+        let store_guard = app_state.secure_store.lock().await;
+        store_credentials(new_tokens_result.clone(), auth_guard, store_guard)?;
 
-        (
-            authentication_guard.access_token.clone(),
-            authentication_guard.refresh_token.clone(),
-        )
+        decode_token(&app_state.jwt_key, &new_tokens_result.access_token)?
     };
 
-    let last_verified_time = match decode_token(&app_state.jwt_key, &current_access_token) {
-        Ok(claims) => {
-            DateTime::from_timestamp_secs(claims.iat).unwrap_or(Utc::now() - Duration::weeks(1))
-        }
-        Err(..) => {
-            warn!("Could not decode stored token, falling back to license data");
-
-            let license = app_state.license.lock().await;
-
-            license
-                .as_ref()
-                .map(|l| l.last_validation)
-                .unwrap_or(Utc::now() - Duration::weeks(1))
-        }
-    };
-
-    let new_tokens_result = refresh_token(current_refresh_token).await;
-
-    match new_tokens_result {
-        Ok(new_tokens) => {
-            let auth_guard = app_state.authentication.lock().await;
-            let store_guard = app_state.secure_store.lock().await;
-            store_credentials(new_tokens.clone(), auth_guard, store_guard)?;
-
-            {
-                let token_claims = decode_token(&app_state.jwt_key, &new_tokens.access_token)?;
-                let license_guard = app_state.license.lock().await;
-
-                store_license(token_claims, license_guard);
-            }
-        }
-        Err(error) => match error {
-            AuthError::UnexepectedAuthError => (),
-            AuthError::InvalidCredentials | AuthError::InvalidRequest => logout(app).await?,
-            _ => {
-                if should_force_login(last_verified_time) {
-                    logout(app).await?
-                }
-            }
-        },
-    }
-
-    Ok(())
+    Ok(RefreshTokenResponse {
+        claims,
+        access_token: new_tokens_result.access_token,
+    })
 }
 
 fn store_credentials(
     tokens: ExchangeTokenResponse,
     mut authentication_guard: MutexGuard<'_, Authentication>,
     secure_store: MutexGuard<'_, SecureStore>,
-) -> Result<(), AppError> {
+) -> Result<(), AuthError> {
     authentication_guard.is_authenticated = true;
     authentication_guard.access_token = tokens.access_token;
     authentication_guard.refresh_token = tokens.refresh_token;
@@ -213,49 +202,6 @@ fn store_credentials(
     secure_store.create_entry(credentials)
 }
 
-fn store_license(token_claims: Claims, mut license_guard: MutexGuard<'_, Option<License>>) {
-    *license_guard = Some(License {
-        last_validation: DateTime::from_timestamp_secs(token_claims.iat)
-            .unwrap_or(Utc::now() - Duration::weeks(1)),
-        user_id: token_claims.sub,
-        user_email: token_claims.email,
-        user_name: token_claims.name,
-    })
-}
-
-pub async fn schedule_login_check<R: Runtime>(app_handle: AppHandle<R>) {
-    let state = app_handle.state::<AppState>();
-
-    let interval = {
-        let auth_guard = state.authentication.lock().await;
-
-        if !auth_guard.is_authenticated {
-            return;
-        }
-
-        let duration = auth_guard.expires_in as f64 * 0.75; // 75% of the token duration
-
-        std::time::Duration::from_secs(duration.ceil() as u64)
-    };
-
-    let mut scheduler_guard = state.scheduler.lock().await;
-
-    let owned_app_handle = app_handle.clone();
-
-    scheduler_guard.schedule_task(
-        LOGIN_TASK_NAME.to_string(),
-        move || {
-            let handle = owned_app_handle.clone();
-            async move {
-                if let Err(err) = refresh_access_token(handle).await {
-                    warn!("Error in scheduled task {LOGIN_TASK_NAME}: {err}");
-                }
-            }
-        },
-        interval,
-    );
-}
-
 pub fn decode_token(decoding_key: &DecodingKey, jwt: &str) -> Result<Claims, AuthError> {
     let mut validation = Validation::new(Algorithm::RS256);
 
@@ -275,32 +221,7 @@ pub fn decode_token(decoding_key: &DecodingKey, jwt: &str) -> Result<Claims, Aut
     Ok(token_data.claims)
 }
 
-fn should_force_login(last_verified_time: DateTime<Utc>) -> bool {
-    let user_time = Utc::now();
-
-    // Assume 1 minute drift just in case the user has manual time set
-    if user_time + Duration::seconds(60) < last_verified_time {
-        error!(
-            "User clock has too much drift. Server time {last_verified_time}. User clock {user_time}"
-        );
-        return true;
-    }
-
-    let last_check_difference = user_time - last_verified_time;
-
-    if last_check_difference.num_hours() > GRACE_PERIOD_HOURS {
-        info!(
-            "Last check was more than {GRACE_PERIOD_HOURS} hours ago: Last check: {} hours ago",
-            last_check_difference.num_hours()
-        );
-
-        return true;
-    }
-
-    false
-}
-
-async fn logout<R: Runtime>(app: AppHandle<R>) -> Result<(), AppError> {
+pub async fn logout<R: Runtime>(app: &AppHandle<R>) -> Result<(), AuthError> {
     app.state::<AppState>().logout().await?;
 
     app.emit(
@@ -311,7 +232,7 @@ async fn logout<R: Runtime>(app: AppHandle<R>) -> Result<(), AppError> {
     )
     .map_err(|e| {
         error!("Error emitting logged out event: {e}");
-        AppError::ApplicationError(e)
+        AuthError::UnexepectedAuthError
     })?;
 
     Ok(())

@@ -26,9 +26,6 @@ pub enum AppError {
     #[error(transparent)]
     Unexpected(#[from] anyhow::Error),
 
-    #[error("[license] ERROR while checking expired installation: {0}")]
-    LicenseError(String),
-
     #[error(transparent)]
     AuthError(#[from] AuthError),
 }
@@ -124,4 +121,25 @@ pub enum AuthError {
 
     #[error("[auth] Error decoding token")]
     TokenDecodeError,
+
+    #[error(transparent)]
+    LicenseError(#[from] LicenseError),
+}
+
+#[derive(Debug, Error)]
+pub enum LicenseError {
+    #[error("[license] Error processing request response")]
+    BodyError,
+
+    #[error("[license] Error connecting to license server")]
+    ConnectivityError,
+
+    #[error("[license] Invalid credentials")]
+    InvalidCredentials,
+
+    #[error("[license] Invalid request")]
+    InvalidRequest,
+
+    #[error("[license] Unexepected error while getting the user license")]
+    Unexepected,
 }

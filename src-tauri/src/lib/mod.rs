@@ -17,6 +17,13 @@ pub mod securestore;
 #[cfg(not(target_os = "windows"))]
 pub mod server;
 pub mod state;
+pub mod tasks;
 pub mod timelinerepository;
 
 pub(crate) static HTTP_CLIENT: LazyLock<Client> = LazyLock::new(Client::new);
+
+#[cfg(debug_assertions)]
+pub(crate) const API_URL: &str = "http://localhost:5000";
+
+#[cfg(not(debug_assertions))]
+pub(crate) const API_URL: &str = "https://api.donkidunk.com";

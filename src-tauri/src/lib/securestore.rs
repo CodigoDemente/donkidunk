@@ -25,7 +25,7 @@ impl SecureStore {
         }
     }
 
-    pub fn create_entry(&self, value: String) -> Result<(), AppError> {
+    pub fn create_entry(&self, value: String) -> Result<(), AuthError> {
         self.credential
             .set_password(&value)
             .map_err(SecureStore::map_err)?;
@@ -33,14 +33,11 @@ impl SecureStore {
         Ok(())
     }
 
-    pub fn get_entry(&self) -> Result<String, AppError> {
-        Ok(self
-            .credential
-            .get_password()
-            .map_err(SecureStore::map_err)?)
+    pub fn get_entry(&self) -> Result<String, AuthError> {
+        self.credential.get_password().map_err(SecureStore::map_err)
     }
 
-    pub fn delete_entry(&self) -> Result<(), AppError> {
+    pub fn delete_entry(&self) -> Result<(), AuthError> {
         let res = self
             .credential
             .delete_credential()
@@ -49,7 +46,7 @@ impl SecureStore {
         if let Err(err) = res {
             match err {
                 AuthError::CredentialNotFound(..) => return Ok(()),
-                e => return Err(e.into()),
+                e => return Err(e),
             }
         }
 

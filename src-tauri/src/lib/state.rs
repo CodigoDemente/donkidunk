@@ -1,6 +1,6 @@
 use std::fs;
 
-use chrono::{DateTime, Duration, Utc};
+use chrono::{DateTime, Duration, NaiveDateTime, Utc};
 use jsonwebtoken::DecodingKey;
 use log::error;
 use sqlx::SqlitePool;
@@ -8,11 +8,13 @@ use tauri::{App, Manager, Runtime};
 use tokio::sync::Mutex;
 
 use crate::{
-    auth::{LOGIN_TASK_NAME, decode_token, retrieve_credentials},
+    auth::{decode_token, retrieve_credentials},
     configmanager::ConfigManager,
-    errors::AppError,
+    errors::{AppError, AuthError},
+    license::SubscriptionStatus,
     scheduler::Scheduler,
     securestore::SecureStore,
+    tasks::AUTH_TASK_NAME,
     timelinerepository::TimelineRepository,
 };
 
@@ -36,6 +38,15 @@ pub struct License {
     pub user_id: String,
     pub user_email: String,
     pub user_name: String,
+    pub subscription_id: Option<String>,
+    pub expires_at: Option<NaiveDateTime>,
+    pub status: Option<SubscriptionStatus>,
+    pub features: Option<Vec<String>>,
+}
+
+pub struct Tasks {
+    pub last_license_check: NaiveDateTime,
+    pub last_login_check: NaiveDateTime,
 }
 
 pub struct AppState {
@@ -47,6 +58,7 @@ pub struct AppState {
     pub jwt_key: DecodingKey,
     pub secure_store: Mutex<SecureStore>,
     pub scheduler: Mutex<Scheduler>,
+    pub tasks: Mutex<Tasks>,
 }
 
 impl AppState {
@@ -115,6 +127,10 @@ impl AppState {
                 user_id: token_claims.sub,
                 user_email: token_claims.email,
                 user_name: token_claims.name,
+                subscription_id: None,
+                status: None,
+                expires_at: None,
+                features: None,
             });
         }
 
@@ -130,6 +146,10 @@ impl AppState {
             secure_store: Mutex::new(secure_store),
             scheduler: Mutex::new(Scheduler::new()),
             license: Mutex::new(license),
+            tasks: Mutex::new(Tasks {
+                last_license_check: (Utc::now() - Duration::days(1)).naive_utc(),
+                last_login_check: (Utc::now() - Duration::days(1)).naive_utc(),
+            }),
         })
     }
 
@@ -171,7 +191,9 @@ impl AppState {
         }
     }
 
-    pub async fn logout(&self) -> Result<(), AppError> {
+    pub async fn logout(&self) -> Result<(), AuthError> {
+        self.reset_oauth_flow().await;
+
         let mut auth_guard = self.authentication.lock().await;
         let store_guard = self.secure_store.lock().await;
         let mut scheduler_guard = self.scheduler.lock().await;
@@ -183,7 +205,7 @@ impl AppState {
 
         store_guard.delete_entry()?;
 
-        scheduler_guard.stop_task(LOGIN_TASK_NAME.to_string());
+        scheduler_guard.stop_task(AUTH_TASK_NAME.to_string());
 
         Ok(())
     }

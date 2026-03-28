@@ -1,7 +1,6 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use dnkcore::auth::schedule_login_check;
 use dnkcore::commands::auth::*;
 use dnkcore::commands::config::*;
 use dnkcore::commands::database::*;
@@ -14,6 +13,7 @@ use dnkcore::menu::setup_menu;
 #[cfg(not(target_os = "windows"))]
 use dnkcore::server::{get_linux_file_url, setup_webserver};
 use dnkcore::state::AppState;
+use dnkcore::tasks::schedule_auth_task;
 use tauri::Manager;
 use tauri_plugin_deep_link::DeepLinkExt;
 
@@ -69,7 +69,7 @@ fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
                 tokio::spawn(process_deeplinks(handle, event.urls()));
             });
 
-            tokio::spawn(schedule_login_check(app_handle.clone()));
+            tokio::spawn(schedule_auth_task(app_handle.clone()));
 
             Ok(())
         })
