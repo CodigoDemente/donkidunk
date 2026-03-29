@@ -147,25 +147,6 @@ describe('Exporting', () => {
 		it('should start with exportProgress 0', () => {
 			expect(ctx.exportProgress).toBe(0);
 		});
-
-		it('should start with exportMode rule-order', () => {
-			expect(ctx.exportMode).toBe('rule-order');
-		});
-	});
-
-	// ── setExportMode ────────────────────────────────────────────────────────
-
-	describe('setExportMode', () => {
-		it('should set export mode to manual', () => {
-			ctx.setExportMode('manual');
-			expect(ctx.exportMode).toBe('manual');
-		});
-
-		it('should set export mode back to rule-order', () => {
-			ctx.setExportMode('manual');
-			ctx.setExportMode('rule-order');
-			expect(ctx.exportMode).toBe('rule-order');
-		});
 	});
 
 	// ── setExportProgress ────────────────────────────────────────────────────
@@ -578,7 +559,6 @@ describe('Exporting', () => {
 		it('should reset all state to initial values', () => {
 			ctx.newRule.include = 'btn-1';
 			ctx.addRule();
-			ctx.setExportMode('manual');
 			ctx.setExportProgress(50);
 			ctx.addClipToOrder(createGalleryClip());
 
@@ -589,7 +569,6 @@ describe('Exporting', () => {
 			expect(ctx.clipsOrdered).toEqual([]);
 			expect(ctx.loading).toBe(false);
 			expect(ctx.exportProgress).toBe(0);
-			expect(ctx.exportMode).toBe('rule-order');
 			expect(ctx.newRule).toEqual({
 				type: CategoryType.Event,
 				include: '',

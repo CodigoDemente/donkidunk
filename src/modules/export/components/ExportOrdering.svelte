@@ -162,14 +162,13 @@
 		</div>
 	</div>
 
-	<!-- Export order timeline (drop zone) — horizontal wrapping cards with vertical scroll -->
-	<div class="flex shrink-0 flex-col" style="max-height: 40vh;">
+	<!-- Export order timeline: fixed height so layout does not jump when clips are added -->
+	<div class="flex shrink-0 flex-col">
 		<p class="mb-2 text-sm font-semibold text-gray-300">Export Order</p>
 		<div
-			class="flex-1 overflow-y-auto rounded-lg border-2 border-dashed p-3 transition-colors {isDragOverTimeline
+			class="flex min-h-42 flex-col overflow-y-auto rounded-lg border-2 border-dashed p-3 transition-colors {isDragOverTimeline
 				? 'border-blue-400 bg-blue-900/10'
 				: 'border-gray-600 bg-gray-800/50'}"
-			style="min-height: 160px;"
 			ondragover={handleTimelineDragOver}
 			ondragleave={handleTimelineDragLeave}
 			ondrop={handleTimelineDrop}
@@ -177,9 +176,9 @@
 			aria-label="Export order timeline"
 		>
 			{#if exporting.clipsOrdered.length === 0}
-				<p class="w-full py-8 text-center text-sm text-gray-500">
-					Drag clips here to set the export order
-				</p>
+				<div class="flex min-h-0 flex-1 flex-col items-center justify-center px-2 text-center">
+					<p class="text-sm text-gray-500">Drag clips here to set the export order</p>
+				</div>
 			{:else}
 				<div class="flex flex-wrap gap-3">
 					{#each exporting.clipsOrdered as clip, idx (idx)}

@@ -29,8 +29,6 @@ export type ExportClip = GalleryClip & {
 	title?: string;
 };
 
-export type ExportMode = 'rule-order' | 'manual';
-
 export type ExportContextState = {
 	rules: ExportingRule[];
 	galleryClips: GalleryClip[];

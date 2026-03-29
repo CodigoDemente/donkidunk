@@ -4,7 +4,7 @@ import type { Button } from '../board/types/Button';
 import type { Tag } from '../board/types/Tag';
 import { boardContext } from '../board/context.svelte';
 import { timelineContext } from '../videoplayer/context.svelte';
-import type { ExportingRule, ExportMode, GalleryClip } from './types';
+import type { ExportingRule, GalleryClip } from './types';
 import { Channel } from '@tauri-apps/api/core';
 import { projectActions } from '../../persistence/stores/project/actions';
 import { path } from '@tauri-apps/api';
@@ -34,7 +34,6 @@ export class Exporting {
 	#clipsOrdered = $state<GalleryClip[]>([]);
 	#exportProgress = $state(0);
 	#newRule = $state<ExportingRule>({ ...initialRule });
-	#exportMode = $state<ExportMode>('rule-order');
 
 	/* Actions */
 
@@ -45,11 +44,6 @@ export class Exporting {
 		this.#loading = false;
 		this.#exportProgress = 0;
 		this.#newRule = { ...initialRule };
-		this.#exportMode = 'rule-order';
-	}
-
-	setExportMode(mode: ExportMode) {
-		this.#exportMode = mode;
 	}
 
 	setExportProgress(exportProgress: number) {
@@ -182,10 +176,6 @@ export class Exporting {
 
 	get newRule() {
 		return this.#newRule;
-	}
-
-	get exportMode() {
-		return this.#exportMode;
 	}
 
 	/**

@@ -15,7 +15,7 @@
 	let { context, tagsList, buttonsList }: Props = $props();
 </script>
 
-<div class="relative min-h-[200px]">
+<div class="relative mt-4 min-h-[200px]">
 	<table class="w-full border border-gray-600">
 		<thead class="sticky top-0 z-10 bg-gray-800">
 			<tr>
@@ -95,8 +95,4 @@
 			{/if}
 		</tbody>
 	</table>
-	<p class="mt-2 text-sm text-gray-400">
-		* The videos will be exported in the order the rules are listed in the table (soon you will be
-		able to choose a custom order from the videos extracted).
-	</p>
 </div>
