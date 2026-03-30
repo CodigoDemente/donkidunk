@@ -4,23 +4,34 @@
 	import { IconX } from '@tabler/icons-svelte';
 	import ExportClipCard from './ExportClipCard.svelte';
 	import ClipPreviewModal from './ClipPreviewModal.svelte';
-	import { exportContext } from '../context.svelte';
 	import type { GalleryClip } from '../types';
 	import { SvelteSet } from 'svelte/reactivity';
 
 	interface Props {
 		videoPath: string;
+		loading: boolean;
+		removeClipFromOrder: (idx: number) => void;
+		reorderClip: (fromIdx: number, toIdx: number) => void;
+		addClipToOrder: (clip: GalleryClip) => void;
+		clipsOrdered: GalleryClip[];
+		galleryClips: GalleryClip[];
 	}
 
-	let { videoPath }: Props = $props();
+	let {
+		videoPath,
+		loading,
+		removeClipFromOrder,
+		reorderClip,
+		addClipToOrder,
+		clipsOrdered,
+		galleryClips
+	}: Props = $props();
 
 	const videoSrc = $derived(
 		platform() !== 'windows'
 			? 'http://localhost:16780/?file=' + encodeURIComponent(videoPath)
 			: convertFileSrc(videoPath)
 	);
-
-	const exporting = exportContext.get();
 
 	let hideDuplicates = $state(false);
 	let isDragOverTimeline = $state(false);
@@ -29,7 +40,7 @@
 	let previewClip = $state<GalleryClip | null>(null);
 
 	const visibleClips = $derived.by(() => {
-		const clips = exporting.galleryClips;
+		const clips = galleryClips;
 		if (!hideDuplicates) {
 			return clips;
 		}
@@ -42,6 +53,23 @@
 			seen.add(key);
 			return true;
 		});
+	});
+
+	const totalDuration = $derived(() => {
+		const totalSeconds = clipsOrdered.reduce((sum, clip) => {
+			return sum + (clip.timestamps[1] - clip.timestamps[0]);
+		}, 0);
+
+		const minutes = Math.floor(totalSeconds / 60);
+		const seconds = Math.round(totalSeconds % 60);
+
+		if (minutes === 0) {
+			return `${seconds}`;
+		} else if (seconds === 0) {
+			return `${minutes}'`;
+		} else {
+			return `${minutes}'${seconds}`;
+		}
 	});
 
 	function handleClipDragStart(e: DragEvent, clip: GalleryClip) {
@@ -79,9 +107,9 @@
 		const clipIndexStr = e.dataTransfer?.getData('application/x-clip-index');
 		if (!clipIndexStr) return;
 		const clipIndex = Number(clipIndexStr);
-		const clip = exporting.galleryClips.find((c) => c.index === clipIndex);
+		const clip = galleryClips.find((c) => c.index === clipIndex);
 		if (clip) {
-			exporting.addClipToOrder(clip);
+			addClipToOrder(clip);
 		}
 	}
 
@@ -97,7 +125,7 @@
 		dragOverIdx = null;
 
 		if (dragFromOrderIdx !== null) {
-			exporting.reorderClip(dragFromOrderIdx, toIdx);
+			reorderClip(dragFromOrderIdx, toIdx);
 			dragFromOrderIdx = null;
 			return;
 		}
@@ -105,9 +133,9 @@
 		const clipIndexStr = e.dataTransfer?.getData('application/x-clip-index');
 		if (!clipIndexStr) return;
 		const clipIndex = Number(clipIndexStr);
-		const clip = exporting.galleryClips.find((c) => c.index === clipIndex);
+		const clip = galleryClips.find((c) => c.index === clipIndex);
 		if (clip) {
-			exporting.addClipToOrder(clip);
+			addClipToOrder(clip);
 		}
 	}
 
@@ -122,7 +150,7 @@
 	<!-- Gallery of available clips -->
 	<div class="flex min-h-0 flex-1 flex-col gap-2">
 		<div class="flex shrink-0 items-center justify-between">
-			<p class="text-sm font-semibold text-gray-300">Available Clips</p>
+			<p class="text-base font-semibold text-gray-300">Available Clips</p>
 			<label class="flex cursor-pointer items-center gap-2 text-sm text-gray-400">
 				<input
 					type="checkbox"
@@ -134,7 +162,7 @@
 		</div>
 
 		<div class="flex-1 overflow-y-auto pr-1">
-			{#if exporting.loading}
+			{#if loading}
 				<div class="flex items-center justify-center py-12">
 					<div
 						class="border-tertiary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent"
@@ -164,7 +192,9 @@
 
 	<!-- Export order timeline: fixed height so layout does not jump when clips are added -->
 	<div class="flex shrink-0 flex-col">
-		<p class="mb-2 text-sm font-semibold text-gray-300">Export Order</p>
+		<p class="mb-2 text-base font-semibold text-gray-300">
+			Export Order <span class="text-tertiary text-sm">({totalDuration()})</span>
+		</p>
 		<div
 			class="flex min-h-42 flex-col overflow-y-auto rounded-lg border-2 border-dashed p-3 transition-colors {isDragOverTimeline
 				? 'border-blue-400 bg-blue-900/10'
@@ -175,13 +205,13 @@
 			role="list"
 			aria-label="Export order timeline"
 		>
-			{#if exporting.clipsOrdered.length === 0}
+			{#if clipsOrdered.length === 0}
 				<div class="flex min-h-0 flex-1 flex-col items-center justify-center px-2 text-center">
 					<p class="text-sm text-gray-500">Drag clips here to set the export order</p>
 				</div>
 			{:else}
 				<div class="flex flex-wrap gap-3">
-					{#each exporting.clipsOrdered as clip, idx (idx)}
+					{#each clipsOrdered as clip, idx (idx)}
 						<div
 							class="flex w-40 shrink-0 cursor-grab flex-col overflow-hidden rounded-lg border transition-colors active:cursor-grabbing {dragOverIdx ===
 							idx
@@ -208,7 +238,7 @@
 								</span>
 								<button
 									class="absolute top-1 right-1 flex h-5 w-5 cursor-pointer items-center justify-center rounded bg-black/70 text-gray-300 transition-colors hover:text-red-400"
-									onclick={() => exporting.removeClipFromOrder(idx)}
+									onclick={() => removeClipFromOrder(idx)}
 									title="Remove from timeline"
 								>
 									<IconX size={12} />

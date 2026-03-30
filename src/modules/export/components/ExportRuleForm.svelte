@@ -31,7 +31,7 @@
 
 	<div class="grid grid-cols-2 gap-4">
 		<div class="flex flex-col gap-2">
-			<p class="text-base text-gray-200">Select the event you want to appear:</p>
+			<p class="text-base text-gray-200">Select the event</p>
 			<div class="grid max-h-58 grid-cols-2 gap-2 overflow-y-auto">
 				{#each eventButtons as eventButton (eventButton.id)}
 					<label
@@ -55,7 +55,7 @@
 			</div>
 		</div>
 		<div class="flex flex-col gap-2">
-			<p class="text-base text-gray-200">Select the related tags:</p>
+			<p class="text-base text-gray-200">Select the related tags</p>
 			<Multiselect
 				options={tagMultiselectOptions}
 				size="full"

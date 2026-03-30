@@ -8,6 +8,7 @@
 	import { exportContext } from './context.svelte';
 	import { boardContext } from '../board/context.svelte';
 	import { IconLayoutGrid } from '@tabler/icons-svelte';
+	import type { GalleryClip } from './types';
 
 	const projectStore = ProjectStore.getState();
 
@@ -28,13 +29,25 @@
 		step = 2;
 		await exporting.getGalleryClips();
 	}
+
+	async function addClipToExportTimeline(clip: GalleryClip) {
+		await exporting.addClipToOrder(clip);
+	}
+
+	async function removeClipFromTimlime(index: number) {
+		await exporting.removeClipFromOrder(index);
+	}
+
+	async function reorderClipFromTimeline(fromIdx: number, toIdx: number) {
+		await exporting.reorderClip(fromIdx, toIdx);
+	}
 </script>
 
 <div class="flex h-full w-full flex-col gap-1 p-4 text-gray-200">
-	<div class="text-base text-gray-400">
-		<p class="font-medium text-gray-300">First, choose the events you want to export:</p>
-	</div>
 	{#if step === 1}
+		<p class="text-base text-gray-200">
+			First, add rules to choose the sequences you want to export
+		</p>
 		<!-- Step 1: Rules -->
 		<ExportRuleForm
 			addRule={() => exporting.addRule()}
@@ -104,7 +117,15 @@
 	{:else}
 		<!-- Step 2: Ordering -->
 		<div class="flex min-h-0 flex-1 flex-col">
-			<ExportOrdering videoPath={projectStore.video.path!} />
+			<ExportOrdering
+				loading={exporting.loading}
+				removeClipFromOrder={removeClipFromTimlime}
+				reorderClip={reorderClipFromTimeline}
+				addClipToOrder={addClipToExportTimeline}
+				clipsOrdered={exporting.clipsOrdered}
+				galleryClips={exporting.galleryClips}
+				videoPath={projectStore.video.path!}
+			/>
 		</div>
 		<ExportProgress />
 		<div class="flex items-center justify-between">
