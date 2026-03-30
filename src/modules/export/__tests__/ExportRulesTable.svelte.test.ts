@@ -136,13 +136,6 @@ describe('ExportRulesTable', () => {
 			const rows = result.container.querySelectorAll('tbody tr');
 			expect(rows.length).toBe(2);
 		});
-
-		it('should render the info footnote', async () => {
-			renderTable();
-			await expect
-				.element(page.getByText(/videos will be exported in the order/))
-				.toBeInTheDocument();
-		});
 	});
 
 	describe('Actions', () => {

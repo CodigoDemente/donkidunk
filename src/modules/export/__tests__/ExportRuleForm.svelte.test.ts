@@ -42,14 +42,12 @@ describe('ExportRuleForm', () => {
 	describe('Rendering', () => {
 		it('should render the event selection label', async () => {
 			renderForm();
-			await expect
-				.element(page.getByText('Choose the event you want to appear:'))
-				.toBeInTheDocument();
+			await expect.element(page.getByText('Select the event')).toBeInTheDocument();
 		});
 
 		it('should render the tags selection label', async () => {
 			renderForm();
-			await expect.element(page.getByText('Choose the related tags:')).toBeInTheDocument();
+			await expect.element(page.getByText('Select the related tags')).toBeInTheDocument();
 		});
 
 		it('should render the add rule button', async () => {
