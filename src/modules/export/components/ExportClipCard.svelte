@@ -56,24 +56,26 @@
 	</div>
 
 	<!-- Info area -->
-	<div class="flex flex-col gap-1 p-2">
-		<p class="truncate text-sm font-semibold text-gray-200">{clip.index + 1}</p>
+	<div class="flex flex-1 flex-col gap-2 overflow-y-auto p-2">
+		<div class="flex items-center gap-2">
+			<p class="text-tertiary text-sm font-semibold">{clip.index + 1} -</p>
+			<p class="text-sm text-gray-200">
+				{formatTime(clip.timestamps[0])} - {formatTime(clip.timestamps[1])}
+			</p>
+		</div>
 		<div
-			class="w-fit rounded-sm px-2 py-1 text-sm font-medium"
+			class="w-fit rounded-sm px-2 py-0.5 text-sm font-medium"
 			style={`
-			background-color: ${clip.buttonColor};
-			color: ${getTextColorForBackground(clip.buttonColor)};
-			`}
+				background-color: ${clip.buttonColor};
+				color: ${getTextColorForBackground(clip.buttonColor)};
+				`}
 		>
 			{clip.buttonName} ({clip.categoryName})
 		</div>
-		<p class="text-xs text-gray-500">
-			{formatTime(clip.timestamps[0])} - {formatTime(clip.timestamps[1])}
-		</p>
 		{#if clip.tags.length > 0}
-			<div class="mt-1 flex flex-wrap gap-1">
+			<div class="mt-1 flex max-h-15 flex-wrap gap-1">
 				{#each clip.tags as tag (tag.id)}
-					<Tag color={tag.color} text={tag.name} />
+					<Tag mini color={tag.color} text={tag.name} />
 				{/each}
 			</div>
 		{/if}
