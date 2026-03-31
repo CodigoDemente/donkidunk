@@ -9,6 +9,7 @@ import { cutVideo } from '../commands/CutVideo';
 import { exportActions } from '../../../persistence/stores/export/actions';
 import { projectActions } from '../../../persistence/stores/project/actions';
 import { feedbackMessages } from '../../../utils/messages';
+import { SubscriptionInactive } from '$lib/errors/subscriptionErrors';
 
 export async function exportVideo(
 	videoPath: string,
@@ -45,8 +46,11 @@ export async function exportVideo(
 		await cutVideo(videoPath, outPath, ranges, onEvent);
 		projectActions.setSnackbar(feedbackMessages.EXPORT_SUCCESS);
 	} catch (err) {
-		error(`Export failed: ${err}`);
-		projectActions.setSnackbar(feedbackMessages.EXPORT_ERROR);
+		error(`Error exporting video: ${err}`);
+
+		if (!(err instanceof SubscriptionInactive)) {
+			projectActions.setSnackbar(feedbackMessages.EXPORT_ERROR);
+		}
 	} finally {
 		exportActions.setExporting(false);
 	}

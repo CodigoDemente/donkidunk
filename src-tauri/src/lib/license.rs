@@ -26,7 +26,7 @@ pub struct StoredLicenseCredential {
     pub status: SubscriptionStatus,
     pub expires_at: i64, //Millis
     pub checked_at: i64, // Millis
-    pub features: Vec<String>,
+    pub features: Vec<SubscriptionEntitlement>,
 }
 
 #[derive(Clone, Serialize)]
@@ -35,7 +35,7 @@ struct LicenseStateEvent {
     subscription_id: String,
     status: String,
     expires_at: i64,
-    features: Vec<String>,
+    features: Vec<SubscriptionEntitlement>,
 }
 
 #[derive(Deserialize, Clone)]
@@ -84,12 +84,72 @@ impl From<String> for SubscriptionStatus {
     }
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum SubscriptionEntitlement {
+    TextOnExport,
+    SaveButtonBoard,
+    ViewPresetProboard,
+    TagsView,
+    ClipGallery,
+    MetricsExport,
+    Unknown,
+}
+
+impl Display for SubscriptionEntitlement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let value = match self {
+            Self::TextOnExport => "text_on_export",
+            Self::SaveButtonBoard => "save_button_board",
+            Self::ViewPresetProboard => "view_preset_proboard",
+            Self::TagsView => "tags_view",
+            Self::ClipGallery => "clip_gallery",
+            Self::MetricsExport => "metrics_expor",
+            Self::Unknown => "unknown",
+        };
+
+        write!(f, "{value}")
+    }
+}
+
+impl From<String> for SubscriptionEntitlement {
+    fn from(value: String) -> Self {
+        value.as_str().into()
+    }
+}
+
+impl From<&String> for SubscriptionEntitlement {
+    fn from(value: &String) -> Self {
+        value.as_str().into()
+    }
+}
+
+impl From<&str> for SubscriptionEntitlement {
+    fn from(value: &str) -> Self {
+        if value == "text_on_export" {
+            Self::TextOnExport
+        } else if value == "save_button_board" {
+            Self::SaveButtonBoard
+        } else if value == "view_preset_proboard" {
+            Self::ViewPresetProboard
+        } else if value == "tags_view" {
+            Self::TagsView
+        } else if value == "clip_gallery" {
+            Self::ClipGallery
+        } else if value == "metrics_expor" {
+            Self::MetricsExport
+        } else {
+            Self::Unknown
+        }
+    }
+}
+
 #[derive(Clone)]
 pub struct Subscription {
     pub subscription_id: Uuid,
     pub subscription_status: SubscriptionStatus,
     pub next_billing_date: DateTime<Utc>,
-    pub features: Vec<String>,
+    pub features: Vec<SubscriptionEntitlement>,
 }
 
 pub fn build_license_url(user_id: &str) -> String {
@@ -161,12 +221,17 @@ pub async fn get_user_license(
     };
 
     let subscription_status = SubscriptionStatus::from(subscription_data.subscription_status);
+    let features = subscription_data
+        .features
+        .iter()
+        .map(SubscriptionEntitlement::from)
+        .collect();
 
     Ok(Subscription {
         subscription_id,
         subscription_status,
         next_billing_date,
-        features: subscription_data.features,
+        features,
     })
 }
 

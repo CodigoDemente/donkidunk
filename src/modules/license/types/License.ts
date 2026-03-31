@@ -11,7 +11,7 @@ export type License = {
 	id: string;
 	status: SubscriptionStatus;
 	expiresAt: SvelteDate;
-	features: string[];
+	features: SubscriptionEntitlement[];
 };
 
 export enum SubscriptionStatus {
@@ -19,4 +19,14 @@ export enum SubscriptionStatus {
 	Inactive,
 	Paused,
 	Trialing
+}
+
+export enum SubscriptionEntitlement {
+	TextOnExport = 'text_on_export',
+	SaveButtonBoard = 'save_button_board',
+	ViewPresetProboard = 'view_preset_proboard',
+	TagsView = 'tags_view',
+	ClipGallery = 'clip_gallery',
+	MetricsExport = 'metrics_export',
+	Unknown = 'unknown'
 }

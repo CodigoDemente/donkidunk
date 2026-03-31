@@ -2,7 +2,7 @@ use serde::Serialize;
 
 use crate::{
     errors::{AppError, AuthError, LicenseError},
-    license::SubscriptionStatus,
+    license::{SubscriptionEntitlement, SubscriptionStatus},
     state::AppState,
 };
 
@@ -12,7 +12,7 @@ pub struct License {
     id: String,
     status: SubscriptionStatus,
     expires_at: i64,
-    features: Vec<String>,
+    features: Vec<SubscriptionEntitlement>,
 }
 
 #[tauri::command]

@@ -11,7 +11,10 @@ use crate::{
     auth::{AUTH_CREDENTIAL, decode_token, retrieve_credentials},
     configmanager::ConfigManager,
     errors::{AppError, AuthError},
-    license::{LICENSE_CREDENTIAL, SubscriptionStatus, retrieve_license_credential},
+    license::{
+        LICENSE_CREDENTIAL, SubscriptionEntitlement, SubscriptionStatus,
+        retrieve_license_credential,
+    },
     scheduler::Scheduler,
     securestore::SecureStore,
     tasks::{AUTH_TASK_NAME, LICENSE_RENEWAL_TASK_NAME},
@@ -42,7 +45,7 @@ pub struct License {
     pub subscription_id: Option<String>,
     pub expires_at: Option<DateTime<Utc>>,
     pub status: Option<SubscriptionStatus>,
-    pub features: Option<Vec<String>>,
+    pub features: Option<Vec<SubscriptionEntitlement>>,
 }
 
 pub struct Tasks {
