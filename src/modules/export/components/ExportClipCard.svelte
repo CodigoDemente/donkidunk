@@ -15,6 +15,33 @@
 
 	const thumbnailSrc = $derived(`${videoSrc}#t=${clip.timestamps[0]}`);
 
+	let thumbnailRoot: HTMLDivElement | undefined = $state();
+	let shouldLoadThumbnail = $state(false);
+	let thumbnailReady = $state(false);
+
+	$effect(() => {
+		void thumbnailSrc;
+		thumbnailReady = false;
+	});
+
+	$effect(() => {
+		const el = thumbnailRoot;
+		if (!el) return;
+
+		const io = new IntersectionObserver(
+			(entries) => {
+				if (entries[0]?.isIntersecting) {
+					shouldLoadThumbnail = true;
+					io.disconnect();
+				}
+			},
+			{ root: null, rootMargin: '180px 0px', threshold: 0 }
+		);
+
+		io.observe(el);
+		return () => io.disconnect();
+	});
+
 	function formatTime(seconds: number): string {
 		const mins = Math.floor(seconds / 60);
 		const secs = Math.floor(seconds % 60);
@@ -36,17 +63,32 @@
 	role="listitem"
 >
 	<!-- Thumbnail area (paused <video> at the clip start, not playable) -->
-	<div class="relative aspect-video w-full overflow-hidden bg-black">
-		<video
-			src={thumbnailSrc}
-			class="pointer-events-none h-full w-full object-contain"
-			preload="metadata"
-			muted
-		></video>
+	<div bind:this={thumbnailRoot} class="relative aspect-video w-full overflow-hidden bg-black">
+		{#if !thumbnailReady}
+			<div class="absolute inset-0 z-10 animate-pulse bg-gray-900" aria-hidden="true"></div>
+		{/if}
+
+		{#if shouldLoadThumbnail}
+			<video
+				src={thumbnailSrc}
+				class="pointer-events-none h-full w-full object-contain transition-opacity duration-200 {thumbnailReady
+					? 'opacity-100'
+					: 'opacity-0'}"
+				preload="metadata"
+				muted
+				playsinline
+				onloadeddata={() => {
+					thumbnailReady = true;
+				}}
+				onerror={() => {
+					thumbnailReady = true;
+				}}
+			></video>
+		{/if}
 
 		{#if onExpand}
 			<div
-				class="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 transition-opacity group-hover/card:opacity-100"
+				class="absolute inset-0 z-20 flex items-center justify-center bg-black/30 opacity-0 transition-opacity group-hover/card:opacity-100"
 			>
 				<div class="flex h-10 w-10 items-center justify-center rounded-full bg-black/60 text-white">
 					<IconArrowsMaximize size={20} />
