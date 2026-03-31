@@ -87,13 +87,13 @@ pub enum DatabaseError {
     PendingReferences,
 }
 
-#[derive(Debug, Error)]
+#[derive(Debug, Error, PartialEq, Eq)]
 pub enum CsvError {
     #[error("[csv] ERROR while writing CSV file: {0}")]
     WriteError(String),
 }
 
-#[derive(Debug, Error)]
+#[derive(Debug, Error, PartialEq, Eq)]
 pub enum AuthError {
     #[error("[auth] Error processing deepling: {0}")]
     DeeplinkMalformed(String),
@@ -126,7 +126,7 @@ pub enum AuthError {
     LicenseError(#[from] LicenseError),
 }
 
-#[derive(Debug, Error)]
+#[derive(Debug, Error, PartialEq, Eq)]
 pub enum LicenseError {
     #[error("[license] Error processing request response")]
     BodyError,
@@ -139,6 +139,12 @@ pub enum LicenseError {
 
     #[error("[license] Invalid request")]
     InvalidRequest,
+
+    #[error("[license] Subscription inactive")]
+    SubscriptionInactive,
+
+    #[error("[license] No license data present")]
+    NoLicenseData,
 
     #[error("[license] Unexepected error while getting the user license")]
     Unexepected,

@@ -6,6 +6,7 @@ import { ask } from '@tauri-apps/plugin-dialog';
 import { closeDatabase, dumpIntoOriginalDatabase } from '../../../persistence/database/actions';
 import { remove } from '@tauri-apps/plugin-fs';
 import { UndoManagerFactory } from '../../../persistence/undo/UndoManagerFactory';
+import { disableCloseProject, disableImportVideo, disableSaveButtonBoard } from './enableItems';
 
 export async function closeProject(board: Board, timeline: Timeline) {
 	debug('Close project action triggered');
@@ -18,6 +19,10 @@ export async function closeProject(board: Board, timeline: Timeline) {
 
 	const undoManager = UndoManagerFactory.getInstance();
 	undoManager.clear();
+
+	await disableImportVideo();
+	await disableCloseProject();
+	await disableSaveButtonBoard();
 }
 
 export async function closeDatabaseAndSaveChanges() {

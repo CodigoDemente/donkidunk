@@ -12,7 +12,7 @@ const initialState: ConfigData = {
 	}
 };
 
-export const configContext = new Context<Config>('');
+export const configContext = new Context<Config>('config');
 
 export class Config {
 	#state = $state<ConfigData>(initialState);

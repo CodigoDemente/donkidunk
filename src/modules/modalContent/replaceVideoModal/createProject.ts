@@ -3,7 +3,11 @@ import { v7 as uuidv7 } from 'uuid';
 import { createBackupDatabase } from '../../../persistence/database/actions';
 import { projectActions } from '../../../persistence/stores/project/actions';
 import type { ButtonBoard } from '../../config/types/ButtonBoard';
-import { enableCloseProject, enableImportVideo } from '../../menu/operations/enableItems';
+import {
+	enableCloseProject,
+	enableImportVideo,
+	enableSaveButtonBoard
+} from '../../menu/operations/enableItems';
 import { selectProjectPath } from '../../menu/operations/selectProjectPath';
 import { readFile } from '@tauri-apps/plugin-fs';
 import type { BoardData } from '../../board/types/Board';
@@ -59,6 +63,7 @@ export async function createNewProject(
 
 	await enableImportVideo();
 	await enableCloseProject();
+	await enableSaveButtonBoard();
 }
 
 async function loadButtonBoardIntoProject(buttonBoard: ButtonBoard, board: Board) {

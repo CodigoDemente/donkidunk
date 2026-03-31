@@ -70,11 +70,11 @@
 			<button
 				class={`
 				${disabled ? 'cursor-not-allowed opacity-50' : 'hover:cursor-pointer'}
-				${isActive('/export') ? 'bg-tertiary text-white' : 'text-white'}
+				${isActive('/(workspace)/export') ? 'bg-tertiary text-white' : 'text-white'}
 				flex items-center justify-center gap-2 rounded-sm p-1.5`}
 				type="button"
 				{disabled}
-				onclick={() => navigateTo('/export')}
+				onclick={() => navigateTo('/(workspace)/export')}
 			>
 				<span class="h-4 text-sm">Export</span>
 			</button>
@@ -83,11 +83,11 @@
 			<button
 				class={`
 					${disabled ? 'cursor-not-allowed opacity-50' : 'hover:cursor-pointer'}
-					${isActive('/metrics') ? 'bg-tertiary text-white' : 'text-white'}
+					${isActive('/(workspace)/metrics') ? 'bg-tertiary text-white' : 'text-white'}
 					flex items-center justify-center gap-2 rounded-sm p-1.5`}
 				type="button"
 				{disabled}
-				onclick={() => navigateTo('/metrics')}
+				onclick={() => navigateTo('/(workspace)/metrics')}
 			>
 				<span class="h-4 text-sm">Metrics</span>
 			</button>

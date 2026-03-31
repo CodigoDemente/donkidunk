@@ -10,7 +10,7 @@ import {
 	openDatabase,
 	restoreBackup
 } from '../../../persistence/database/actions';
-import { enableCloseProject, enableImportVideo } from './enableItems';
+import { enableCloseProject, enableImportVideo, enableSaveButtonBoard } from './enableItems';
 import { ProjectRepositoryFactory } from '../../../factories/ProjectRepositoryFactory';
 import ProjectStore from '../../../persistence/stores/project/store.svelte';
 import { projectActions } from '../../../persistence/stores/project/actions';
@@ -108,4 +108,5 @@ export async function openProject(board: Board, timeline: Timeline, config: Conf
 
 	await enableImportVideo();
 	await enableCloseProject();
+	await enableSaveButtonBoard();
 }

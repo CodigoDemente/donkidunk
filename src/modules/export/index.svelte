@@ -16,7 +16,7 @@
 	const timelineRepository = TimelineRepositoryFactory.getInstance();
 	const projectStore = ProjectStore.getState();
 
-	const context = new ExportContext(board, timeline);
+	let context = new ExportContext(board, timeline);
 
 	async function onExport() {
 		await exportVideo(projectStore.video.path!, context.rules, timelineRepository);
@@ -33,7 +33,7 @@
 	</div>
 
 	<!-- Form always visible at the bottom -->
-	<ExportRuleForm {context} />
+	<ExportRuleForm bind:context />
 
 	<Button
 		customClass="self-center my-8"

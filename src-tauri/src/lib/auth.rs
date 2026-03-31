@@ -3,7 +3,7 @@ use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode};
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Emitter, Manager, Runtime, Url};
 
-use log::error;
+use log::{debug, error, warn};
 use tokio::sync::MutexGuard;
 
 use crate::{
@@ -18,14 +18,16 @@ use crate::{
     tasks::schedule_auth_task,
 };
 
+pub const AUTH_CREDENTIAL: &str = "oauth";
+
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 struct LoginStateEvent {
     is_authenticated: bool,
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct StoredCredentials {
+#[derive(Debug, Serialize, Deserialize)]
+pub struct StoredAuthCredentials {
     pub access_token: String,
     pub refresh_token: String,
     pub expires_at: i64, //Millis
@@ -42,6 +44,7 @@ pub struct Claims {
     pub email: String,
 }
 
+#[derive(Clone)]
 pub struct UserData {
     pub user_id: String,
     pub user_email: String,
@@ -97,7 +100,7 @@ pub async fn handle_return_url<R: Runtime>(app: AppHandle<R>, url: Url) -> Resul
 
     let exchanged_tokens = exchange_token(payload).await?;
 
-    let token_claims = decode_token(&app_state.jwt_key, &exchanged_tokens.access_token)?;
+    let token_claims = decode_token(&app_state.jwt_key, &exchanged_tokens.access_token, false)?;
 
     let subscription_data =
         get_user_license(token_claims.sub.clone(), &exchanged_tokens.access_token)
@@ -119,10 +122,23 @@ pub async fn handle_return_url<R: Runtime>(app: AppHandle<R>, url: Url) -> Resul
             .unwrap_or(Utc::now() - Duration::weeks(1)),
     };
 
-    {
+    if let Err(err) = {
         let license_guard = app_state.license.lock().await;
+        let store_guard = app_state.secure_store.lock().await;
 
-        store_license(user_data, subscription_data, license_guard);
+        store_license(user_data, subscription_data, license_guard, store_guard)
+    } {
+        warn!(
+            "Error storing license credential, deleting auth one. {}",
+            err
+        );
+
+        let store_guard = app_state.secure_store.lock().await;
+        let auth_guard = app_state.authentication.lock().await;
+
+        delete_credentials(auth_guard, store_guard)?;
+
+        return Err(err.into());
     }
 
     app_state.reset_oauth_flow().await;
@@ -138,18 +154,20 @@ pub async fn handle_return_url<R: Runtime>(app: AppHandle<R>, url: Url) -> Resul
     Ok(())
 }
 
-pub fn retrieve_credentials(secure_store: &SecureStore) -> Option<StoredCredentials> {
-    let Ok(stored_credentials) = secure_store.get_entry() else {
+pub fn retrieve_credentials(secure_store: &SecureStore) -> Option<StoredAuthCredentials> {
+    let Ok(stored_credentials) = secure_store.get_entry(AUTH_CREDENTIAL.to_string()) else {
         return None;
     };
 
-    let credentials = match serde_json::from_str::<StoredCredentials>(&stored_credentials) {
+    let credentials = match serde_json::from_str::<StoredAuthCredentials>(&stored_credentials) {
         Ok(credentials) => credentials,
         Err(e) => {
             error!("Error parsing credentials from store: {e}");
             return None;
         }
     };
+
+    debug!("[DEBUG] DESERIALIZED CREDENTIALS: {credentials:?}");
 
     Some(credentials)
 }
@@ -167,7 +185,7 @@ pub async fn refresh_access_token<R: Runtime>(
         let store_guard = app_state.secure_store.lock().await;
         store_credentials(new_tokens_result.clone(), auth_guard, store_guard)?;
 
-        decode_token(&app_state.jwt_key, &new_tokens_result.access_token)?
+        decode_token(&app_state.jwt_key, &new_tokens_result.access_token, false)?
     };
 
     Ok(RefreshTokenResponse {
@@ -179,19 +197,13 @@ pub async fn refresh_access_token<R: Runtime>(
 fn store_credentials(
     tokens: ExchangeTokenResponse,
     mut authentication_guard: MutexGuard<'_, Authentication>,
-    secure_store: MutexGuard<'_, SecureStore>,
+    mut secure_store: MutexGuard<'_, SecureStore>,
 ) -> Result<(), AuthError> {
-    authentication_guard.is_authenticated = true;
-    authentication_guard.access_token = tokens.access_token;
-    authentication_guard.refresh_token = tokens.refresh_token;
-    authentication_guard.expires_in = tokens.expires_in;
-    authentication_guard.expires_at = Utc::now() + Duration::seconds(tokens.expires_in);
-
-    let credentials = serde_json::to_string(&StoredCredentials {
-        access_token: authentication_guard.access_token.clone(),
-        refresh_token: authentication_guard.refresh_token.clone(),
-        expires_at: authentication_guard.expires_at.timestamp_millis(),
-        expires_in: authentication_guard.expires_in,
+    let credentials = serde_json::to_string(&StoredAuthCredentials {
+        access_token: tokens.access_token.clone(),
+        refresh_token: tokens.refresh_token.clone(),
+        expires_at: (Utc::now() + Duration::seconds(tokens.expires_in)).timestamp_millis(),
+        expires_in: tokens.expires_in,
     })
     .map_err(|e| {
         error!("Error serializing credentials: {e}");
@@ -199,15 +211,42 @@ fn store_credentials(
         AuthError::UnexepectedAuthError
     })?;
 
-    secure_store.create_entry(credentials)
+    secure_store.create_entry(AUTH_CREDENTIAL.to_string(), credentials)?;
+
+    authentication_guard.is_authenticated = true;
+    authentication_guard.access_token = tokens.access_token;
+    authentication_guard.refresh_token = tokens.refresh_token;
+    authentication_guard.expires_in = tokens.expires_in;
+    authentication_guard.expires_at = Utc::now() + Duration::seconds(tokens.expires_in);
+
+    Ok(())
 }
 
-pub fn decode_token(decoding_key: &DecodingKey, jwt: &str) -> Result<Claims, AuthError> {
+fn delete_credentials(
+    mut authentication_guard: MutexGuard<'_, Authentication>,
+    mut secure_store: MutexGuard<'_, SecureStore>,
+) -> Result<(), AuthError> {
+    authentication_guard.is_authenticated = false;
+    authentication_guard.access_token = String::default();
+    authentication_guard.refresh_token = String::default();
+    authentication_guard.expires_in = 0;
+    authentication_guard.expires_at = Utc::now() - Duration::days(1);
+
+    secure_store.delete_entry(AUTH_CREDENTIAL.to_string())
+}
+
+pub fn decode_token(
+    decoding_key: &DecodingKey,
+    jwt: &str,
+    allow_expired: bool,
+) -> Result<Claims, AuthError> {
+    debug!("[DEBUG] DECODING TOKEN: {jwt}");
+
     let mut validation = Validation::new(Algorithm::RS256);
 
     validation.set_required_spec_claims(&["iss"]);
     validation.set_issuer(&["donkidunk_api"]);
-    validation.validate_exp = false;
+    validation.validate_exp = !allow_expired;
 
     let token_data = match decode::<Claims>(jwt, decoding_key, &validation) {
         Ok(c) => c,

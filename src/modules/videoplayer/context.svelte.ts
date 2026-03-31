@@ -12,7 +12,7 @@ const initialState: TimelineData = {
 	eventTimeline: []
 };
 
-export const timelineContext = new Context<Timeline>('');
+export const timelineContext = new Context<Timeline>('timeline');
 
 export class Timeline {
 	#history!: StateHistory<TimelineData>;

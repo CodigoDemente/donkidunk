@@ -1,19 +1,41 @@
+use std::collections::HashMap;
+
 use keyring::{Entry, Error};
-use log::error;
+use log::{debug, error};
 
 use crate::errors::{AppError, AuthError};
 
 const SERVICE: &str = "donkidunk";
+const DEFAULT_TARGET: &str = "default";
 
 pub struct SecureStore {
-    credential: Entry,
+    credentials: HashMap<String, Entry>,
 }
 
 impl SecureStore {
     pub fn new(user: String) -> Result<Self, AppError> {
-        let credential = Entry::new(SERVICE, &user).map_err(SecureStore::map_err)?;
+        Self::new_with_target(user, DEFAULT_TARGET.to_string())
+    }
 
-        Ok(Self { credential })
+    pub fn new_with_targets(user: String, targets: Vec<String>) -> Result<Self, AppError> {
+        let mut credentials = HashMap::new();
+
+        for target in targets {
+            let credential =
+                Entry::new_with_target(&target, SERVICE, &user).map_err(Self::map_err)?;
+
+            credentials.insert(target, credential);
+        }
+
+        Ok(Self { credentials })
+    }
+
+    pub fn new_with_target(user: String, target: String) -> Result<Self, AppError> {
+        let credential = Entry::new_with_target(&target, SERVICE, &user).map_err(Self::map_err)?;
+        let mut credentials = HashMap::new();
+        credentials.insert(target.to_string(), credential);
+
+        Ok(Self { credentials })
     }
 
     fn map_err(error: Error) -> AuthError {
@@ -25,28 +47,38 @@ impl SecureStore {
         }
     }
 
-    pub fn create_entry(&self, value: String) -> Result<(), AuthError> {
-        self.credential
-            .set_password(&value)
-            .map_err(SecureStore::map_err)?;
+    pub fn create_entry(&mut self, target: String, value: String) -> Result<(), AuthError> {
+        debug!("[DEBUG] STORING CREDENTIAL: {value}");
+        if let Some(credential) = self.credentials.get_mut(&target) {
+            credential.set_password(&value).map_err(Self::map_err)?;
 
-        Ok(())
+            Ok(())
+        } else {
+            Err(AuthError::CredentialNotFound(target))
+        }
     }
 
-    pub fn get_entry(&self) -> Result<String, AuthError> {
-        self.credential.get_password().map_err(SecureStore::map_err)
+    pub fn get_entry(&self, target: String) -> Result<String, AuthError> {
+        if let Some(credential) = self.credentials.get(&target) {
+            let text = credential.get_password().map_err(Self::map_err)?;
+
+            debug!("[DEBUG] GETTING CREDENTIAL: {text}");
+
+            Ok(text)
+        } else {
+            Err(AuthError::CredentialNotFound(target))
+        }
     }
 
-    pub fn delete_entry(&self) -> Result<(), AuthError> {
-        let res = self
-            .credential
-            .delete_credential()
-            .map_err(SecureStore::map_err);
+    pub fn delete_entry(&mut self, target: String) -> Result<(), AuthError> {
+        if let Some(credential) = self.credentials.get(&target) {
+            let res = credential.delete_credential().map_err(Self::map_err);
 
-        if let Err(err) = res {
-            match err {
-                AuthError::CredentialNotFound(..) => return Ok(()),
-                e => return Err(e),
+            match res {
+                Ok(()) | Err(AuthError::CredentialNotFound(..)) => {
+                    return Ok(());
+                }
+                Err(err) => return Err(err),
             }
         }
 

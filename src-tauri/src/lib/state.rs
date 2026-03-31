@@ -8,13 +8,13 @@ use tauri::{App, Manager, Runtime};
 use tokio::sync::Mutex;
 
 use crate::{
-    auth::{decode_token, retrieve_credentials},
+    auth::{AUTH_CREDENTIAL, decode_token, retrieve_credentials},
     configmanager::ConfigManager,
     errors::{AppError, AuthError},
-    license::SubscriptionStatus,
+    license::{LICENSE_CREDENTIAL, SubscriptionStatus, retrieve_license_credential},
     scheduler::Scheduler,
     securestore::SecureStore,
-    tasks::AUTH_TASK_NAME,
+    tasks::{AUTH_TASK_NAME, LICENSE_RENEWAL_TASK_NAME},
     timelinerepository::TimelineRepository,
 };
 
@@ -33,13 +33,14 @@ pub struct Authentication {
     pub expires_in: i64,
 }
 
+#[derive(Debug)]
 pub struct License {
     pub last_validation: DateTime<Utc>,
     pub user_id: String,
     pub user_email: String,
     pub user_name: String,
     pub subscription_id: Option<String>,
-    pub expires_at: Option<NaiveDateTime>,
+    pub expires_at: Option<DateTime<Utc>>,
     pub status: Option<SubscriptionStatus>,
     pub features: Option<Vec<String>>,
 }
@@ -75,9 +76,10 @@ impl AppState {
             }
         };
 
-        let secure_store = SecureStore::new(username)?;
-
-        let stored_credentials = retrieve_credentials(&secure_store);
+        let secure_store = SecureStore::new_with_targets(
+            username,
+            vec![AUTH_CREDENTIAL.to_string(), LICENSE_CREDENTIAL.to_string()],
+        )?;
 
         let key_path = app.path().resolve(
             "assets/keys/public_key.pem",
@@ -110,28 +112,51 @@ impl AppState {
 
         let mut license = None;
 
-        if let Some(stored_credentials) = stored_credentials {
-            authentication.access_token = stored_credentials.access_token;
-            authentication.refresh_token = stored_credentials.refresh_token;
-            authentication.expires_at =
-                DateTime::from_timestamp_millis(stored_credentials.expires_at).unwrap_or_default();
-            authentication.expires_in = stored_credentials.expires_in;
+        let auth_credentials = retrieve_credentials(&secure_store);
 
-            authentication.is_authenticated = true;
+        if let Some(auth_credentials) = auth_credentials {
+            let token_claims = decode_token(&jwt_key, &auth_credentials.access_token, true);
+            match token_claims {
+                Ok(token_claims) => {
+                    authentication.access_token = auth_credentials.access_token;
+                    authentication.refresh_token = auth_credentials.refresh_token;
+                    authentication.expires_at =
+                        DateTime::from_timestamp_millis(auth_credentials.expires_at)
+                            .unwrap_or_default();
+                    authentication.expires_in = auth_credentials.expires_in;
 
-            let token_claims = decode_token(&jwt_key, &authentication.access_token)?;
+                    authentication.is_authenticated = true;
 
-            license = Some(License {
-                last_validation: DateTime::from_timestamp_secs(token_claims.iat)
-                    .unwrap_or(Utc::now() - Duration::weeks(1)),
-                user_id: token_claims.sub,
-                user_email: token_claims.email,
-                user_name: token_claims.name,
-                subscription_id: None,
-                status: None,
-                expires_at: None,
-                features: None,
-            });
+                    license = Some(License {
+                        last_validation: DateTime::from_timestamp_secs(token_claims.iat)
+                            .unwrap_or(Utc::now() - Duration::weeks(1)),
+                        user_id: token_claims.sub,
+                        user_email: token_claims.email,
+                        user_name: token_claims.name,
+                        subscription_id: None,
+                        status: None,
+                        expires_at: None,
+                        features: None,
+                    });
+                }
+                Err(err) => {
+                    error!("Error decoding stored auth credentials, ignoring them: {err}");
+                }
+            }
+        }
+
+        let license_credentials = retrieve_license_credential(&secure_store);
+
+        if let Some(license_credentials) = license_credentials
+            && let Some(license) = license.as_mut()
+        {
+            license.subscription_id = Some(license_credentials.subscription_id);
+            license.status = Some(license_credentials.status);
+            license.expires_at = DateTime::from_timestamp_millis(license_credentials.expires_at);
+            license.last_validation =
+                DateTime::from_timestamp_millis(license_credentials.checked_at)
+                    .unwrap_or(Utc::now() - Duration::days(1));
+            license.features = Some(license_credentials.features);
         }
 
         Ok(Self {
@@ -194,18 +219,30 @@ impl AppState {
     pub async fn logout(&self) -> Result<(), AuthError> {
         self.reset_oauth_flow().await;
 
-        let mut auth_guard = self.authentication.lock().await;
-        let store_guard = self.secure_store.lock().await;
+        {
+            let mut auth_guard = self.authentication.lock().await;
+            auth_guard.is_authenticated = false;
+            auth_guard.access_token = String::default();
+            auth_guard.refresh_token = String::default();
+            auth_guard.expires_at = Utc::now();
+        }
+
+        {
+            let mut license_guard = self.license.lock().await;
+            *license_guard = None;
+        }
+
+        {
+            let mut store_guard = self.secure_store.lock().await;
+            store_guard.delete_entry(AUTH_CREDENTIAL.to_string())?;
+            store_guard.delete_entry(LICENSE_CREDENTIAL.to_string())?;
+        }
+
         let mut scheduler_guard = self.scheduler.lock().await;
-
-        auth_guard.is_authenticated = false;
-        auth_guard.access_token = String::default();
-        auth_guard.refresh_token = String::default();
-        auth_guard.expires_at = Utc::now();
-
-        store_guard.delete_entry()?;
-
-        scheduler_guard.stop_task(AUTH_TASK_NAME.to_string());
+        scheduler_guard.stop_task(AUTH_TASK_NAME.to_string()).await;
+        scheduler_guard
+            .stop_task(LICENSE_RENEWAL_TASK_NAME.to_string())
+            .await;
 
         Ok(())
     }

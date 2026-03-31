@@ -4,6 +4,7 @@
 use dnkcore::commands::auth::*;
 use dnkcore::commands::config::*;
 use dnkcore::commands::database::*;
+use dnkcore::commands::license::*;
 use dnkcore::commands::menu::*;
 use dnkcore::commands::metrics::*;
 use dnkcore::commands::video::*;
@@ -34,6 +35,7 @@ fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
             export_clips_csv,
             start_oauth_flow,
             is_authenticated,
+            get_license,
             logout,
         ])
         .setup(move |app| {

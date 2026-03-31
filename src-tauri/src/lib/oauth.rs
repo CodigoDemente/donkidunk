@@ -22,11 +22,11 @@ pub struct ExchangeTokenPayload {
     pub code_verifier: String,
 }
 
-#[derive(Deserialize, Clone)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct ExchangeTokenResponse {
     pub access_token: String,
     pub token_type: String,
-    pub expires_in: i64,
+    pub expires_in: i64, // Seconds
     pub refresh_token: String,
 }
 

@@ -1,14 +1,9 @@
-import { projectActions } from '../../../persistence/stores/project/actions';
-import appDeactivatedModal from '../../modalContent/appDeactivatedModal/index.svelte';
+import AppStore from '../../../persistence/stores/app/store.svelte';
 
 export function lockAppUsage() {
-	projectActions.setModal({
-		content: appDeactivatedModal,
-		title: 'App Deactivated',
-		onCancel: () => false,
-		onSubmit: () => false,
-		show: true,
-		dismissible: false,
-		size: 'large'
-	});
+	AppStore.getState().errorInStartup = true;
+	AppStore.getState().blocker = {
+		title: 'There was an error during app launch',
+		message: 'Try to restart the app. If the error persists, please contact support.'
+	};
 }

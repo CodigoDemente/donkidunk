@@ -7,6 +7,10 @@
 	import AppStore from '../persistence/stores/app/store.svelte';
 	import { isAuthenticated } from '../modules/login/commands/IsAuthenticated';
 	import { appActions } from '../persistence/stores/app/actions';
+	import { reportCaughtClientError } from '$lib/errors/globalClientErrors';
+	import { getLicense } from '../modules/license/commands/GetLicense';
+	import { SubscriptionStatus } from '../modules/license/types/License';
+	import { lockAppUsage } from '../modules/launch/operations/lockAppUsage';
 
 	let { children }: { children: Snippet } = $props();
 
@@ -15,11 +19,34 @@
 	onMount(async () => {
 		await initGlobalEvents();
 
-		const isUserAuthenticated = await isAuthenticated();
+		try {
+			const isUserAuthenticated = await isAuthenticated();
 
-		appActions.setIsAuthenticated(isUserAuthenticated);
+			appActions.setIsAuthenticated(isUserAuthenticated);
+			appActions.setUnauthenticatedInStartup(!isUserAuthenticated);
 
-		appActions.setUnauthenticatedInStartup(!isUserAuthenticated);
+			if (!isUserAuthenticated) {
+				return;
+			}
+		} catch (err) {
+			reportCaughtClientError(err);
+
+			lockAppUsage();
+		}
+
+		try {
+			const license = await getLicense();
+
+			appActions.setLicenseInactiveInStartup(
+				license.status === SubscriptionStatus.Inactive ||
+					license.status === SubscriptionStatus.Paused
+			);
+			appActions.storeLicense(license);
+		} catch (err) {
+			reportCaughtClientError(err);
+
+			lockAppUsage();
+		}
 	});
 
 	onDestroy(destroyGlobalEvents);
@@ -39,6 +66,12 @@
 	</div>
 </main>
 
-{#if AppStore.showAppBlocker}
-	<AppBlocker title={appStore.blocker.title} message={appStore.blocker.message} />
+{#if AppStore.showLoginBlocker || AppStore.errorInStartup}
+	<AppBlocker
+		title={appStore.blocker.title}
+		message={appStore.blocker.message}
+		showLoginButton={!AppStore.errorInStartup}
+	/>
+{:else if AppStore.showLicenseBlocker}
+	<AppBlocker variant="license" />
 {/if}

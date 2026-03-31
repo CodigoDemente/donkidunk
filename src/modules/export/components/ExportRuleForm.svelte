@@ -7,7 +7,7 @@
 		context: ExportContext;
 	}
 
-	let { context }: Props = $props();
+	let { context = $bindable() }: Props = $props();
 </script>
 
 <div class="relative mt-auto border-t border-gray-600 pt-4">

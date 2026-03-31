@@ -1,5 +1,6 @@
 use std::sync::LazyLock;
 
+use serde::Deserialize;
 use tauri_plugin_http::reqwest::Client;
 
 pub mod auth;
@@ -21,6 +22,11 @@ pub mod tasks;
 pub mod timelinerepository;
 
 pub(crate) static HTTP_CLIENT: LazyLock<Client> = LazyLock::new(Client::new);
+
+#[derive(Deserialize)]
+pub(crate) struct ApiEnvelopeResponse<T> {
+    data: T,
+}
 
 #[cfg(debug_assertions)]
 pub(crate) const API_URL: &str = "http://localhost:5000";

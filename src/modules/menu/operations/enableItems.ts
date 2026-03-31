@@ -55,3 +55,17 @@ export async function setRedoEnablingStatus(enabled: boolean) {
 		enabled
 	});
 }
+
+export async function enableSaveButtonBoard() {
+	return await invoke('set_menu_item_enabling_status', {
+		menuId: 'save_button_board',
+		enabled: true
+	});
+}
+
+export async function disableSaveButtonBoard() {
+	return await invoke('set_menu_item_enabling_status', {
+		menuId: 'save_button_board',
+		enabled: false
+	});
+}
