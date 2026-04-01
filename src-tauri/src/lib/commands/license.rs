@@ -1,4 +1,5 @@
 use serde::Serialize;
+use tauri::Runtime;
 
 use crate::{
     errors::{AppError, AuthError, LicenseError},
@@ -46,4 +47,11 @@ pub async fn get_license(state: tauri::State<'_, AppState>) -> Result<License, A
         expires_at: expires_at.timestamp_millis(),
         features: features.clone(),
     })
+}
+
+#[tauri::command]
+pub async fn ensure_active_license<R: Runtime>(app: tauri::AppHandle<R>) -> Result<(), AppError> {
+    crate::license::ensure_active_license(&app)
+        .await
+        .map_err(AppError::from)
 }
