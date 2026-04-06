@@ -224,21 +224,44 @@ impl Ffmpeg {
             .iter()
             .map(|(start, end)| -> ClipTaks<'a> {
                 Box::pin(async move {
+                    let start = *start;
+                    let end = *end;
+
                     log::debug!("Starting cut: {start} to {end}");
 
                     let output_name = format!("part_{start}_{end}.mp4");
 
                     let output_path = self.temp_dir.join(output_name);
 
-                    let mut cmd =
-                        self.create_default_split_command(start, end, source_path, &output_path);
+                    let mut cmd = self.create_default_split_command(
+                        &start,
+                        &end,
+                        source_path,
+                        &output_path,
+                    );
 
-                    let status = cmd
-                        .spawn()
-                        .map_err(FfmpegError::from)?
-                        .wait()
-                        .await
-                        .map_err(FfmpegError::from)?;
+                    let mut child = cmd.spawn().map_err(FfmpegError::from)?;
+                    let stderr = child
+                        .stderr
+                        .take()
+                        .ok_or(FfmpegError::StderrCapture)?;
+                    let stderr_reader = BufReader::new(stderr);
+
+                    let drain_stderr = tokio::spawn(async move {
+                        let mut lines = stderr_reader.lines();
+                        while let Some(line) = lines.next_line().await? {
+                            log::debug!("[cut {start}-{end}] {line}");
+                        }
+                        Ok::<(), std::io::Error>(())
+                    });
+
+                    let status = child.wait().await.map_err(FfmpegError::from)?;
+
+                    match drain_stderr.await {
+                        Ok(Ok(())) => {}
+                        Ok(Err(e)) => return Err(FfmpegError::from(e).into()),
+                        Err(e) => return Err(FfmpegError::from(e).into()),
+                    }
 
                     if !status.success() {
                         return Err(FfmpegError::FfmpegExecution(format!(

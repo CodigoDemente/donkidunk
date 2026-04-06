@@ -1,8 +1,9 @@
 <script lang="ts">
-	import Board from '../board/index.svelte';
-	import VideoPlayer from '../videoplayer/components/index.svelte';
 	import ProjectStore from '../../persistence/stores/project/store.svelte';
 	import EmptyProjectState from '../launch/emptyProjectState.svelte';
+	import Board from '../board/index.svelte';
+	import VideoPlayer from '../videoplayer/components/index.svelte';
+	import '../../styles/page.css';
 
 	let leftWidth = $state(50);
 	let isResizing = $state(false);
