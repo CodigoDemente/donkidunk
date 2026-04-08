@@ -2,10 +2,15 @@ import type { SubscriptionEntitlement } from '../../modules/license/types/Licens
 
 export const LICENSE_ACTIVE_EVENT = 'license:active';
 export const LICENSE_INACTIVE_EVENT = 'license:inactive';
+export const LICENSE_INSUFFICIENT_FEATURES_EVENT = 'license:insufficient-features';
 
 export type LicenseEvent = {
 	subscriptionId: string;
 	status: string;
 	expiresAt: number;
 	features: SubscriptionEntitlement[];
+};
+
+export type InsufficientFeaturesEvent = {
+	entitlement: SubscriptionEntitlement;
 };

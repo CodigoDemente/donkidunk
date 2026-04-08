@@ -30,9 +30,9 @@ pub enum UIMode {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ButtonBoard {
-    id: String,
-    name: String,
-    is_default: bool,
+    pub id: String,
+    pub name: String,
+    pub is_default: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -57,8 +57,8 @@ pub struct ConfigManager {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ButtonBoardWithPath {
-    path: PathBuf,
-    button_board: ButtonBoard,
+    pub path: PathBuf,
+    pub button_board: ButtonBoard,
 }
 
 impl ConfigManager {

@@ -146,6 +146,9 @@ pub enum LicenseError {
     #[error("[license] No license data present")]
     NoLicenseData,
 
+    #[error("[license] Insufficient features")]
+    InsufficientFeatures,
+
     #[error("[license] Unexepected error while getting the user license")]
     Unexepected,
 }

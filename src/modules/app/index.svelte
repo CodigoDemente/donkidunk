@@ -1,7 +1,7 @@
 <script lang="ts">
 	import ProjectStore from '../../persistence/stores/project/store.svelte';
 	import '../../styles/page.css';
-	import { Config, configContext } from '../config/context.svelte';
+	import { configContext } from '../config/context.svelte';
 	import { onDestroy, onMount, type Snippet } from 'svelte';
 	import { getButtonBoardsCommand } from '../config/commands/GetButtonBoards';
 	import Modal from '../../components/modal/modal.svelte';
@@ -18,7 +18,7 @@
 
 	const board = boardContext.set(new BoardContext());
 	const timeline = timelineContext.set(new Timeline());
-	const config = configContext.set(new Config());
+	const config = configContext.get();
 
 	board.wrapForUndo();
 	timeline.wrapForUndo();

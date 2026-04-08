@@ -6,9 +6,14 @@
 	import { IconHome, IconLayoutBoard } from '@tabler/icons-svelte';
 	import Floatingmenu from '../../components/floatingmenu/floatingmenu.svelte';
 	import { UIMode } from '../config/types/Config';
-	import { Config, configContext } from '../config/context.svelte';
+	import { configContext } from '../config/context.svelte';
 	import type { FloatingMenuOption } from '../../components/floatingmenu/types';
 	import { saveUIModeCommand } from '../config/commands/SaveUIMode';
+	import {
+		guardSubscriptionEntitlement,
+		hasSubscriptionEntitlement
+	} from '../modalContent/licenseRestrictionModal/guardLicenseEntitlement';
+	import { SubscriptionEntitlement } from '../license/types/License';
 
 	type Props = {
 		disabled: boolean;
@@ -16,7 +21,7 @@
 
 	let { disabled }: Props = $props();
 
-	let config: Config;
+	const config = configContext.get();
 
 	function navigateTo(page: RouteId) {
 		goto(resolve(page)); // Navigate to the specified route
@@ -26,27 +31,36 @@
 		return page.route.id === pageRoute;
 	};
 
-	const floatingmenuOptions = [
-		{
-			id: '1',
-			value: UIMode.Simple.toString(),
-			label: 'Beginner'
-		},
-		{
-			id: '2',
-			value: UIMode.Advanced.toString(),
-			label: 'Professional'
+	const floatingmenuOptions = $derived.by(() => {
+		const options = [
+			{
+				id: '1',
+				value: UIMode.Simple.toString(),
+				label: 'Beginner'
+			}
+		];
+
+		if (hasSubscriptionEntitlement(SubscriptionEntitlement.TagsView)) {
+			options.push({
+				id: '2',
+				value: UIMode.Advanced.toString(),
+				label: 'Professional'
+			});
 		}
-	];
+
+		return options;
+	});
 
 	async function handleUIModeChange(option: FloatingMenuOption): Promise<void> {
-		if (!config) {
-			config = configContext.get();
+		let newUiMode = Number(option.value) as UIMode;
+
+		if (
+			newUiMode !== UIMode.Advanced ||
+			guardSubscriptionEntitlement(SubscriptionEntitlement.TagsView)
+		) {
+			config.uiMode = Number(option.value) as UIMode;
+			await saveUIModeCommand(config.uiMode);
 		}
-
-		config.uiMode = Number(option.value) as UIMode;
-
-		await saveUIModeCommand(config.uiMode);
 	}
 </script>
 
@@ -102,7 +116,7 @@
 			<Floatingmenu
 				trigger={IconLayoutBoard}
 				options={floatingmenuOptions}
-				selectedValue={config?.uiMode.toString() || UIMode.Simple.toString()}
+				selectedValue={config.uiMode.toString()}
 				onoptionselected={handleUIModeChange}
 				triggerClass="text-tertiary hover:cursor-pointer"
 				iconClass="h-5 w-5"

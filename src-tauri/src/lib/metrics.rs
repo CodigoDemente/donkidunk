@@ -13,7 +13,7 @@ struct CsvLine {
     tags: Vec<u8>,
 }
 
-pub async fn generate_clips_csv(
+pub async fn generate_metrics_csv(
     timeline_repository: &TimelineRepository,
     out_path: &str,
 ) -> Result<(), AppError> {

@@ -2,7 +2,7 @@ use std::{fmt::Display, str::FromStr};
 
 use axum::http::StatusCode;
 use chrono::{DateTime, Utc};
-use log::error;
+use log::{debug, error};
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Emitter, Manager, Runtime};
 use tauri_plugin_http::reqwest;
@@ -36,6 +36,12 @@ struct LicenseStateEvent {
     status: String,
     expires_at: i64,
     features: Vec<SubscriptionEntitlement>,
+}
+
+#[derive(Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct InsufficientFeaturesStateEvent {
+    entitlement: SubscriptionEntitlement,
 }
 
 #[derive(Deserialize, Clone)]
@@ -328,6 +334,22 @@ pub async fn notify_active_license<R: Runtime>(
     Ok(())
 }
 
+pub async fn notify_insufficient_features<R: Runtime>(
+    app: &AppHandle<R>,
+    entitlement: SubscriptionEntitlement,
+) -> Result<(), LicenseError> {
+    app.emit(
+        "license:insufficient-features",
+        InsufficientFeaturesStateEvent { entitlement },
+    )
+    .map_err(|e| {
+        error!("Error emitting license insufficient features events: {e}");
+        LicenseError::Unexepected
+    })?;
+
+    Ok(())
+}
+
 pub async fn ensure_active_license<R: Runtime>(app: &AppHandle<R>) -> Result<(), AuthError> {
     let state = app.state::<AppState>();
     let err = Err(Into::<AuthError>::into(LicenseError::SubscriptionInactive));
@@ -358,4 +380,48 @@ pub async fn ensure_active_license<R: Runtime>(app: &AppHandle<R>) -> Result<(),
     };
 
     perform_license_check(user_data, app.clone()).await
+}
+
+pub async fn ensure_required_entitlement<R: Runtime>(
+    app: &AppHandle<R>,
+    entitlement: SubscriptionEntitlement,
+) -> Result<(), AuthError> {
+    debug!("Ensuring required entitlement: {entitlement}");
+    ensure_active_license(app).await?;
+
+    let state = app.state::<AppState>();
+
+    let license = state.license.lock().await;
+
+    if let Some(license) = license.as_ref()
+        && let Some(features) = license.features.as_ref()
+    {
+        if !features.contains(&entitlement) {
+            debug!("Insufficient features: {entitlement}");
+            notify_insufficient_features(app, entitlement).await?;
+            return Err(LicenseError::InsufficientFeatures.into());
+        }
+
+        debug!("Required entitlement: {entitlement} is available");
+        Ok(())
+    } else {
+        debug!("No license data found");
+        Err(LicenseError::NoLicenseData.into())
+    }
+}
+
+pub async fn has_entitlement<R: Runtime>(
+    app: &AppHandle<R>,
+    entitlement: SubscriptionEntitlement,
+) -> Result<bool, AuthError> {
+    let state = app.state::<AppState>();
+    let license = state.license.lock().await;
+
+    if let Some(license) = license.as_ref()
+        && let Some(features) = license.features.as_ref()
+    {
+        return Ok(features.contains(&entitlement));
+    }
+
+    Ok(false)
 }

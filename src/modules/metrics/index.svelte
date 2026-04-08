@@ -10,8 +10,13 @@
 	import { path } from '@tauri-apps/api';
 	import { join } from '@tauri-apps/api/path';
 	import ProjectStore from '../../persistence/stores/project/store.svelte';
-	import { exportClipsCSV } from './commands/ExportClipsCSV';
+	import { exportMetricsCSV } from './commands/ExportMetricsCSV';
 	import { onMount } from 'svelte';
+	import {
+		guardSubscriptionEntitlement,
+		hasSubscriptionEntitlement
+	} from '../modalContent/licenseRestrictionModal/guardLicenseEntitlement';
+	import { SubscriptionEntitlement } from '../license/types/License';
 
 	const config = configContext.get();
 
@@ -43,12 +48,16 @@
 	}
 
 	async function onExportHandler() {
+		if (!guardSubscriptionEntitlement(SubscriptionEntitlement.MetricsExport)) {
+			return;
+		}
+
 		exporting = true;
 		try {
 			const videoPath = ProjectStore.getState().video.path!;
 			const videoDir = await path.dirname(videoPath);
 
-			// Extraer el nombre del archivo sin extensión
+			// Extract the file name without the extension
 			const videoFileName = videoPath.split(/[/\\]/).pop() || 'export';
 			const videoNameWithoutExt = videoFileName.replace(/\.[^/.]+$/, '');
 			const defaultPath = await join(videoDir, `${videoNameWithoutExt}_export.csv`);
@@ -68,7 +77,7 @@
 				outPath = `${outPath}.csv`;
 			}
 
-			await exportClipsCSV(outPath);
+			await exportMetricsCSV(outPath);
 		} finally {
 			exporting = false;
 		}
@@ -83,14 +92,16 @@
 	<div class="flex h-full min-h-0 flex-col gap-4 overflow-hidden p-4">
 		<div class="flex h-8 w-full shrink-0 flex-row items-start justify-between">
 			<h1 class="shrink-0 text-lg font-bold">Metrics</h1>
-			<div class="self-end">
-				<Button size="large" primary disabled={exporting} onClick={() => onExportHandler()}
-					>Export in CSV</Button
-				>
-				{#if exporting}
-					<p class="mt-2 text-sm text-gray-600">Exporting CSV, please wait...</p>
-				{/if}
-			</div>
+			{#if hasSubscriptionEntitlement(SubscriptionEntitlement.MetricsExport)}
+				<div class="self-end">
+					<Button size="large" primary disabled={exporting} onClick={() => onExportHandler()}
+						>Export in CSV</Button
+					>
+					{#if exporting}
+						<p class="mt-2 text-sm text-gray-600">Exporting CSV, please wait...</p>
+					{/if}
+				</div>
+			{/if}
 		</div>
 
 		<!-- Summary tables -->

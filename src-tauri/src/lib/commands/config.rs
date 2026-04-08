@@ -1,6 +1,10 @@
+use log::debug;
+use tauri::{Manager, Runtime};
+
 use crate::{
     configmanager::{ButtonBoardWithPath, Config, UIMode},
     errors::AppError,
+    license::{SubscriptionEntitlement, ensure_required_entitlement, has_entitlement},
     state::AppState,
 };
 
@@ -12,22 +16,47 @@ pub async fn get_user_config(state: tauri::State<'_, AppState>) -> Result<Config
 }
 
 #[tauri::command]
-pub async fn get_button_boards(
-    state: tauri::State<'_, AppState>,
+pub async fn get_button_boards<R: Runtime>(
+    app: tauri::AppHandle<R>,
 ) -> Result<Vec<ButtonBoardWithPath>, AppError> {
-    let config_manager = state.config_manager.lock().await;
+    debug!("Getting button boards");
+    let state = app.state::<AppState>();
 
-    Ok(config_manager.get_button_board_paths())
+    let boards = {
+        let config_manager = state.config_manager.lock().await;
+
+        config_manager.get_button_board_paths()
+    };
+
+    crate::license::ensure_active_license(&app).await?;
+
+    if !has_entitlement(&app, SubscriptionEntitlement::ViewPresetProboard).await? {
+        debug!("No proboard entitlement, filtering boards");
+        Ok(boards
+            .into_iter()
+            .filter(|board| {
+                let board_name = board.button_board.name.to_lowercase();
+                board_name != "professional coaching"
+            })
+            .collect())
+    } else {
+        debug!("Proboard entitlement, returning all boards");
+        Ok(boards)
+    }
 }
 
 #[tauri::command]
-pub async fn save_button_board(
-    state: tauri::State<'_, AppState>,
+pub async fn save_button_board<R: Runtime>(
+    app: tauri::AppHandle<R>,
     board_id: String,
     board_name: String,
     is_default: bool,
     board_content: String,
 ) -> Result<String, AppError> {
+    ensure_required_entitlement(&app, SubscriptionEntitlement::SaveButtonBoard).await?;
+
+    let state = app.state::<AppState>();
+
     let mut config_manager = state.config_manager.lock().await;
 
     let new_board_path = config_manager

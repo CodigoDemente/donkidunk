@@ -11,8 +11,12 @@
 	import { getLicense } from '../modules/license/commands/GetLicense';
 	import { SubscriptionStatus } from '../modules/license/types/License';
 	import { lockAppUsage } from '../modules/launch/operations/lockAppUsage';
+	import { Config, configContext } from '../modules/config/context.svelte';
 
 	let { children }: { children: Snippet } = $props();
+
+	/** Single shared instance for Navbar (this layout) and workspace `App` + descendants. */
+	configContext.set(new Config());
 
 	const appStore = AppStore.getState();
 

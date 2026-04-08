@@ -6,11 +6,14 @@ import { appActions } from '../persistence/stores/app/actions';
 import {
 	LICENSE_ACTIVE_EVENT,
 	LICENSE_INACTIVE_EVENT,
+	LICENSE_INSUFFICIENT_FEATURES_EVENT,
+	type InsufficientFeaturesEvent,
 	type LicenseEvent
 } from './types/LicenseEvent';
-import { LicenseMapper } from '../modules/license/mappers/License';
+import { LicenseMapper, SubscriptionEntitlementMapper } from '../modules/license/mappers/License';
 import { SubscriptionStatus, type License } from '../modules/license/types/License';
 import { getLicense } from '../modules/license/commands/GetLicense';
+import { showInsufficientFeaturesModal } from '../modules/modalContent/licenseRestrictionModal/showLicenseRestrictionModal';
 
 export class WindowEventHandler {
 	private unlisteners: (() => void)[] = [];
@@ -36,6 +39,13 @@ export class WindowEventHandler {
 
 		this.unlisteners.push(
 			await listen<LicenseEvent>(LICENSE_INACTIVE_EVENT, this.onLicenseEvent.bind(this))
+		);
+
+		this.unlisteners.push(
+			await listen<InsufficientFeaturesEvent>(
+				LICENSE_INSUFFICIENT_FEATURES_EVENT,
+				this.onInsufficientFeaturesEvent.bind(this)
+			)
 		);
 	}
 
@@ -67,6 +77,12 @@ export class WindowEventHandler {
 
 	private async onLicenseEvent(event: Event<LicenseEvent>) {
 		this.performLicenseAction(LicenseMapper.from_event(event.payload));
+	}
+
+	private async onInsufficientFeaturesEvent(event: Event<InsufficientFeaturesEvent>) {
+		const entitlement = SubscriptionEntitlementMapper.from_command(event.payload.entitlement);
+
+		showInsufficientFeaturesModal(entitlement);
 	}
 
 	private performLicenseAction(license: License) {

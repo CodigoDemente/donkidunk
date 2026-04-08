@@ -32,7 +32,7 @@ fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
             save_ui_mode,
             set_database_conn,
             disconnect_database,
-            export_clips_csv,
+            export_metrics_csv,
             start_oauth_flow,
             is_authenticated,
             get_license,
