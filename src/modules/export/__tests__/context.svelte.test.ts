@@ -1,22 +1,57 @@
 /**
- * Tests for the ExportContext class (context.svelte.ts).
+ * Tests for the Exporting class (context.svelte.ts).
  *
  * These run in a real browser via vitest-browser-svelte because the class
  * uses Svelte 5 runes ($state) which require the Svelte runtime.
  *
- * Board and Timeline dependencies are mocked as plain objects.
+ * Board and Timeline contexts are mocked so no backend is needed.
  */
-import { describe, expect, it, beforeEach, afterEach } from 'vitest';
+import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import { CategoryType } from '../../board/types/CategoryType';
-import type { Board } from '../../board/context.svelte';
-import type { Timeline } from '../../videoplayer/context.svelte';
 import type { RangeDataWithTags } from '../../videoplayer/types/RangeData';
 import type { Button } from '../../board/types/Button';
 import type { Tag } from '../../board/types/Tag';
+import type { GalleryClip } from '../types';
+
+// ─── Mocks ───────────────────────────────────────────────────────────────────
+
+let mockEventButtonsById: Record<string, Button> = {};
+let mockTagsById: Record<string, Tag> = {};
+let mockEventTimeline: RangeDataWithTags[] = [];
+
+vi.mock('../../board/context.svelte', () => ({
+	boardContext: {
+		get: () => ({
+			eventButtonsById: mockEventButtonsById,
+			tagsById: mockTagsById
+		})
+	}
+}));
+
+vi.mock('../../videoplayer/context.svelte', () => ({
+	timelineContext: {
+		get: () => ({
+			eventTimeline: mockEventTimeline
+		})
+	}
+}));
+
+vi.mock('../../../factories/TimelineRepositoryFactory', () => ({
+	TimelineRepositoryFactory: {
+		getInstance: () => ({
+			getClipsForGallery: vi.fn().mockResolvedValue([])
+		})
+	}
+}));
+
+vi.mock('@tauri-apps/plugin-log', () => ({
+	debug: vi.fn(),
+	error: vi.fn()
+}));
 
 // ─── Test helpers ────────────────────────────────────────────────────────────
 
-const { ExportContext } = await import('../context.svelte');
+const { Exporting } = await import('../context.svelte');
 
 function createEvent(overrides: Partial<RangeDataWithTags> = {}): RangeDataWithTags {
 	return {
@@ -49,37 +84,31 @@ function createTag(overrides: Partial<Tag> = {}): Tag {
 	};
 }
 
-function createMockBoard(
-	eventButtonsById: Record<string, Button> = {},
-	tagsById: Record<string, Tag> = {}
-): Board {
+function createGalleryClip(overrides: Partial<GalleryClip> = {}): GalleryClip {
 	return {
-		eventButtonsById,
-		tagsById
-	} as unknown as Board;
-}
-
-function createMockTimeline(events: RangeDataWithTags[] = []): Timeline {
-	return {
-		getState: () => ({
-			eventTimeline: events
-		})
-	} as unknown as Timeline;
+		index: 0,
+		timestamps: [10, 20],
+		buttonId: 'btn-1',
+		buttonName: 'Action',
+		buttonColor: '#3b82f6',
+		categoryName: 'Events',
+		tags: [],
+		...overrides
+	};
 }
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
-describe('ExportContext', () => {
-	let board: Board;
-	let timeline: Timeline;
-	let ctx: InstanceType<typeof ExportContext>;
+describe('Exporting', () => {
+	let ctx: InstanceType<typeof Exporting>;
 	let cleanup: () => void;
 
 	beforeEach(() => {
-		board = createMockBoard();
-		timeline = createMockTimeline();
+		mockEventButtonsById = {};
+		mockTagsById = {};
+		mockEventTimeline = [];
 		cleanup = $effect.root(() => {
-			ctx = new ExportContext(board, timeline);
+			ctx = new Exporting();
 		});
 	});
 
@@ -102,156 +131,162 @@ describe('ExportContext', () => {
 				temp: true
 			});
 		});
+
+		it('should start with empty galleryClips', () => {
+			expect(ctx.galleryClips).toEqual([]);
+		});
+
+		it('should start with empty clipsOrdered', () => {
+			expect(ctx.clipsOrdered).toEqual([]);
+		});
+
+		it('should start with loading false', () => {
+			expect(ctx.loading).toBe(false);
+		});
+
+		it('should start with exportProgress 0', () => {
+			expect(ctx.exportProgress).toBe(0);
+		});
 	});
 
-	// ── allEventOptions ──────────────────────────────────────────────────────
+	// ── setExportProgress ────────────────────────────────────────────────────
 
-	describe('allEventOptions', () => {
+	describe('setExportProgress', () => {
+		it('should update exportProgress', () => {
+			ctx.setExportProgress(42);
+			expect(ctx.exportProgress).toBe(42);
+		});
+	});
+
+	// ── eventButtonsForRuleForm ──────────────────────────────────────────────
+
+	describe('eventButtonsForRuleForm', () => {
 		it('should return empty when no events exist', () => {
-			board = createMockBoard({ 'btn-1': createButton() });
-			timeline = createMockTimeline([]);
-			cleanup();
-			cleanup = $effect.root(() => {
-				ctx = new ExportContext(board, timeline);
-			});
-
-			expect(ctx.allEventOptions).toEqual([]);
+			mockEventButtonsById = { 'btn-1': createButton() };
+			mockEventTimeline = [];
+			expect(ctx.eventButtonsForRuleForm).toEqual([]);
 		});
 
 		it('should return only buttons that have events in the timeline', () => {
 			const btn1 = createButton({ id: 'btn-1', name: 'Action A' });
 			const btn2 = createButton({ id: 'btn-2', name: 'Action B' });
-			const btn3 = createButton({ id: 'btn-3', name: 'Unused' });
 
-			board = createMockBoard({
+			mockEventButtonsById = {
 				'btn-1': btn1,
 				'btn-2': btn2,
-				'btn-3': btn3
-			});
-			timeline = createMockTimeline([
+				'btn-3': createButton({ id: 'btn-3', name: 'Unused' })
+			};
+			mockEventTimeline = [
 				createEvent({ id: 'e1', buttonId: 'btn-1' }),
 				createEvent({ id: 'e2', buttonId: 'btn-2' }),
-				createEvent({ id: 'e3', buttonId: 'btn-1' }) // duplicate button
-			]);
-			cleanup();
-			cleanup = $effect.root(() => {
-				ctx = new ExportContext(board, timeline);
-			});
+				createEvent({ id: 'e3', buttonId: 'btn-1' })
+			];
 
-			const options = ctx.allEventOptions;
-			expect(options).toHaveLength(2);
-			expect(options).toContainEqual({ value: 'btn-1', label: 'Action A' });
-			expect(options).toContainEqual({ value: 'btn-2', label: 'Action B' });
+			const buttons = ctx.eventButtonsForRuleForm;
+			expect(buttons).toHaveLength(2);
+			expect(buttons.map((b) => b.id)).toContain('btn-1');
+			expect(buttons.map((b) => b.id)).toContain('btn-2');
+			expect(buttons.map((b) => b.id)).not.toContain('btn-3');
+		});
+
+		it('should deduplicate buttons referenced by multiple events', () => {
+			mockEventButtonsById = { 'btn-1': createButton({ id: 'btn-1' }) };
+			mockEventTimeline = [
+				createEvent({ id: 'e1', buttonId: 'btn-1' }),
+				createEvent({ id: 'e2', buttonId: 'btn-1' }),
+				createEvent({ id: 'e3', buttonId: 'btn-1' })
+			];
+
+			expect(ctx.eventButtonsForRuleForm).toHaveLength(1);
 		});
 
 		it('should not include buttons not in eventButtonsById', () => {
-			board = createMockBoard({}); // no buttons registered
-			timeline = createMockTimeline([createEvent({ buttonId: 'orphan-btn' })]);
-			cleanup();
-			cleanup = $effect.root(() => {
-				ctx = new ExportContext(board, timeline);
-			});
+			mockEventButtonsById = {};
+			mockEventTimeline = [createEvent({ buttonId: 'orphan-btn' })];
+			expect(ctx.eventButtonsForRuleForm).toEqual([]);
+		});
 
-			expect(ctx.allEventOptions).toEqual([]);
+		it('should sort buttons alphabetically by name', () => {
+			const btnZ = createButton({ id: 'btn-z', name: 'Zebra' });
+			const btnA = createButton({ id: 'btn-a', name: 'Alpha' });
+			const btnM = createButton({ id: 'btn-m', name: 'Middle' });
+
+			mockEventButtonsById = { 'btn-z': btnZ, 'btn-a': btnA, 'btn-m': btnM };
+			mockEventTimeline = [
+				createEvent({ id: 'e1', buttonId: 'btn-z' }),
+				createEvent({ id: 'e2', buttonId: 'btn-a' }),
+				createEvent({ id: 'e3', buttonId: 'btn-m' })
+			];
+
+			const names = ctx.eventButtonsForRuleForm.map((b) => b.name);
+			expect(names).toEqual(['Alpha', 'Middle', 'Zebra']);
 		});
 	});
 
-	// ── allTags ──────────────────────────────────────────────────────────────
+	// ── tagsForSelectedButton ────────────────────────────────────────────────
 
-	describe('allTags', () => {
-		it('should return empty when no tags exist', () => {
-			expect(ctx.allTags).toEqual([]);
-		});
-
-		it('should return all tags from board', () => {
-			const tag1 = createTag({ id: 'tag-1', name: 'Urgent', color: '#ff0000' });
-			const tag2 = createTag({ id: 'tag-2', name: 'Review', color: '#00ff00' });
-
-			board = createMockBoard({}, { 'tag-1': tag1, 'tag-2': tag2 });
-			cleanup();
-			cleanup = $effect.root(() => {
-				ctx = new ExportContext(board, timeline);
-			});
-
-			const tags = ctx.allTags;
-			expect(tags).toHaveLength(2);
-			expect(tags).toContainEqual({
-				id: 'tag-1',
-				value: 'tag-1',
-				label: 'Urgent',
-				color: '#ff0000'
-			});
-			expect(tags).toContainEqual({
-				id: 'tag-2',
-				value: 'tag-2',
-				label: 'Review',
-				color: '#00ff00'
-			});
-		});
-	});
-
-	// ── availableTags ────────────────────────────────────────────────────────
-
-	describe('availableTags', () => {
+	describe('tagsForSelectedButton', () => {
 		it('should return empty when newRule.include is empty', () => {
-			expect(ctx.availableTags).toEqual([]);
+			expect(ctx.tagsForSelectedButton).toEqual([]);
 		});
 
 		it('should return tags related to events matching the selected button', () => {
 			const tag1 = createTag({ id: 'tag-1', name: 'Important' });
 			const tag2 = createTag({ id: 'tag-2', name: 'Other' });
 
-			board = createMockBoard(
-				{ 'btn-1': createButton({ id: 'btn-1' }) },
-				{ 'tag-1': tag1, 'tag-2': tag2 }
-			);
-			timeline = createMockTimeline([
+			mockEventButtonsById = { 'btn-1': createButton({ id: 'btn-1' }) };
+			mockTagsById = { 'tag-1': tag1, 'tag-2': tag2 };
+			mockEventTimeline = [
 				createEvent({ id: 'e1', buttonId: 'btn-1', tagsRelated: ['tag-1'] }),
 				createEvent({ id: 'e2', buttonId: 'btn-2', tagsRelated: ['tag-2'] })
-			]);
-			cleanup();
-			cleanup = $effect.root(() => {
-				ctx = new ExportContext(board, timeline);
-			});
+			];
 
 			ctx.newRule.include = 'btn-1';
 
-			expect(ctx.availableTags).toHaveLength(1);
-			expect(ctx.availableTags[0].value).toBe('tag-1');
+			const tags = ctx.tagsForSelectedButton;
+			expect(tags).toHaveLength(1);
+			expect(tags[0].id).toBe('tag-1');
 		});
 
 		it('should return unique tags even if multiple events reference the same tag', () => {
 			const tag1 = createTag({ id: 'tag-1', name: 'Shared' });
 
-			board = createMockBoard({ 'btn-1': createButton({ id: 'btn-1' }) }, { 'tag-1': tag1 });
-			timeline = createMockTimeline([
+			mockTagsById = { 'tag-1': tag1 };
+			mockEventTimeline = [
 				createEvent({ id: 'e1', buttonId: 'btn-1', tagsRelated: ['tag-1'] }),
 				createEvent({ id: 'e2', buttonId: 'btn-1', tagsRelated: ['tag-1'] })
-			]);
-			cleanup();
-			cleanup = $effect.root(() => {
-				ctx = new ExportContext(board, timeline);
-			});
+			];
 
 			ctx.newRule.include = 'btn-1';
-
-			expect(ctx.availableTags).toHaveLength(1);
+			expect(ctx.tagsForSelectedButton).toHaveLength(1);
 		});
 
 		it('should return empty when selected button has no events', () => {
-			board = createMockBoard(
-				{ 'btn-1': createButton({ id: 'btn-1' }) },
-				{ 'tag-1': createTag({ id: 'tag-1' }) }
-			);
-			timeline = createMockTimeline([]);
-			cleanup();
-			cleanup = $effect.root(() => {
-				ctx = new ExportContext(board, timeline);
-			});
+			mockTagsById = { 'tag-1': createTag({ id: 'tag-1' }) };
+			mockEventTimeline = [];
 
 			ctx.newRule.include = 'btn-1';
+			expect(ctx.tagsForSelectedButton).toEqual([]);
+		});
 
-			expect(ctx.availableTags).toEqual([]);
+		it('should skip tags not found in tagsById', () => {
+			mockTagsById = {};
+			mockEventTimeline = [
+				createEvent({ id: 'e1', buttonId: 'btn-1', tagsRelated: ['orphan-tag'] })
+			];
+
+			ctx.newRule.include = 'btn-1';
+			expect(ctx.tagsForSelectedButton).toEqual([]);
+		});
+
+		it('should return Tag objects (not options)', () => {
+			const tag1 = createTag({ id: 'tag-1', name: 'Goal', color: '#00ff00' });
+			mockTagsById = { 'tag-1': tag1 };
+			mockEventTimeline = [createEvent({ id: 'e1', buttonId: 'btn-1', tagsRelated: ['tag-1'] })];
+
+			ctx.newRule.include = 'btn-1';
+			const result = ctx.tagsForSelectedButton[0];
+			expect(result).toEqual(tag1);
 		});
 	});
 
@@ -275,15 +310,12 @@ describe('ExportContext', () => {
 
 		it('should not add a rule when include is empty', () => {
 			ctx.newRule.include = '';
-
 			ctx.addRule();
-
 			expect(ctx.rules).toHaveLength(0);
 		});
 
 		it('should reset newRule after adding', () => {
 			ctx.newRule.include = 'btn-1';
-
 			ctx.addRule();
 
 			expect(ctx.newRule).toEqual({
@@ -297,7 +329,6 @@ describe('ExportContext', () => {
 		it('should add multiple rules sequentially', () => {
 			ctx.newRule.include = 'btn-1';
 			ctx.addRule();
-
 			ctx.newRule.include = 'btn-2';
 			ctx.addRule();
 
@@ -308,9 +339,7 @@ describe('ExportContext', () => {
 
 		it('should mark added rules as not temp', () => {
 			ctx.newRule.include = 'btn-1';
-
 			ctx.addRule();
-
 			expect(ctx.rules[0].temp).toBe(false);
 		});
 	});
@@ -350,7 +379,6 @@ describe('ExportContext', () => {
 			ctx.addRule();
 
 			ctx.deleteRule(0);
-
 			expect(ctx.rules).toHaveLength(0);
 		});
 	});
@@ -390,7 +418,6 @@ describe('ExportContext', () => {
 			ctx.addRule();
 
 			ctx.moveRuleUp(-1);
-
 			expect(ctx.rules[0].include).toBe('btn-1');
 		});
 	});
@@ -430,61 +457,124 @@ describe('ExportContext', () => {
 			ctx.addRule();
 
 			ctx.moveRuleDown(0);
-
 			expect(ctx.rules[0].include).toBe('btn-1');
 		});
 	});
 
-	// ── getEventLabel ────────────────────────────────────────────────────────
+	// ── addClipToOrder ──────────────────────────────────────────────────────
 
-	describe('getEventLabel', () => {
-		it('should return the button name for a known event', () => {
-			board = createMockBoard({
-				'btn-1': createButton({ id: 'btn-1', name: 'Sprint' })
-			});
-			cleanup();
-			cleanup = $effect.root(() => {
-				ctx = new ExportContext(board, timeline);
-			});
+	describe('addClipToOrder', () => {
+		it('should add a clip to the ordered list', () => {
+			const clip = createGalleryClip({ index: 0 });
+			ctx.addClipToOrder(clip);
 
-			expect(ctx.getEventLabel('btn-1')).toBe('Sprint');
+			expect(ctx.clipsOrdered).toHaveLength(1);
+			expect(ctx.clipsOrdered[0]).toEqual(clip);
 		});
 
-		it('should return the eventId when button is not found', () => {
-			board = createMockBoard({});
-			cleanup();
-			cleanup = $effect.root(() => {
-				ctx = new ExportContext(board, timeline);
-			});
+		it('should append clips in order', () => {
+			const clip1 = createGalleryClip({ index: 0, buttonName: 'First' });
+			const clip2 = createGalleryClip({ index: 1, buttonName: 'Second' });
 
-			expect(ctx.getEventLabel('unknown-btn')).toBe('unknown-btn');
+			ctx.addClipToOrder(clip1);
+			ctx.addClipToOrder(clip2);
+
+			expect(ctx.clipsOrdered).toHaveLength(2);
+			expect(ctx.clipsOrdered[0].buttonName).toBe('First');
+			expect(ctx.clipsOrdered[1].buttonName).toBe('Second');
+		});
+
+		it('should allow adding the same clip multiple times', () => {
+			const clip = createGalleryClip({ index: 0 });
+			ctx.addClipToOrder(clip);
+			ctx.addClipToOrder(clip);
+
+			expect(ctx.clipsOrdered).toHaveLength(2);
 		});
 	});
 
-	// ── getTagById ──────────────────────────────────────────────────────────
+	// ── removeClipFromOrder ─────────────────────────────────────────────────
 
-	describe('getTagById', () => {
-		it('should return the tag for a known tagId', () => {
-			const tag = createTag({ id: 'tag-1', name: 'Goal', color: '#00ff00' });
-			board = createMockBoard({}, { 'tag-1': tag });
-			cleanup();
-			cleanup = $effect.root(() => {
-				ctx = new ExportContext(board, timeline);
-			});
+	describe('removeClipFromOrder', () => {
+		it('should remove a clip at the given index', () => {
+			ctx.addClipToOrder(createGalleryClip({ index: 0, buttonName: 'A' }));
+			ctx.addClipToOrder(createGalleryClip({ index: 1, buttonName: 'B' }));
+			ctx.addClipToOrder(createGalleryClip({ index: 2, buttonName: 'C' }));
 
-			const result = ctx.getTagById('tag-1');
-			expect(result).toBeDefined();
-			expect(result.name).toBe('Goal');
+			ctx.removeClipFromOrder(1);
+
+			expect(ctx.clipsOrdered).toHaveLength(2);
+			expect(ctx.clipsOrdered[0].buttonName).toBe('A');
+			expect(ctx.clipsOrdered[1].buttonName).toBe('C');
 		});
 
-		it('should return undefined for an unknown tagId', () => {
-			board = createMockBoard({}, {});
-			cleanup();
-			cleanup = $effect.root(() => {
-				ctx = new ExportContext(board, timeline);
-			});
+		it('should handle removing from a single-item list', () => {
+			ctx.addClipToOrder(createGalleryClip({ index: 0 }));
+			ctx.removeClipFromOrder(0);
+			expect(ctx.clipsOrdered).toHaveLength(0);
+		});
+	});
 
-			expect(ctx.getTagById('nonexistent')).toBeUndefined();
+	// ── reorderClip ─────────────────────────────────────────────────────────
+
+	describe('reorderClip', () => {
+		it('should move a clip from one position to another', () => {
+			ctx.addClipToOrder(createGalleryClip({ index: 0, buttonName: 'A' }));
+			ctx.addClipToOrder(createGalleryClip({ index: 1, buttonName: 'B' }));
+			ctx.addClipToOrder(createGalleryClip({ index: 2, buttonName: 'C' }));
+
+			ctx.reorderClip(2, 0);
+
+			expect(ctx.clipsOrdered[0].buttonName).toBe('C');
+			expect(ctx.clipsOrdered[1].buttonName).toBe('A');
+			expect(ctx.clipsOrdered[2].buttonName).toBe('B');
+		});
+
+		it('should do nothing when fromIdx equals toIdx', () => {
+			ctx.addClipToOrder(createGalleryClip({ index: 0, buttonName: 'A' }));
+			ctx.addClipToOrder(createGalleryClip({ index: 1, buttonName: 'B' }));
+
+			ctx.reorderClip(0, 0);
+
+			expect(ctx.clipsOrdered[0].buttonName).toBe('A');
+			expect(ctx.clipsOrdered[1].buttonName).toBe('B');
+		});
+
+		it('should move forward correctly', () => {
+			ctx.addClipToOrder(createGalleryClip({ index: 0, buttonName: 'A' }));
+			ctx.addClipToOrder(createGalleryClip({ index: 1, buttonName: 'B' }));
+			ctx.addClipToOrder(createGalleryClip({ index: 2, buttonName: 'C' }));
+
+			ctx.reorderClip(0, 2);
+
+			expect(ctx.clipsOrdered[0].buttonName).toBe('B');
+			expect(ctx.clipsOrdered[1].buttonName).toBe('C');
+			expect(ctx.clipsOrdered[2].buttonName).toBe('A');
+		});
+	});
+
+	// ── resetState ──────────────────────────────────────────────────────────
+
+	describe('resetState', () => {
+		it('should reset all state to initial values', () => {
+			ctx.newRule.include = 'btn-1';
+			ctx.addRule();
+			ctx.setExportProgress(50);
+			ctx.addClipToOrder(createGalleryClip());
+
+			ctx.resetState();
+
+			expect(ctx.rules).toEqual([]);
+			expect(ctx.galleryClips).toEqual([]);
+			expect(ctx.clipsOrdered).toEqual([]);
+			expect(ctx.loading).toBe(false);
+			expect(ctx.exportProgress).toBe(0);
+			expect(ctx.newRule).toEqual({
+				type: CategoryType.Event,
+				include: '',
+				taggedWith: [],
+				temp: true
+			});
 		});
 	});
 });

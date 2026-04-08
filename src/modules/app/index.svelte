@@ -8,17 +8,18 @@
 	import Snackbar from '../../components/snackbar/snackbar.svelte';
 	import { Board as BoardContext, boardContext } from '../board/context.svelte';
 	import { Timeline, timelineContext } from '../videoplayer/context.svelte';
-	import { exportActions } from '../../persistence/stores/export/actions';
 	import AppStore from '../../persistence/stores/app/store.svelte';
 	import { getConfig } from '../config/commands/GetConfig';
 	import { bindMenuEvents } from '../menu';
 	import { destroyEvents, initEvents } from '../../events';
+	import { exportContext, Exporting } from '../export/context.svelte';
 
 	let { children }: { children: Snippet } = $props();
 
 	const board = boardContext.set(new BoardContext());
 	const timeline = timelineContext.set(new Timeline());
 	const config = configContext.get();
+	const exporting = exportContext.set(new Exporting());
 
 	board.wrapForUndo();
 	timeline.wrapForUndo();
@@ -30,9 +31,7 @@
 
 	$effect(() => {
 		appStore.navbarDisabled =
-			!projectStore.file?.originalPath ||
-			exportActions.getExporting() ||
-			timeline.eventsPlaying.size > 0;
+			!projectStore.file?.originalPath || exporting.loading || timeline.eventsPlaying.size > 0;
 	});
 
 	onMount(async () => {

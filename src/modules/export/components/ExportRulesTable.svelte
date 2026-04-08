@@ -1,17 +1,21 @@
 <script lang="ts">
 	import { IconTrash, IconChevronUp, IconChevronDown } from '@tabler/icons-svelte';
-	import Tag from '../../../components/tag/tag.svelte';
 	import Tooltip from '../../../components/tooltip/tooltip.svelte';
-	import type { ExportContext } from '../context.svelte';
+	import type { Exporting } from '../context.svelte';
+	import type { Button } from '../../board/types/Button';
+	import type { Tag as TagType } from '../../board/types/Tag';
+	import Tag from '../../../components/tag/tag.svelte';
 
 	interface Props {
-		context: ExportContext;
+		context: Exporting;
+		tagsList: Record<string, TagType>;
+		buttonsList: Record<string, Button>;
 	}
 
-	let { context }: Props = $props();
+	let { context, tagsList, buttonsList }: Props = $props();
 </script>
 
-<div class="relative min-h-[200px]">
+<div class="relative mt-4 min-h-[200px]">
 	<table class="w-full border border-gray-600">
 		<thead class="sticky top-0 z-10 bg-gray-800">
 			<tr>
@@ -31,8 +35,8 @@
 				{#each context.rules as rule, idx (idx)}
 					<tr class="border-b border-gray-700">
 						<td class="w-[200px] border-r border-gray-600 px-4 py-3">
-							<div class="truncate" title={context.getEventLabel(rule.include)}>
-								{context.getEventLabel(rule.include)}
+							<div class="truncate" title={buttonsList[rule.include]?.name ?? ''}>
+								{buttonsList[rule.include]?.name ?? ''}
 							</div>
 						</td>
 						<td class="border-r border-gray-600 px-4 py-3">
@@ -42,7 +46,7 @@
 										<span class="text-sm text-gray-500">No tags</span>
 									{:else}
 										{#each rule.taggedWith as tagId (tagId)}
-											{@const tag = context.getTagById(tagId)}
+											{@const tag = tagsList[tagId]}
 											{#if tag}
 												<Tag color={tag.color} text={tag.name} disabled />
 											{/if}
@@ -91,8 +95,4 @@
 			{/if}
 		</tbody>
 	</table>
-	<p class="mt-2 text-sm text-gray-400">
-		* The videos will be exported in the order the rules are listed in the table (soon you will be
-		able to choose a custom order from the videos extracted).
-	</p>
 </div>

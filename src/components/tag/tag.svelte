@@ -2,7 +2,7 @@
 	import { getTextColorForBackground } from '../../modules/board/utils/colors';
 	import type { Props } from './types';
 
-	let { color, text, disabled, onClick, className }: Props = $props();
+	let { color, text, disabled, onClick, className, mini }: Props = $props();
 
 	const buttonTextColor = $derived(getTextColorForBackground(color));
 
@@ -16,7 +16,8 @@
 </script>
 
 <button
-	class={`inline-flex items-center rounded-xl px-2 py-1 text-sm font-medium ${className} ${!disabled && 'hover:cursor-pointer hover:brightness-120'}`}
+	class={`inline-flex items-center rounded-xl ${mini ? `px-1 py-0.5 text-xs` : `px-2 py-1 text-sm`} 
+	font-medium ${className} ${!disabled && 'hover:cursor-pointer hover:brightness-120'}`}
 	style={`background-color: ${color}; color: ${buttonTextColor};`}
 	onclick={handleClick}
 	{disabled}

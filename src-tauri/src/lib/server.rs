@@ -1,10 +1,16 @@
 #[cfg(not(target_os = "windows"))]
 use {
-    axum::{Router, extract::Query, routing::get},
+    axum::{
+        Router,
+        extract::Query,
+        http::{HeaderValue, header},
+        routing::get,
+    },
     axum_extra::{TypedHeader, headers::Range},
     axum_range::{KnownSize, Ranged},
     std::{collections::HashMap, env},
     tokio::{fs::File, net::TcpListener},
+    tower_http::set_header::SetResponseHeaderLayer,
 };
 
 #[cfg(not(target_os = "windows"))]
@@ -25,7 +31,13 @@ pub async fn setup_webserver() {
         Err(_) => "16780".to_string(),
     };
 
-    let app = Router::new().route("/", get(download_file));
+    let app =
+        Router::new()
+            .route("/", get(download_file))
+            .layer(SetResponseHeaderLayer::if_not_present(
+                header::CONTENT_TYPE,
+                HeaderValue::from_static("video/mp4"),
+            ));
 
     let listner = TcpListener::bind(format!("127.0.0.1:{port}"))
         .await

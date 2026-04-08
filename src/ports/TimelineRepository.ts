@@ -1,9 +1,9 @@
-import type { ExportingRule } from '../modules/export/types';
+import type { ExportingRule, GalleryClip } from '../modules/export/types';
 import type { RangeData, RangeDataWithTags } from '../modules/videoplayer/types/RangeData';
 
 export interface TimelineRepository {
 	getEvents(): Promise<RangeDataWithTags[]>;
-	getRangesForExport(rules: ExportingRule[]): Promise<[number, number][]>;
+	getClipsForGallery(rules: ExportingRule[]): Promise<GalleryClip[]>;
 	addEntry(entry: RangeData): Promise<void>;
 	updateEntry(entry: RangeData): Promise<void>;
 	addTagToEntry(entryId: string, tagId: string): Promise<void>;

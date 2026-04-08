@@ -15,6 +15,7 @@ const initialState: TimelineData = {
 export const timelineContext = new Context<Timeline>('timeline');
 
 export class Timeline {
+	/* State */
 	#history!: StateHistory<TimelineData>;
 	#state = $state<TimelineData>(initialState);
 	#isPlaying = $state(false);
@@ -32,7 +33,6 @@ export class Timeline {
 			(n) => (this.#state = n)
 		);
 
-		//#region Selector derived states
 		this.#timelineEventsByCategory = $derived.by(() => {
 			return this.#state.eventTimeline.reduce(
 				(acc, event) => {
@@ -45,12 +45,13 @@ export class Timeline {
 				{} as Record<string, RangeDataWithTags[]>
 			);
 		});
-		//#endregion
 	}
 
 	getState() {
 		return this.#state;
 	}
+
+	/* Actions */
 
 	reset() {
 		this.#state = initialState;
@@ -78,6 +79,10 @@ export class Timeline {
 
 	redo() {
 		this.#history.redo();
+	}
+
+	setEventSelected(eventId: string | null) {
+		this.#eventSelected = eventId;
 	}
 
 	private createNewEvent(
@@ -109,6 +114,69 @@ export class Timeline {
 			tagsRelated: []
 		};
 	}
+
+	playAllEventsFromCategory(categoryId: string) {
+		const events = this.#timelineEventsByCategory[categoryId];
+		if (!events || events.length === 0) return;
+
+		// Sort events by start time
+		const sortedEvents = [...events].sort((a, b) => a.timestamp.start - b.timestamp.start);
+
+		// Filter out events without end time (dynamic events)
+		const eventsWithEnd = sortedEvents.filter(
+			(event) => event.timestamp.end !== undefined && event.timestamp.end !== null
+		);
+
+		if (eventsWithEnd.length === 0) return;
+
+		// Set up playback queue
+		this.#categoryPlaybackQueue = eventsWithEnd;
+		this.#currentPlaybackIndex = 0;
+
+		// Start playing the first event
+		const firstEvent = eventsWithEnd[0];
+		this.#currentTime = firstEvent.timestamp.start;
+	}
+
+	stopCategoryPlayback() {
+		this.#categoryPlaybackQueue = [];
+		this.#currentPlaybackIndex = -1;
+	}
+
+	getNextEventInQueue(): RangeDataWithTags | null {
+		if (
+			this.#currentPlaybackIndex < 0 ||
+			this.#currentPlaybackIndex >= this.#categoryPlaybackQueue.length
+		) {
+			return null;
+		}
+		return this.#categoryPlaybackQueue[this.#currentPlaybackIndex];
+	}
+
+	moveToNextEvent() {
+		if (this.#currentPlaybackIndex < 0) return false;
+
+		this.#currentPlaybackIndex++;
+		if (this.#currentPlaybackIndex >= this.#categoryPlaybackQueue.length) {
+			// All events played
+			this.stopCategoryPlayback();
+			return false;
+		}
+
+		const nextEvent = this.#categoryPlaybackQueue[this.#currentPlaybackIndex];
+		this.#currentTime = nextEvent.timestamp.start;
+		return true;
+	}
+
+	isEventPlaying(buttonId: string): boolean {
+		return this.#eventsPlaying.has(buttonId);
+	}
+
+	hasEvents(): boolean {
+		return this.#state.eventTimeline.length > 0;
+	}
+
+	/* Operations on Database */
 
 	private async persistEvent(event: RangeDataWithTags) {
 		const repository = TimelineRepositoryFactory.getInstance();
@@ -146,7 +214,6 @@ export class Timeline {
 		await emit('project:dirty');
 	}
 
-	//#region Actions
 	async closeOpenedEvent() {
 		if (!this.#eventsPlaying.size) {
 			return;
@@ -207,10 +274,6 @@ export class Timeline {
 		};
 
 		await emit('project:dirty');
-	}
-
-	setEventSelected(eventId: string | null) {
-		this.#eventSelected = eventId;
 	}
 
 	async addRelatedTagToEvent(tagId: string) {
@@ -324,10 +387,6 @@ export class Timeline {
 		await emit('project:dirty');
 	}
 
-	hasEvents(): boolean {
-		return this.#state.eventTimeline.length > 0;
-	}
-
 	wrapForUndo() {
 		Object.assign(
 			this,
@@ -343,9 +402,9 @@ export class Timeline {
 
 		return this;
 	}
-	//#endregion
 
-	//#region Selectors and setters
+	/* Selectors */
+
 	get isPlaying() {
 		return this.#isPlaying;
 	}
@@ -390,68 +449,14 @@ export class Timeline {
 		return this.#currentPlaybackIndex;
 	}
 
+	get eventTimeline() {
+		return this.#state.eventTimeline;
+	}
+
 	get currentPlaybackCategoryId(): string | null {
 		if (this.#categoryPlaybackQueue.length === 0 || this.#currentPlaybackIndex < 0) {
 			return null;
 		}
 		return this.#categoryPlaybackQueue[0]?.categoryId || null;
 	}
-
-	playAllEventsFromCategory(categoryId: string) {
-		const events = this.#timelineEventsByCategory[categoryId];
-		if (!events || events.length === 0) return;
-
-		// Sort events by start time
-		const sortedEvents = [...events].sort((a, b) => a.timestamp.start - b.timestamp.start);
-
-		// Filter out events without end time (dynamic events)
-		const eventsWithEnd = sortedEvents.filter(
-			(event) => event.timestamp.end !== undefined && event.timestamp.end !== null
-		);
-
-		if (eventsWithEnd.length === 0) return;
-
-		// Set up playback queue
-		this.#categoryPlaybackQueue = eventsWithEnd;
-		this.#currentPlaybackIndex = 0;
-
-		// Start playing the first event
-		const firstEvent = eventsWithEnd[0];
-		this.#currentTime = firstEvent.timestamp.start;
-	}
-
-	stopCategoryPlayback() {
-		this.#categoryPlaybackQueue = [];
-		this.#currentPlaybackIndex = -1;
-	}
-
-	getNextEventInQueue(): RangeDataWithTags | null {
-		if (
-			this.#currentPlaybackIndex < 0 ||
-			this.#currentPlaybackIndex >= this.#categoryPlaybackQueue.length
-		) {
-			return null;
-		}
-		return this.#categoryPlaybackQueue[this.#currentPlaybackIndex];
-	}
-
-	moveToNextEvent() {
-		if (this.#currentPlaybackIndex < 0) return false;
-
-		this.#currentPlaybackIndex++;
-		if (this.#currentPlaybackIndex >= this.#categoryPlaybackQueue.length) {
-			// All events played
-			this.stopCategoryPlayback();
-			return false;
-		}
-
-		const nextEvent = this.#categoryPlaybackQueue[this.#currentPlaybackIndex];
-		this.#currentTime = nextEvent.timestamp.start;
-		return true;
-	}
-
-	isEventPlaying(buttonId: string): boolean {
-		return this.#eventsPlaying.has(buttonId);
-	}
-	//#endregion
 }

@@ -40,8 +40,6 @@
 		currentTime = $bindable(),
 		duration,
 		toTimeString,
-
-		// eslint-disable-next-line no-useless-assignment
 		progress = $bindable(),
 		isPlaying
 	}: Props = $props();

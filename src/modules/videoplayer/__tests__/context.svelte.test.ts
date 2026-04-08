@@ -20,7 +20,7 @@ vi.mock('@tauri-apps/api/event', () => ({
 // Mock the repository factory
 const mockRepository: TimelineRepository = {
 	getEvents: vi.fn().mockResolvedValue([]),
-	getRangesForExport: vi.fn().mockResolvedValue([]),
+	getClipsForGallery: vi.fn().mockResolvedValue([]),
 	addEntry: vi.fn().mockResolvedValue(undefined),
 	updateEntry: vi.fn().mockResolvedValue(undefined),
 	addTagToEntry: vi.fn().mockResolvedValue(undefined),
